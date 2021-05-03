@@ -1,0 +1,91 @@
+﻿<Application x:Class="MSDiskManager.App"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:local="clr-namespace:MSDiskManager"
+             xmlns:vm="clr-namespace:MSDiskManager.ViewModels"
+             StartupUri="MainWindow.xaml">
+    <Application.Resources>
+        <vm:FilterTopViewModel  x:Key="TopViewModel"/>
+        <Style  TargetType="ScrollBar" >
+            <Setter Property="Width" Value="5"/>
+            <Setter Property="MaxWidth" Value="5"/>
+            <Setter Property="MinWidth" Value="5"/>
+            <Setter Property="Background" Value="Black"/>
+        </Style>
+        <SolidColorBrush x:Key="primary" Color="#212121"/>
+        <SolidColorBrush x:Key="primaryLight" Color="#484848"/>
+        <SolidColorBrush x:Key="primaryDark" Color="#000000"/>
+        <SolidColorBrush x:Key="textColor" Color="#ffffff"/>
+        <SolidColorBrush x:Key="textColor2" Color="#999999"/>
+        <SolidColorBrush x:Key="warnColor" Color="#D32F2F"/>
+        <SolidColorBrush x:Key="darkRed" Color="#B71C1C"/>
+        <SolidColorBrush x:Key="addColor" Color="#66BB6A"/>
+        <Style TargetType="Control" x:Key="darkBG">
+            <Setter Property="Background" Value="#212121"/>
+            <Setter Property="Foreground" Value="White"/>
+        </Style>
+        <Style TargetType="Control">
+            <Setter Property="Foreground" Value="{StaticResource textColor}"/>
+            <Setter Property="Background" Value="{StaticResource primary}"/>
+        </Style>
+        <Style TargetType="TextBlock">
+            <Setter Property="Foreground" Value="{StaticResource textColor}"/>
+        </Style>
+        <Style TargetType="Page">
+            <Setter Property="Background" Value="{StaticResource primary}"/>
+        </Style>
+        
+        <Style TargetType="ListView">
+            <Setter Property="Background" Value="{StaticResource primary}"/>
+        </Style>
+        <Style TargetType="Grid">
+            <Setter Property="Background" Value="{StaticResource primary}"/>
+        </Style>
+        <Style TargetType="StackPanel">
+            <Setter Property="Background" Value="{StaticResource primary}"/>
+        </Style>
+        <Style TargetType="Border">
+            <Setter Property="CornerRadius" Value="5"/>
+            <Style.Resources>
+                <Style TargetType="Button">
+                    <Setter Property="Background" Value="Transparent"/>
+                    <Setter Property="BorderBrush" Value="Transparent"/>
+                    <Setter Property="BorderThickness" Value="0"/>
+                </Style>
+                <Style TargetType="ListView">
+                    <Setter Property="Background" Value="Transparent"/>
+                </Style>
+               
+                <Style TargetType="StackPanel">
+                    <Setter Property="Background" Value="Transparent"/>
+                </Style>
+                <Style TargetType="Grid">
+                    <Setter Property="Background" Value="Transparent"/>
+                </Style>
+                
+            </Style.Resources>
+        </Style>
+        <Style TargetType="CheckBox">
+            <Style.Resources>
+                <Style TargetType="Border"/>
+                <Style TargetType="TextBlock"/>
+                <Style TargetType="Control"/>
+                <Style TargetType="Grid"/>
+                <Style TargetType="StackPanel"/>
+            </Style.Resources>
+        </Style>
+        <Style TargetType="RadioButton">
+            <Style.Resources>
+                <Style TargetType="Border"/>
+                <Style TargetType="TextBlock"/>
+                <Style TargetType="Control"/>
+                <Style TargetType="Grid"/>
+                <Style TargetType="StackPanel"/>
+            </Style.Resources>
+        </Style>
+        <Style TargetType="{x:Type Window}">
+            <Setter Property="FontFamily" Value="Ubuntu" />
+            <Setter Property="Background" Value="{StaticResource primary}"/>
+        </Style>
+    </Application.Resources>
+</Application>

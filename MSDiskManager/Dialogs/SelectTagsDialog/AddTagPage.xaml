@@ -1,0 +1,70 @@
+﻿<Page x:Class="MSDiskManager.Dialogs.SelectTagsDialog.AddTagPage"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+      xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+      xmlns:local="clr-namespace:MSDiskManager.Dialogs.SelectTagsDialog"
+      xmlns:mock="clr-namespace:MSDiskManager.Dialogs"
+      xmlns:helpers="clr-namespace:MSDiskManager.Helpers"
+      mc:Ignorable="d" 
+      d:DesignHeight="225" d:DesignWidth="400"
+      Title="AddTagPage">
+    <Page.Resources>
+        <helpers:IntToColorConverter x:Key="IntToColorConverter"/>
+        <helpers:IntToBrushConverter x:Key="IntToBrushConverter"/>
+    </Page.Resources>
+    <Grid Background="{Binding TagColor,Converter={StaticResource IntToBrushConverter}}">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="100"/>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="auto"/>
+            <RowDefinition Height="auto"/>
+        </Grid.RowDefinitions>
+        <TextBlock VerticalAlignment="Center" HorizontalAlignment="Center" Grid.Row="0" Grid.Column="0" Text="Name:"/>
+        <TextBox TextAlignment="Center" VerticalContentAlignment="Center" Grid.Row="0" Grid.Column="1" Text="{Binding TagName, Mode=TwoWay}"/>
+        <TextBlock VerticalAlignment="Center" HorizontalAlignment="Center" Grid.Row="1" Grid.Column="0" Text="Color:"/>
+        <ListView x:Name="ColorsListView" Grid.Row="1" Grid.Column="1" ItemsSource="{Binding AllColors}"
+                  
+                  Background="{StaticResource primaryLight}"
+                  
+                  d:ItemsSource="{x:Static mock:MockData.AllColors}">
+            <ListView.ItemsPanel>
+                <ItemsPanelTemplate>
+                    <WrapPanel Orientation="Horizontal" 
+                               VerticalAlignment="Center" HorizontalAlignment="Center"
+                               MaxWidth="{Binding ElementName=ColorsListView,Path=ActualWidth}" 
+                               MaxHeight="{Binding ElementName=ColorsListView,Path=ActualHeight}" 
+                               Margin="0"/>
+                </ItemsPanelTemplate>
+            </ListView.ItemsPanel>
+            <ListView.ItemTemplate>
+                <DataTemplate>
+                    <Border Background="{Binding Path=.,Converter={StaticResource IntToBrushConverter}}">
+                        <Button MinWidth="25" MinHeight="25" Click="ChangeColor" CommandParameter="{Binding Path=.}">
+                            
+                        </Button>
+                    </Border>
+                </DataTemplate>
+            </ListView.ItemTemplate>
+        </ListView>
+        <TextBlock VerticalAlignment="Center" HorizontalAlignment="Center" Grid.Row="2" Grid.Column="0"
+                   Foreground="{StaticResource warnColor}"
+                   Grid.ColumnSpan="2" Text="{Binding Error}" Visibility="{Binding ErrorVisibility}"/>
+        <Grid Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="2" >
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition/>
+                <ColumnDefinition/>
+            </Grid.ColumnDefinitions>
+            <Border Margin="3 3" Background="{StaticResource warnColor}" Padding="20" Grid.Column="0">
+                <Button Content="Cancel" Click="CancelClicked"/>
+            </Border>
+            <Border Margin="3 3" Background="{StaticResource addColor}" Padding="20" Grid.Column="1">
+                <Button Content="Add" Click="AddClicked"/>
+            </Border>
+        </Grid>
+    </Grid>
+</Page>

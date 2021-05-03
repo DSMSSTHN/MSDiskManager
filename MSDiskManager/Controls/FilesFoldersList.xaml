@@ -1,0 +1,82 @@
+﻿<UserControl x:Class="MSDiskManager.Controls.FilesFoldersList"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:MSDiskManager.Controls"
+             xmlns:helpers="clr-namespace:MSDiskManager.Helpers"
+             mc:Ignorable="d" 
+             DataContext="{Binding RelativeSource={RelativeSource Self}}"
+             d:DesignHeight="450" d:DesignWidth="800">
+    <UserControl.Resources>
+        <helpers:TypeToIconSourceConverter x:Key="TypeToIconSourceConverter"/>
+    </UserControl.Resources>
+    <Border Background="{StaticResource primaryLight}" CornerRadius="10">
+
+        <Grid Loaded="Grid_Loaded">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="auto"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+            <Grid Grid.Row="0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="auto"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <StackPanel Grid.Column="0"  Orientation="Horizontal">
+                    <Button IsEnabled="{Binding CanGoBack.Value}" Click="GoBack">
+                        <Image Source="/images/back.png"/>
+                    </Button>
+                    <Button  IsEnabled="{Binding CanGoBack.Value}" Click="GoHome">
+                        <Image Source="/images/home.png"/>
+                    </Button>
+                </StackPanel>
+                <Label Grid.Column="1" DataContext="{Binding filter.Parent}">
+                    <TextBlock Text="{Binding Name}"/>
+                </Label>
+            </Grid>
+            <ListView Grid.Row="1" Background="Transparent"
+                      
+                      ItemsSource="{Binding Items}" d:ItemsSource="{x:Static local:MockData.Items}">
+                <ListView.ItemTemplate>
+                    <DataTemplate>
+                        <Grid Background="Transparent">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="auto"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="auto"/>
+                            </Grid.ColumnDefinitions>
+                            <Image Width="40" Height="40" Grid.Column="0" 
+                                   Source="{Binding IconType,Converter={StaticResource TypeToIconSourceConverter}}"
+                                   d:Source="{Binding IconType,Converter={StaticResource TypeToIconSourceConverter}}"
+                                   
+                                   />
+                            <Button Grid.Column="1" Background="Transparent" BorderBrush="Transparent" BorderThickness="0"
+                                Click="EntityClicked" CommandParameter="{Binding Path=.}"
+                                >
+                                <Button.Style>
+                                    <Style TargetType="Button">
+                                        <Setter Property="Background" Value="Transparent" />
+                                        <Setter Property="Template">
+                                            <Setter.Value>
+                                                <ControlTemplate TargetType="Button">
+                                                    <Grid Background="{TemplateBinding Background}">
+                                                        <ContentPresenter />
+                                                    </Grid>
+                                                </ControlTemplate>
+                                            </Setter.Value>
+                                        </Setter>
+                                    </Style>
+                                </Button.Style>
+                                <StackPanel Background="Transparent" >
+                                    <Label  FontWeight="Medium" Margin="0 6 0 0" Padding="0"  Content="{Binding Name}"/>
+                                    <Label  FontWeight="Medium" Margin="0" Padding="10 0 0 0 " Foreground="{StaticResource textColor2}" FontSize="10" Content="{Binding FullPath}"/>
+                                </StackPanel>
+                            </Button>
+                        </Grid>
+                    </DataTemplate>
+                </ListView.ItemTemplate>
+            </ListView>
+        </Grid>
+    </Border>
+</UserControl>

@@ -1,0 +1,85 @@
+﻿<Page x:Class="MSDiskManager.Dialogs.SelectTagsDialog.SelectTagsMainPage"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+      xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+      xmlns:local="clr-namespace:MSDiskManager.Dialogs"
+        xmlns:helpers="clr-namespace:MSDiskManager.Helpers"
+      mc:Ignorable="d" 
+      KeepAlive="True"
+      d:DesignHeight="225" d:DesignWidth="400"
+      Title="SelectTagsMainPage">
+    <Page.Resources>
+        <helpers:IntToColorConverter x:Key="IntToColorConverter"/>
+        <helpers:IntToBrushConverter x:Key="IntToBrushConverter"/>
+    </Page.Resources>
+    <Grid FocusManager.FocusedElement="{Binding ElementName=FilterTextBox}">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+        <StackPanel Grid.Row="0">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="auto"/>
+                </Grid.ColumnDefinitions>
+                <TextBlock Grid.Column="0" Background="{StaticResource primaryDark}" Foreground="{StaticResource textColor}"
+                       TextAlignment="Center" FontWeight="Bold" Padding="6"
+                       FontSize="14"
+                       Text="Filter"/>
+                <Border Grid.Column="1"  Background="Green" Padding="10 0">
+                    <Button Content="  +  " FontSize="20" VerticalContentAlignment="Top" Click="AddNewTag" />
+                </Border>
+            </Grid>
+            <TextBox  d:Text="DLS:AJKDLKSA" 
+                      TextAlignment="Center"
+                      FontWeight="Medium"
+                      Text="{Binding Filter,Mode=TwoWay}" Name="FilterTextBox" />
+        </StackPanel>
+        <ListView Grid.Row="1" ItemsSource="{Binding Tags}" 
+                  HorizontalContentAlignment="Stretch"
+                 
+                  d:ItemsSource="{x:Static local:MockData.Tags}">
+            <ListView.Template>
+                <ControlTemplate>
+                    <Border  Background="{StaticResource primary}">
+                        <ScrollViewer>
+                            <!-- this is needed -->
+                            <!--<ScrollViewer.Resources>
+                                <Style TargetType="ScrollBar">
+                                    <Setter Property="MaxWidth" Value="1"/>
+                                    <Setter Property="Width" Value="1"/>
+                                    <Setter Property="MinWidth" Value="1"/>
+                                    <Setter Property="Background" Value="Black"/>
+                                </Style>
+                            </ScrollViewer.Resources>-->
+                            <Grid>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="40"/>
+                                </Grid.RowDefinitions>
+                                <ItemsPresenter />
+                                <Button Grid.Row="1" Click="LoadMore">...Load More...</Button>
+                            </Grid>
+
+                        </ScrollViewer>
+                    </Border>
+                </ControlTemplate>
+            </ListView.Template>
+            <ListView.ItemTemplate>
+                <DataTemplate>
+                    <Border Background="{Binding Color,Converter={StaticResource IntToBrushConverter}}"
+                            Padding="0 5"
+                            Margin="20 2"
+                            >
+                        <Button 
+                                Click="TagClicked"
+                                CommandParameter="{Binding }"
+                                Content="{Binding Name}" FontWeight="SemiBold"/>
+                    </Border>
+                </DataTemplate>
+            </ListView.ItemTemplate>
+        </ListView>
+    </Grid>
+</Page>
