@@ -34,7 +34,7 @@
                     </Button>
                 </StackPanel>
             </Grid>
-            <Frame Grid.Row="1" Source="./Pages/Main/MainPage.xaml"/>
+            <Frame x:Name="MainWindowFrame" NavigationUIVisibility="Hidden" Grid.Row="1" Source="./Pages/Main/MainPage.xaml"/>
         </Grid>
     </Border>
 </Window>

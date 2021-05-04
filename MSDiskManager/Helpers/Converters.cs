@@ -1,4 +1,7 @@
-﻿using MSDiskManagerData.Data.Entities;
+﻿using MSDiskManager.ViewModels;
+using MSDiskManagerData.Data.Entities;
+using MSDiskManagerData.Data.Entities.Relations;
+using MSDiskManagerData.Helpers;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -6,12 +9,77 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows;
 using System.Windows.Data;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 
 namespace MSDiskManager.Helpers
 {
+    public class BooleanVisibility_HiddenConverter : IValueConverter
+    {
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            var inverse = parameter != null && bool.Parse(parameter.ToString());
+            if(inverse) return ((bool)value) ? Visibility.Hidden : Visibility.Visible;
+            return ((bool)value) ? Visibility.Visible : Visibility.Hidden;
+        }
+
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            var inverse = parameter != null && bool.Parse(parameter.ToString());
+            if (inverse) return ((Visibility)value) != Visibility.Visible;
+            return ((Visibility)value) == Visibility.Visible;
+        }
+    }
+    public class BooleanVisibility_CollapseConverter : IValueConverter
+    {
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            var inverse = parameter != null && bool.Parse(parameter.ToString());
+            if (inverse) return ((bool)value) ? Visibility.Collapsed : Visibility.Visible;
+            return ((bool)value) ? Visibility.Visible : Visibility.Collapsed;
+        }
+
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            var inverse = parameter != null && bool.Parse(parameter.ToString());
+            if (inverse) return ((Visibility)value) != Visibility.Visible;
+            return ((Visibility)value) == Visibility.Visible;
+        }
+    }
+    public class BooleanOpposetConverter : IValueConverter
+    {
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            return !((bool)value);
+        }
+
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            return !((bool)value);
+        }
+    }
+    public class EntityListToStringConverter : IValueConverter
+    {
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            if (value == null) return "";
+            var str = "";
+            var seperator = parameter?.ToString() ?? ",";
+            
+            if(value is ICollection<BaseEntity>) foreach (var item in (value as ICollection<BaseEntity>)) str += item.Name + seperator;
+            else if(value is ICollection<BaseEntityViewModel>) foreach (var item in (value as ICollection<BaseEntityViewModel>)) str += item.Name + seperator;
+            else if(value is ICollection<Tag>) foreach (var item in (value as ICollection<Tag>)) str += item.Name + seperator;
+            else if(value is ICollection<DirectoryTag>) foreach (var item in (value as ICollection<DirectoryTag>)) str += item.Tag.Name + seperator;
+            return Globals.IsNullOrEmpty(str) ? "" : str.Substring(0,str.Length - 1);
+        }
+
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            throw new NotImplementedException();
+        }
+    }
     public class DoubleDividerConverter : IValueConverter
     {
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)

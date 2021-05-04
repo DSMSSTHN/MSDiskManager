@@ -5,6 +5,7 @@ using Npgsql;
 using System;
 using System.Collections.Generic;
 using System.Data;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -13,20 +14,24 @@ namespace MSDiskManagerData.Data
 {
     public class MSDM_DBContext : DbContext
     {
-        public static string DriverName = "D:/";
+        public static string DriverName = "D:" + '\\';
         public DbSet<FileEntity> Files { get; set; }
         public DbSet<IgnoredFile> ignoredFiles { get; set; }
         public DbSet<DirectoryEntity> Directories { get; set; }
         public DbSet<Tag> Tags { get; set; }
         public DbSet<FileTag> FileTags { get; set; }
         public DbSet<DirectoryTag> DirectoryTags { get; set; }
-        private static bool IsTest { get; set; }
-        private static string connectionString = !IsTest ? "host=localhost;port=5432;database=msdmdb_test;username=smsthn;password=19131920814;timeout=0;"
-                : "host=localhost;port=5432;database=msdmdb;username=smsthn;password=19131920814;timeout=0;";
+        private static  bool IsTest { get; set; }
+        private static  string connectionString = "host=localhost;port=5432;database=msdmdb_test;username=smsthn;password=19131920814;timeout=0;";
 
         public MSDM_DBContext(bool isTest = false)
         {
-            IsTest = isTest;
+           if(IsTest != isTest)
+            {
+                IsTest = isTest;
+                connectionString = !IsTest ? "host=localhost;port=5432;database=msdmdb_test;username=smsthn;password=19131920814;timeout=0;"
+                    : "host=localhost;port=5432;database=msdmdb;username=smsthn;password=19131920814;timeout=0;";
+            }
         }
         public static ConnectionState ConnectionState { get
             {

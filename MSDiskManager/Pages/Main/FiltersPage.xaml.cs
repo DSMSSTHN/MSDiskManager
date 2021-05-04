@@ -52,8 +52,8 @@ namespace MSDiskManager.Pages.Main
         private void DeleteTag(object sender, RoutedEventArgs e)
         {
             var button = sender as Button;
-            var id = (int)button.CommandParameter;
-            Filter.Tags.Remove(Filter.Tags.FirstOrDefault(t => t.Id == id));
+            var id = (long)button.CommandParameter;
+            Filter.RemoveTag(id);
         }
        
         private void Page_Loaded(object sender, RoutedEventArgs e)

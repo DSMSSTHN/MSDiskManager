@@ -6,11 +6,20 @@
         xmlns:local="clr-namespace:MSDiskManager.Dialogs"
         mc:Ignorable="d"
         Title="SelectTagsDialog" 
-        WindowStartupLocation="CenterOwner"
-        
+        WindowStartupLocation="CenterScreen"
+        AllowsTransparency="True"
+        Background="Transparent"
+        WindowStyle="None"
+        BorderBrush="Transparent"
+        BorderThickness="0"
+        ShowInTaskbar="False"
         Height="225" Width="400" Loaded="WindowLoaded">
-    
-    <Grid>
-        <Frame x:Name="SelectDialogMainFrame"/>
-    </Grid>
+    <Border CornerRadius="5"  BorderBrush="{StaticResource primaryLight}" BorderThickness="3">
+        <Grid Loaded="Grid_Loaded" Background="{StaticResource primary}">
+            <Frame NavigationUIVisibility="Hidden" Padding="25" x:Name="SelectDialogMainFrame"/>
+            <Button Width="25" Height="25" VerticalAlignment="Top" HorizontalAlignment="Right" Click="CloseClicked">
+                <Image Source="/images/clear.png"/>
+            </Button>
+        </Grid>
+    </Border>
 </Window>

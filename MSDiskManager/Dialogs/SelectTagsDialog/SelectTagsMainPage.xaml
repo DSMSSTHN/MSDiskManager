@@ -7,6 +7,8 @@
         xmlns:helpers="clr-namespace:MSDiskManager.Helpers"
       mc:Ignorable="d" 
       KeepAlive="True"
+      ShowsNavigationUI="False"
+      DataContext="{Binding RelativeSource={RelativeSource Self}}"
       d:DesignHeight="225" d:DesignWidth="400"
       Title="SelectTagsMainPage">
     <Page.Resources>
@@ -19,7 +21,7 @@
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
         <StackPanel Grid.Row="0">
-            <Grid>
+            <Grid Loaded="Grid_Loaded">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="auto"/>
@@ -35,7 +37,7 @@
             <TextBox  d:Text="DLS:AJKDLKSA" 
                       TextAlignment="Center"
                       FontWeight="Medium"
-                      Text="{Binding Filter,Mode=TwoWay}" Name="FilterTextBox" />
+                      Text="{Binding Filter.Value,Mode=TwoWay,UpdateSourceTrigger=PropertyChanged}" Name="FilterTextBox" />
         </StackPanel>
         <ListView Grid.Row="1" ItemsSource="{Binding Tags}" 
                   HorizontalContentAlignment="Stretch"
@@ -60,7 +62,7 @@
                                     <RowDefinition Height="40"/>
                                 </Grid.RowDefinitions>
                                 <ItemsPresenter />
-                                <Button Grid.Row="1" Click="LoadMore">...Load More...</Button>
+                                <Button Visibility="{Binding LoadMoreVisibility.Value}" Grid.Row="1" Click="LoadMore">...Load More...</Button>
                             </Grid>
 
                         </ScrollViewer>

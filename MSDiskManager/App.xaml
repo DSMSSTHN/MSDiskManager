@@ -19,6 +19,7 @@
         <SolidColorBrush x:Key="textColor2" Color="#999999"/>
         <SolidColorBrush x:Key="warnColor" Color="#D32F2F"/>
         <SolidColorBrush x:Key="darkRed" Color="#B71C1C"/>
+        <SolidColorBrush x:Key="lightBlue900" Color="#01579b"/>
         <SolidColorBrush x:Key="addColor" Color="#66BB6A"/>
         <Style TargetType="Control" x:Key="darkBG">
             <Setter Property="Background" Value="#212121"/>

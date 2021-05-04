@@ -13,7 +13,7 @@ namespace MSDiskManagerData.Data.Repositories
 {
     public class DirectoryRepository
     {
-
+        
         private MSDM_DBContext context;
         private bool IsTest { get; set; }
         public DirectoryRepository(bool isTest = false)
@@ -22,19 +22,51 @@ namespace MSDiskManagerData.Data.Repositories
             this.context = new MSDM_DBContext(IsTest);
             this.context.Database.EnsureCreated();
         }
-        public async Task<DirectoryEntity> CreateDirectory(long? parentId, string name, string description = "", DirectoryExistsStrategy directoryExistsStrategy = DirectoryExistsStrategy.Rename)
+        public async Task<DirectoryEntity> CreateDirectory(long? parentId, string name, string description = "", DirectoryExistsStrategy directoryExistsStrategy = DirectoryExistsStrategy.Rename, bool dontAddToDB = false)
         {
             if (name == null || name.IsEmpty()) return null;
             var parent = parentId == null ? null : await GetDirectory((long)parentId);
             var path = "";
-            if (parent != null) path = parent.Path + (parent.Path[parent.Path.Length - 1] == '/' ? "" : "/") + name;
+            if (parent != null) path = parent.Path + (parent.Path[parent.Path.Length - 1] == '\\' ? "" : '\\') + name;
             var dn = name;
-            
-            
-            var dir = new DirectoryEntity { Name = name,ParentId = parentId, Path = path,OnDeskName = dn, Description = name };
-            return await CreateDirectory(dir, directoryExistsStrategy);
+
+
+            var dir = new DirectoryEntity { Name = name, ParentId = parentId, Path = path, OnDeskName = dn, Description = name };
+            return await CreateDirectory(dir, directoryExistsStrategy, dontAddToDB);
         }
-        public async Task<DirectoryEntity> CreateDirectory(DirectoryEntity directory, DirectoryExistsStrategy directoryExistsStrategy = DirectoryExistsStrategy.Rename)
+        public async Task<DirectoryEntity> AddToDbOnly(DirectoryEntity directory)
+        {
+            directory.AddingDate = new NodaTime.Instant();
+            directory.MovingDate = new NodaTime.Instant();
+            if (directory.ParentId != null)
+            {
+                var parent = await context.Directories.FirstOrDefaultAsync(d => d.Id == directory.ParentId);
+                directory.AncestorIds = parent.AncestorIds.ToList();
+                directory.AncestorIds.Add((long)directory.ParentId);
+            }
+            var tags = directory.DirectoryTags;
+            directory.Parent = null;
+            directory.Parent = null; directory.DirectoryTags = null;
+            directory.Children = null;
+            directory.Files = null;
+            await context.Directories.AddAsync(directory);
+            await context.SaveChangesAsync();
+            if (Globals.IsNotNullNorEmpty(tags))
+            {
+                foreach (var dt in tags)
+                {
+                    await AddTag((long)directory.Id, (long)dt.TagId);
+                }
+            }
+            return directory;
+        }
+        public async Task<DirectoryEntity> Update(DirectoryEntity directory)
+        {
+            context.Directories.Update(directory);
+            await context.SaveChangesAsync();
+            return directory;
+        }
+        public async Task<DirectoryEntity> CreateDirectory(DirectoryEntity directory, DirectoryExistsStrategy directoryExistsStrategy = DirectoryExistsStrategy.Rename, bool dontAddToDB = false)
         {
 
             if (directory == null || directory.Path == null || Globals.IsNullOrEmpty(directory.Name)) throw new ArgumentException("Directory Or Path or name were null");
@@ -60,26 +92,14 @@ namespace MSDiskManagerData.Data.Repositories
                         throw new DirectoryAlreadtExistsException(directory.FullPath);
                 }
             }
-            
-                Directory.CreateDirectory(directory.FullPath);
-           
-            directory.AddingDate = new NodaTime.Instant();
-            directory.MovingDate = new NodaTime.Instant();
-            if (directory.ParentId != null)
-            {
-                if (directory.Parent == null)
-                {
-                    directory.Parent = await context.Directories.FirstOrDefaultAsync(d => d.Id == directory.ParentId);
-                }
-                directory.AncestorIds = directory.Parent.AncestorIds.ToList();
-                directory.AncestorIds.Add((long)directory.ParentId);
-            }
-            await context.Directories.AddAsync(directory);
-            await context.SaveChangesAsync();
-            return directory;
+
+            Directory.CreateDirectory(directory.FullPath);
+            if (dontAddToDB) return directory;
+            return await AddToDbOnly(directory);
         }
-        public async Task<DirectoryEntity> AddDirectory(DirectoryEntity directory, string oldPath, DirectoryExistsStrategy directoryExistsStratigy = DirectoryExistsStrategy.Rename, bool move = false)
+        public async Task<DirectoryEntity> AddDirectory(DirectoryEntity directory, string oldPath, DirectoryExistsStrategy directoryExistsStratigy = DirectoryExistsStrategy.Rename, bool move = false, bool dontAddToDB = false)
         {
+
             if (directory == null || directory.Path == null || oldPath == null) throw new ArgumentException("Directory Or Old Path were null");
             if (!Directory.Exists(oldPath))
             {
@@ -124,6 +144,7 @@ namespace MSDiskManagerData.Data.Repositories
                 //    File.Copy(newPath, newPath.Replace(sourcePath, targetPath), true);
                 //}
             }
+            if (dontAddToDB) return directory;
             directory.AddingDate = new NodaTime.Instant();
             directory.MovingDate = new NodaTime.Instant();
             if (directory.ParentId != null)
@@ -135,8 +156,20 @@ namespace MSDiskManagerData.Data.Repositories
                 directory.AncestorIds = directory.Parent.AncestorIds.ToList();
                 directory.AncestorIds.Add((long)directory.ParentId);
             }
+            var tags = directory.DirectoryTags;
+            directory.Parent = null;
+            directory.Parent = null; directory.DirectoryTags = null;
+            directory.Children = null;
+            directory.Files = null;
             await context.Directories.AddAsync(directory);
             await context.SaveChangesAsync();
+            if (Globals.IsNotNullNorEmpty(tags))
+            {
+                foreach (var dt in tags)
+                {
+                    await AddTag((long)directory.Id, (long)dt.TagId);
+                }
+            }
             return directory;
         }
         //public async Task<(Boolean success, string message)> Update(DirectoryEntity directory)
@@ -172,7 +205,7 @@ namespace MSDiskManagerData.Data.Repositories
                 return (false, e.Message);
             }
         }
-        
+
         public async Task<(Boolean success, string message, DirectoryEntity directory)> ChangeDescription(long id, string description)
         {
             if (id < 0) return (false, "Not Valid Id", null);
@@ -261,55 +294,74 @@ namespace MSDiskManagerData.Data.Repositories
             {
                 var directory = await context.Directories.FirstOrDefaultAsync(d => d.Id == id);
                 if (directory == null) return (false, "No directory has such an id", null);
-                var oldPath = directory.FullPath;
+                var oldFullPath = directory.FullPath;
+                var oldpath = directory.Path;
                 if (newDirectory == null)
                 {
                     directory.Path = "";
                     directory.Parent = null;
                     directory.ParentId = null;
                     directory.AncestorIds = new List<long>();
-                    Directory.Move(oldPath, directory.FullPath);
+                    Directory.Move(oldFullPath, directory.FullPath);
                 }
                 else
                 {
 
-                    directory.Path = newDirectory.Path + (newDirectory.Path[newDirectory.Path.Length - 1] == '/' ? "" : "/") + directory.OnDeskName;
-                    directory.Parent = newDirectory;
+                    directory.Path = newDirectory.Path + (newDirectory.Path[newDirectory.Path.Length - 1] == '\\' ? "" : '\\') + directory.OnDeskName;
+                    directory.Parent = null;
                     directory.ParentId = newDirectory.Id;
                     directory.AncestorIds = newDirectory.AncestorIds.ToList();
                     directory.AncestorIds.Add((long)newDirectory.Id);
-                    if (Directory.Exists(directory.FullPath))
+                }
+                if (Directory.Exists(directory.FullPath))
+                {
+                    switch (directoryExistsStratigy)
                     {
-                        switch (directoryExistsStratigy)
-                        {
 
-                            case DirectoryExistsStrategy.Replace:
-                                Directory.Delete(directory.FullPath);
-                                break;
-                            case DirectoryExistsStrategy.Rename:
-                                while (Directory.Exists(directory.FullPath))
-                                {
-                                    directory.Path += "_";
-                                    directory.OnDeskName += "_";
+                        case DirectoryExistsStrategy.Replace:
+                            Directory.Delete(directory.FullPath);
+                            break;
+                        case DirectoryExistsStrategy.Rename:
+                            while (Directory.Exists(directory.FullPath))
+                            {
+                                directory.Path += "_";
+                                directory.OnDeskName += "_";
 
-                                }
-                                break;
-                            case DirectoryExistsStrategy.Skip:
-                                return (false, "directory already exists", null);
-                            default:
-                                throw new DirectoryAlreadtExistsException(directory.FullPath);
-                        }
+                            }
+                            break;
+                        case DirectoryExistsStrategy.Skip:
+                            return (false, "directory already exists", null);
+                        default:
+                            throw new DirectoryAlreadtExistsException(directory.FullPath);
                     }
-                    Directory.Move(oldPath, directory.FullPath);
+
+                    Directory.Move(oldFullPath, directory.FullPath);
                 }
                 directory.MovingDate = new NodaTime.Instant();
                 context.Update(directory);
+                await updateDecendantsPath((long)directory.Id, oldpath, directory.Path);
                 await context.SaveChangesAsync();
+                
                 return (true, null, directory);
             }
             catch (Exception e)
             {
                 return (false, e.Message, null);
+            }
+        }
+        private async Task updateDecendantsPath(long ancestorId,string oldAncestorPath,string newAncestorPath)
+        {
+            var dirs = await context.Directories.Where(d => d.AncestorIds.Contains(ancestorId)).Select(d => new DirectoryEntity { Id = d.Id, Path = d.Path }).ToListAsync();
+            foreach(var d in dirs)
+            {
+                context.Directories.Attach(d);
+                d.Path = d.Path.Replace(oldAncestorPath, newAncestorPath);
+            }
+            var files = await context.Files.Where(d => d.AncestorIds.Contains(ancestorId)).Select(d => new FileEntity { Id = d.Id, Path = d.Path }).ToListAsync();
+            foreach (var f in files)
+            {
+                context.Files.Attach(f);
+                f.Path = f.Path.Replace(oldAncestorPath, newAncestorPath);
             }
         }
         public async Task<(Boolean success, string message, DirectoryEntity directory)> Copy(long id, string copyPath, DirectoryExistsStrategy directoryExistsStratigy = DirectoryExistsStrategy.Rename)
@@ -428,16 +480,17 @@ namespace MSDiskManagerData.Data.Repositories
             if (Globals.IsNullOrEmpty(name)) return que;
             var ns = name.Trim().ToLower().Split(" ").Where(n => n.IsNotEmpty()).ToList();
             var q = que;
-            foreach(var n in ns)
+            foreach (var n in ns)
             {
                 q = que.Where(d => d.Name.ToLower().Contains(n));
             }
-            if (includeDirectoryName) {
+            if (includeDirectoryName)
+            {
                 foreach (var n in ns)
                 {
                     q = que.Where(d => d.OnDeskName.ToLower().Contains(n));
                 }
-            } 
+            }
             if (IncludeDescription)
             {
                 foreach (var n in ns)
@@ -465,7 +518,7 @@ namespace MSDiskManagerData.Data.Repositories
         }
         public static IQueryable<DirectoryEntity> QTags(this IQueryable<DirectoryEntity> que, MSDM_DBContext context, List<long> tagIds, string name)
         {
-            if (Globals.IsNullOrEmpty(tagIds)) return que.QTags(context, tagIds);
+            if (Globals.IsNotNullNorEmpty(tagIds)) return que.QTags(context, tagIds);
             return que.QTags(context, name);
         }
         public static IQueryable<DirectoryEntity> QDirectory(this IQueryable<DirectoryEntity> que, long? directoryId)
@@ -484,7 +537,7 @@ namespace MSDiskManagerData.Data.Repositories
             if (withHidden) return que;
             return que.Where(d => !d.IsHidden);
         }
-        
+
         public static IQueryable<DirectoryEntity> QOrder(this IQueryable<DirectoryEntity> que, DirectoryOrder order)
         {
             switch (order)
@@ -521,9 +574,9 @@ namespace MSDiskManagerData.Data.Repositories
             var q = que.QName(filter.Name, filter.IncludeDirectoryNameInSearch, filter.IncludeDescriptionInSearch);
             q = q.QHidden(filter.IncludeHidden);
             q = q.QTags(context, filter.tagIds, filter.TagName);
-            if (filter.DirectoryId != null && filter.DirectoryId >= -1)
+            if (filter.ParentId != null && filter.ParentId >= -1)
             {
-                q = q.QDirectory(filter.DirectoryId);
+                q = q.QDirectory(filter.ParentId);
             }
             else
             {

@@ -20,6 +20,8 @@ namespace MSDiskManager.Pages.AddItems
                
                 foreach (var item in dvm.Files)
                 {
+                    item.Tags.AddRange(Tags);
+                    item.IgnoreAdd = new Random().Next(100) % 2 == 0;
                     result.Add(item);
                 }
                 return result;
@@ -33,6 +35,8 @@ namespace MSDiskManager.Pages.AddItems
                 var dvm = dir.GetFullDirectory();
                 foreach (var item in dvm.Children)
                 {
+                    item.Tags = Tags.ToObservableCollection();
+                    item.IgnoreAdd = new Random().Next(100) % 2 == 0;
                     result.Add(item);
                 }
                 return result;

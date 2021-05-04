@@ -90,7 +90,7 @@ namespace MSDiskManager.ViewModels
             }
         }
       
-        public static List<OrderModel> AllOrdersModels { get => AllOrders.Select(order => new OrderModel (order)).ToList(); }
+        public static List<OrderModel> AllOrdersModels { get => AllOrders.Select(order => new OrderModel (order,order == FileOrder.Name)).ToList(); }
         public event PropertyChangedEventHandler PropertyChanged;
         protected void NotifyPropertChanged([CallerMemberName] string name = null)
         {

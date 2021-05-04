@@ -25,6 +25,7 @@
     <None Remove="images\textImg.jpg" />
     <None Remove="images\unknownFile.png" />
     <None Remove="images\unknownImg.jpg" />
+    <None Remove="images\up.png" />
     <None Remove="images\videoFile.png" />
     <None Remove="images\videoImg.jpg" />
   </ItemGroup>
@@ -39,6 +40,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="Nito.AsyncEx.Coordination" Version="5.1.0" />
     <PackageReference Include="NodaTime" Version="3.0.5" />
     <PackageReference Include="System.Drawing.Common" Version="5.0.2" />
   </ItemGroup>
@@ -98,6 +100,9 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
     <Resource Include="images\unknownImg.jpg">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="images\up.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
     <Resource Include="images\videoFile.png">

@@ -7,13 +7,14 @@
       xmlns:mock="clr-namespace:MSDiskManager.Dialogs"
       xmlns:helpers="clr-namespace:MSDiskManager.Helpers"
       mc:Ignorable="d" 
+      ShowsNavigationUI="False"
       d:DesignHeight="225" d:DesignWidth="400"
       Title="AddTagPage">
     <Page.Resources>
         <helpers:IntToColorConverter x:Key="IntToColorConverter"/>
         <helpers:IntToBrushConverter x:Key="IntToBrushConverter"/>
     </Page.Resources>
-    <Grid Background="{Binding TagColor,Converter={StaticResource IntToBrushConverter}}">
+    <Grid >
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="100"/>
             <ColumnDefinition Width="*"/>
@@ -25,11 +26,11 @@
             <RowDefinition Height="auto"/>
         </Grid.RowDefinitions>
         <TextBlock VerticalAlignment="Center" HorizontalAlignment="Center" Grid.Row="0" Grid.Column="0" Text="Name:"/>
-        <TextBox TextAlignment="Center" VerticalContentAlignment="Center" Grid.Row="0" Grid.Column="1" Text="{Binding TagName, Mode=TwoWay}"/>
+        <TextBox TextAlignment="Center" VerticalContentAlignment="Center" Grid.Row="0" Grid.Column="1" Text="{Binding Name, Mode=TwoWay}"/>
         <TextBlock VerticalAlignment="Center" HorizontalAlignment="Center" Grid.Row="1" Grid.Column="0" Text="Color:"/>
         <ListView x:Name="ColorsListView" Grid.Row="1" Grid.Column="1" ItemsSource="{Binding AllColors}"
                   
-                  Background="{StaticResource primaryLight}"
+                  Background="{Binding Color,Converter={StaticResource IntToBrushConverter}}"
                   
                   d:ItemsSource="{x:Static mock:MockData.AllColors}">
             <ListView.ItemsPanel>
@@ -44,16 +45,14 @@
             <ListView.ItemTemplate>
                 <DataTemplate>
                     <Border Background="{Binding Path=.,Converter={StaticResource IntToBrushConverter}}">
-                        <Button MinWidth="25" MinHeight="25" Click="ChangeColor" CommandParameter="{Binding Path=.}">
+                        <Button MinWidth="25" MinHeight="25" Click="Button_Click" CommandParameter="{Binding Path=.}">
                             
                         </Button>
                     </Border>
                 </DataTemplate>
             </ListView.ItemTemplate>
         </ListView>
-        <TextBlock VerticalAlignment="Center" HorizontalAlignment="Center" Grid.Row="2" Grid.Column="0"
-                   Foreground="{StaticResource warnColor}"
-                   Grid.ColumnSpan="2" Text="{Binding Error}" Visibility="{Binding ErrorVisibility}"/>
+        
         <Grid Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="2" >
             <Grid.ColumnDefinitions>
                 <ColumnDefinition/>

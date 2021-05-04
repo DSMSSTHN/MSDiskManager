@@ -37,12 +37,22 @@ namespace MSDiskManager.Dialogs
             this.selectedTagIds = selectedTagIds;
             InitializeComponent();
             this.DataContext = this;
-            this.Deactivated += (a,b) => { this.Close(); };
+            //this.Deactivated += (a,b) => { this.Close(); };
         }
 
         private void WindowLoaded(object sender, RoutedEventArgs e)
         {
             SelectDialogMainFrame.NavigationService.Navigate(_mainPage);
+        }
+
+        private void CloseClicked(object sender, RoutedEventArgs e)
+        {
+            this.Close();
+        }
+
+        private void Grid_Loaded(object sender, RoutedEventArgs e)
+        {
+            this.MouseDown += delegate { DragMove(); };
         }
     }
 }

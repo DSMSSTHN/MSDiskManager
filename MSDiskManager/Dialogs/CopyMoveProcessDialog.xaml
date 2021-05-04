@@ -1,0 +1,30 @@
+﻿<Window x:Class="MSDiskManager.Dialogs.CopyMoveProcessDialog"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:MSDiskManager.Dialogs"
+        AllowsTransparency="True"
+        Background="Transparent"
+        WindowStyle="None"
+        BorderBrush="Transparent"
+        BorderThickness="0"
+        mc:Ignorable="d"
+        DataContext="{Binding RelativeSource={RelativeSource Self}}"
+        Title="CopyMoveProcessDialog" Height="450" Width="800">
+    <Border Background="{StaticResource primary}" BorderBrush="{StaticResource primaryLight}" BorderThickness="3">
+        <Grid Loaded="Grid_Loaded">
+            <Grid.RowDefinitions>
+                <RowDefinition/>
+                <RowDefinition/>
+                <RowDefinition/>
+                <RowDefinition/>
+            </Grid.RowDefinitions>
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
+                <TextBlock Text="{Binding Finished.Value,StringFormat=' Finished {0} out of'}" d:Text="Finished 10 out of"/>
+                <TextBlock Text="{Binding FileCount,StringFormat=' {0} files'}" d:Text="100 files"/>
+            </StackPanel>
+            <ProgressBar Grid.Row="1" Minimum="0" Maximum="{Binding FileCount}" Value="{Binding Finished.Value}"/>
+        </Grid>
+    </Border>
+</Window>

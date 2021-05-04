@@ -22,37 +22,43 @@ namespace MSDiskManager.Helpers
         {
             if (path.IsFile()) throw new IOException("Get Items was called on a file instaed of  a folder for path :[" + path + "]");
             var files = Directory.GetFiles(path);
-            var sep = path.Contains('/') ? '/' : '\\';
             var firlesult = files.Select(f =>
             {
-                var ne = f.GetFileNameAndExtension();
-                return new FileViewModel
-                {
-                    Name = ne.name,
-                    OnDeskName = ne.name,
-                    OriginalPath = f,
-                    Path = (parent?.Path ?? "") + sep + ne.name + "." + ne.extension,
-                    Parent = parent,
-                    FileType = GetFileType(ne.extension),
-                    Extension = ne.extension
-                };
+                return GetFile(f, parent);
             });
             return firlesult.ToList();
         }
+        public static FileViewModel GetFile(this string path, DirectoryViewModel parent = null)
+        {
+            var p = path.FixSeperator();
+            var sep = '\\';
+            var ne = path.GetFileNameAndExtension();
+            return new FileViewModel
+            {
+                Name = ne.name,
+                OnDeskName = ne.name,
+                OriginalPath = p,
+                Path = (parent?.Path ?? "") + sep + ne.name + "." + ne.extension,
+                Parent = parent,
+                FileType = GetFileType(ne.extension),
+                Extension = ne.extension
+            };
+        }
         public static DirectoryViewModel GetFullDirectory(this string path, DirectoryViewModel parent = null)
         {
-            var sep = path.Contains('/') ? '/' : '\\';
+            var p = path.FixSeperator();
+            var sep = '\\';
             var dir = new DirectoryViewModel
             {
-                Name = path.GetDirectoryName(),
-                OnDeskName = path.GetDirectoryName(),
-                OriginalPath = path,
-                Path = (parent?.Path ?? "") + sep + path.GetDirectoryName(),
+                Name = p.GetDirectoryName(),
+                OnDeskName = p.GetDirectoryName(),
+                OriginalPath = p,
+                Path = (parent?.Path ?? "") + sep + p.GetDirectoryName(),
                 Parent = parent,
 
             };
-            dir.Children = path.GetDirectories(dir);
-            dir.Files = path.GetFiles(dir);
+            dir.Children = p.GetDirectories(dir);
+            dir.Files = p.GetFiles(dir);
             dir.ItemsCount = dir.Files.Count;
             foreach(var c  in dir.Children)
             {
@@ -78,7 +84,8 @@ namespace MSDiskManager.Helpers
             
             var p = path.Trim();
             if (p.Length == 0) return path;
-            var sep = p.Contains('/') ? '/' : '\\';
+            p = path.FixSeperator();
+            var sep = '\\';
             if (p[p.Length - 1] == sep) p = p.Remove(p.Length - 1);
             if (!p.Contains(sep)) return p;
             return p.Substring(p.LastIndexOf(sep) + 1);
@@ -87,7 +94,8 @@ namespace MSDiskManager.Helpers
         {
             var p = path.Trim();
             if (p.Length == 0) return (p, "");
-            var sep = p.Contains('/') ? '/' : '\\';
+            p = path.FixSeperator();
+            var sep = '\\';
             if (p[p.Length - 1] == sep) p = p.Remove(p.Length - 1);
             if (p.Contains(sep)) p = p.Substring(p.LastIndexOf(sep) + 1);
             var index = p.LastIndexOf('.');
@@ -131,6 +139,10 @@ namespace MSDiskManager.Helpers
                     return FileType.Compressed;
             }
             return FileType.Unknown;
+        }
+        public static string FixSeperator(this string path)
+        {
+            return path.Replace('/', '\\');
         }
     }
 }

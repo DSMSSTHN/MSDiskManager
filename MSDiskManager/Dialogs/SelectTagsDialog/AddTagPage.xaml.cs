@@ -1,4 +1,5 @@
-﻿using MSDiskManagerData.Data.Entities;
+﻿using MSDiskManager.ViewModels;
+using MSDiskManagerData.Data.Entities;
 using MSDiskManagerData.Data.Repositories;
 using MSDiskManagerData.Helpers;
 using System;
@@ -23,19 +24,14 @@ namespace MSDiskManager.Dialogs.SelectTagsDialog
     /// </summary>
     public partial class AddTagPage : Page
     {
-        private string _name = "";
-        public string TagName { get=>_name; set { _name = value; _ = checkName(value); } }
-        public int TagColor { get; set; } = 0;
-        public Visibility ErrorVisibility { get; set; } = Visibility.Hidden;
-        public string Error { get; set; } = "";
+        public AddTagViewModel Model { get; } = new AddTagViewModel();
         public static List<int> AllColors { get; set; }
         private Action<Tag> tagAddedFunc;
         public AddTagPage(string name, Action<Tag> tagAddedFunc)
         {
+            this.DataContext = Model;
             this.tagAddedFunc = tagAddedFunc;
-            initColors();
-            this._name = name;
-            this.DataContext = this;
+            this.Model.Name= name;
             InitializeComponent();
         }
         private async Task checkName(string name)
@@ -43,42 +39,23 @@ namespace MSDiskManager.Dialogs.SelectTagsDialog
             
             if (Globals.IsNullOrEmpty(name))
             {
-                showEmptyError();
+                MessageBox.Show("tag name shouldn't be empty");
                 return;
             }
             if(await new TagRepository().TagExists(name))
             {
-                showExistsError();
+                MessageBox.Show("tag name already exits");
                 return;
             }
-            hideError();
 
         }
 
         private async Task addTag()
         {
-            await new TagRepository().AddTag(_name, TagColor);
+            await new TagRepository().AddTag(Model.Name, Model.Color);
         }
-        private void showEmptyError()
-        {
-            this.ErrorVisibility = Visibility.Visible;
-            this.Error = "tag name shouldn't be empty";
-        }
-        private void showExistsError()
-        {
-            this.ErrorVisibility = Visibility.Visible;
-            this.Error = "tag name already exits";
-        }
-        private void showError(string error)
-        {
-            this.ErrorVisibility = Visibility.Visible;
-            this.Error = error;
-        }
-        private void hideError()
-        {
-            this.ErrorVisibility = Visibility.Hidden;
-            this.Error = "";
-        }
+  
+       
 
         private void CancelClicked(object sender, RoutedEventArgs e)
         {
@@ -90,27 +67,21 @@ namespace MSDiskManager.Dialogs.SelectTagsDialog
             try
             {
                 var rep = new TagRepository();
-                var tag = await rep.AddTag(_name, TagColor);
+                var tag = await rep.AddTag(Model.Name, Model.Color);
                 this.tagAddedFunc(tag);
                 this.NavigationService.GoBack();
             }
             catch (Exception ex)
             {
-                showError(ex.Message);
+                MessageBox.Show(ex.Message);
             }
         }
-        private void initColors()
-        {
-            var result = new List<int>();
-            for (int i = 0; i < 11; i++) result.Add(i);
-            AllColors = result;
-        }
 
-        private void ChangeColor(object sender, RoutedEventArgs e)
+        private void Button_Click(object sender, RoutedEventArgs e)
         {
             var button = sender as Button;
-            var num = (int)button.CommandParameter;
-            TagColor = num;
+            var num = (int)button.CommandParameter ;
+            Model.Color = num;
         }
     }
 }

@@ -1,5 +1,6 @@
 ﻿using MSDiskManager.ViewModels;
 using MSDiskManagerData.Data.Entities;
+using MSDiskManagerData.Data.Entities.Relations;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -58,13 +59,22 @@ namespace MSDiskManager.Controls
                         IsHidden = false,
                         MovingDate = new NodaTime.Instant(),
                         OnDeskName = "sdadsa",
+                        DirectoryTags = DTags,
 
-
-                    });
+                    }) ;
                 }
                 return result;
             }
         }
+        public static List<DirectoryTag> DTags {get
+            {
+                var result = new List<DirectoryTag>();
+                for (int i = 0; i < 10; i++)
+                {
+                    result.Add(new DirectoryTag { Tag = new Tag { Name = $"Tag{ i}" } });
+                }
+                return result;
+            } }
         public static List<BaseEntity> Items
         {
             get

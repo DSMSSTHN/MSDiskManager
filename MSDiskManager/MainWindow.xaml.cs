@@ -1,4 +1,5 @@
 ﻿using MSDiskManager.Dialogs;
+using MSDiskManager.Pages.AddItems;
 using MSDiskManagerData.Data;
 using System;
 using System.Collections.Generic;
@@ -48,6 +49,7 @@ namespace MSDiskManager
             _timer.Tick += checkConnection;
             _timer.Start();
         }
+       
         private void checkConnection(object state, EventArgs args)
         {
             if (dialogIsShown) return;

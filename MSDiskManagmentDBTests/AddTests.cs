@@ -17,7 +17,7 @@ namespace MSDiskManagmentDBTests
         public void Setup()
         {
             var db = new MSDM_DBContext(true);
-            MSDM_DBContext.DriverName = "D:/";
+            MSDM_DBContext.DriverName = "D:\\";
             db.Database.EnsureCreated();
         }
 
@@ -49,7 +49,7 @@ namespace MSDiskManagmentDBTests
                 Description = "Directory to test the folder writing",
                 IsHidden = false,
                 Name = "RootDirectory",
-                Path = "MSDMTest/",
+                Path = "MSDMTest",
             };
             dir = await rep.CreateDirectory(dir);
             Assert.NotNull(dir.Id, $"Failure while adding directory: root");
@@ -112,7 +112,7 @@ namespace MSDiskManagmentDBTests
                 {
                     var tid = (long)tags[new Random().Next(tags.Count)].Id;
                     if (added.Contains(tid)) continue;
-                    Assert.True(await rep.AddTag(id, tid));
+                    Assert.True(await rep.AddTag(dir.Id, tid));
                     added.Add(tid);
                 }
             }
@@ -144,7 +144,7 @@ namespace MSDiskManagmentDBTests
         {
             var rep = new FileRepository(true);
             var str = "ksdasldaslkdsalkda";
-            var path = "D:/dt/random_file.txt";
+            var path = "D:\\dt\\random_file.txt";
             File.WriteAllText(path, str);
             var file = new FileEntity { Name = "random file", IsHidden = false, Path = "random_file.txt", Extension = "txt", FileType = FileType.Text };
             file = await rep.AddFile(file, path);
@@ -157,7 +157,7 @@ namespace MSDiskManagmentDBTests
         {
             var rep = new FileRepository(true);
             var str = "ksdasldaslkdsalkda";
-            var path = "D:/dt/random_file.txt";
+            var path = "D:\\dt\\random_file.txt";
             File.WriteAllText(path, str);
             var file = new FileEntity { Name = "random file", IsHidden = false, Path = "random_file.txt", Extension = "txt", FileType = FileType.Text };
             file = await rep.AddFile(file, path);

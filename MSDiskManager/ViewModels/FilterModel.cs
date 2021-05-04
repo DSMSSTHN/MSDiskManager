@@ -20,7 +20,12 @@ namespace MSDiskManager.ViewModels
             this.Tags.Add(tag);
             NotifyPropertyChanged("Tag");
         }
-
+        public void RemoveTag(long id)
+        {
+            var tag = Tags.First(t => t.Id == id);
+            Tags.Remove(tag);
+            NotifyPropertyChanged("Tag");
+        }
 
 
 
@@ -32,30 +37,32 @@ namespace MSDiskManager.ViewModels
         private bool currentFolderRecursive = false;
         private bool allFolders = false;
         private bool showHidden = false;
-        private DirectoryEntity parent = null;
+        private DirectoryEntity? parent = null;
+        private List<TypeModel> filterTypes = TypeModel.AllFilterTypes;
+        private List<OrderModel> orders = OrderModel.AllOrdersModels.ToList();
 
-        public string Name { get => name; set { name = value; NotifyPropertyChanged("Name");} }
-        public string TagName { get => tagName; set { tagName = value; NotifyPropertyChanged("TagName");} }
-        public bool FilterFileName { get => filterFileName; set { filterFileName = value; NotifyPropertyChanged("FilterFileName");} }
-        public bool FilterDescription { get => filterDescription; set { filterDescription = value; NotifyPropertyChanged("FilterDescription");} }
-        public bool CurrentFolderOnly { get => currentFolderOnly; set { currentFolderOnly = value; NotifyPropertyChanged("CurrentFolderOnly");} }
-        public bool CurrentFolderRecursive { get => currentFolderRecursive; set { currentFolderRecursive = value; NotifyPropertyChanged("CurrentFolderRecursive");} }
-        public bool AllFolders { get => allFolders; set { allFolders = value; NotifyPropertyChanged("AllFolders");} }
-        public bool ShowHidden { get => showHidden; set { showHidden = value; NotifyPropertyChanged("ShowHidden");} }
-        public DirectoryEntity Parent { get => parent; set { parent = value; NotifyPropertyChanged("Parent");} }
-        public List<TypeModel> FilterTypes { get; set; } = TypeModel.AllFilterTypes;
-        public List<OrderModel> Orders { get; set; } = OrderModel.AllOrdersModels.ToList();
+        public string Name { get => name; set { name = value; NotifyPropertyChanged("Name"); } }
+        public string TagName { get => tagName; set { tagName = value; NotifyPropertyChanged("TagName"); } }
+        public bool FilterFileName { get => filterFileName; set { filterFileName = value; NotifyPropertyChanged("FilterFileName"); } }
+        public bool FilterDescription { get => filterDescription; set { filterDescription = value; NotifyPropertyChanged("FilterDescription"); } }
+        public bool CurrentFolderOnly { get => currentFolderOnly; set { currentFolderOnly = value; NotifyPropertyChanged("CurrentFolderOnly"); } }
+        public bool CurrentFolderRecursive { get => currentFolderRecursive; set { currentFolderRecursive = value; NotifyPropertyChanged("CurrentFolderRecursive"); } }
+        public bool AllFolders { get => allFolders; set { allFolders = value; NotifyPropertyChanged("AllFolders"); } }
+        public bool ShowHidden { get => showHidden; set { showHidden = value; NotifyPropertyChanged("ShowHidden"); } }
+        public DirectoryEntity Parent { get => parent; set { parent = value; NotifyPropertyChanged("Parent"); } }
+        public List<TypeModel> FilterTypes { get => filterTypes; set => filterTypes = value; }
+        public List<OrderModel> Orders { get => orders; set => orders = value; }
         public ObservableCollection<Tag> Tags { get; set; } = new ObservableCollection<Tag>();
 
-        
+
 
         public bool OnlyFolders => FilterTypes.All(ft => ft.Type == MSItemType.Directory || !ft.IsChecked);
-        public bool IncludeFolders => FilterTypes.First(ft => ft.Type == MSItemType.Directory).IsChecked;
+        public bool IncludeFolders => filterTypes.All(ft => !ft.IsChecked) || FilterTypes.First(ft => ft.Type == MSItemType.Directory).IsChecked;
         public List<FileType> FileTypes => FilterTypes.Where(ft => ft.Type != MSItemType.All && ft.Type != MSItemType.Directory && ft.IsChecked).Select(ft => ft.FileType).ToList();
 
 
         private OrderModel selectedOrder => Orders.FirstOrDefault(o => o.IsChecked) ?? Orders[0];
-        private List<long> ancestorIds { get { var result = new List<long>(); result.Add((long)Parent.Id); return result; } }
+        private List<long> ancestorIds { get { var result = new List<long>(); if (Parent != null) result.Add((long)Parent.Id); return result; } }
         public FileFilter FileFilter => new FileFilter
         {
             DirectoryId = CurrentFolderOnly ? (Parent?.Id ?? -1) : null,
@@ -71,8 +78,8 @@ namespace MSDiskManager.ViewModels
         };
         public DirectoryFilter DirectoryFilter => new DirectoryFilter
         {
-            DirectoryId = CurrentFolderOnly ? (Parent?.Id ?? -1) : null,
-            AncestorIds = CurrentFolderRecursive ? (Parent == null ? null : ancestorIds) : null,
+            ParentId = CurrentFolderOnly ? (Parent?.Id ?? -1) : null,
+            AncestorIds = CurrentFolderRecursive ? (Parent == null ? new List<long>() : ancestorIds) : new List<long>(),
             IncludeDescriptionInSearch = filterDescription,
             IncludeDirectoryNameInSearch = filterFileName,
             IncludeHidden = showHidden,
@@ -85,7 +92,29 @@ namespace MSDiskManager.ViewModels
 
         public FilterModel()
         {
-
+            FilterTypes.ForEach(ft => { ft.PropertyChanged += filterTypesChanged; });
+            Orders.ForEach(o => { o.PropertyChanged += orderChanged; });
+        }
+        private void filterTypesChanged(object f, PropertyChangedEventArgs args)
+        {
+            var tm = f as TypeModel;
+            if (tm.Type == MSItemType.All)
+            {
+                foreach (var ft in filterTypes) ft.PropertyChanged -= filterTypesChanged;
+                foreach (var ft in filterTypes) ft.IsChecked = tm.IsChecked;
+                foreach (var ft in filterTypes) ft.PropertyChanged += filterTypesChanged;
+            }
+            else
+            {
+                foreach (var ft in filterTypes) ft.PropertyChanged -= filterTypesChanged;
+                filterTypes.First(ft => ft.Type == MSItemType.All).IsChecked = filterTypes.All(ft => ft.IsChecked || ft.Type == MSItemType.All);
+                foreach (var ft in filterTypes) ft.PropertyChanged += filterTypesChanged;
+            }
+            NotifyPropertyChanged("Types");
+        }
+        private void orderChanged(object f, PropertyChangedEventArgs args)
+        {
+            NotifyPropertyChanged("Order");
         }
 
         public FilterModel(string name, string tagName, bool filterFileName,

@@ -31,7 +31,7 @@ namespace MSDiskManager.Controls
     {
         private FilterTopViewModel filterTopViewModel;
         public ObservableCollection<BaseEntity> Items { get; set; } = new ObservableCollection<BaseEntity>();
-        private int lastFolderIndex = -1;
+        //private int lastFolderIndex = -1;
         private ConcurrentStack<CancellationTokenSource> _cancellationTokens = new ConcurrentStack<CancellationTokenSource>();
         //private List<FilterModel> history { get; set; } = new List<FilterModel>();
         private Stack<DirectoryEntity> history { get; set; } = new Stack<DirectoryEntity>();

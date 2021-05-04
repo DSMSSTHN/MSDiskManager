@@ -35,7 +35,11 @@ namespace MSDiskManagerData.Data.Repositories
             if (Globals.IsNotNullNorEmpty(name))
             {
                 var ns = name.Trim().ToLower().Split(" ").Where(n => n.Trim().IsNotEmpty());
-                que = que.Where(t => ns.All(n => t.Name.ToLower().Contains(n)));
+                foreach (var n in ns)
+                {
+                    que = que.Where(t => t.Name.ToLower().Contains(n));
+                }
+                
             }
             if (Globals.IsNotNullNorEmpty(excludeIds))
             {

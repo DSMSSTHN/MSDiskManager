@@ -22,8 +22,34 @@ namespace MSDiskManagerData.Data.Repositories
             this.context = new MSDM_DBContext(IsTest);
             this.context.Database.EnsureCreated();
         }
-
-        public async Task<FileEntity> AddFile(FileEntity file, string oldPath, FileExistsStrategy fileExistsStratigy = FileExistsStrategy.Rename, bool move = false)
+        public async Task<FileEntity> AddFileToDBOnly(FileEntity file)
+        {
+            file.AddingDate = new NodaTime.Instant();
+            file.MovingDate = new NodaTime.Instant();
+            if (file.ParentId != null)
+            {
+                if (file.Parent == null)
+                {
+                    file.Parent = await context.Directories.FirstOrDefaultAsync(d => d.Id == file.ParentId);
+                }
+                file.AncestorIds = file.Parent.AncestorIds.ToList();
+                file.AncestorIds.Add((long)file.ParentId);
+            }
+            var tags = file.FileTags;
+            file.Parent = null;
+            file.FileTags = null;
+            await context.Files.AddAsync(file);
+            await context.SaveChangesAsync();
+            if (Globals.IsNotNullNorEmpty(tags))
+            {
+                foreach (var ft in tags)
+                {
+                    await AddTag((long)file.Id, (long)ft.TagId);
+                }
+            }
+            return file;
+        }
+        public async Task<FileEntity> AddFile(FileEntity file, string oldPath, FileExistsStrategy fileExistsStratigy = FileExistsStrategy.Rename, bool move = false,bool dontAddToDB = false)
         {
             if (file == null || file.Path == null || oldPath == null) throw new ArgumentException("File Or Old Path were null");
             if (!File.Exists(oldPath))
@@ -38,11 +64,15 @@ namespace MSDiskManagerData.Data.Repositories
                         File.Delete(file.FullPath);
                         break;
                     case FileExistsStrategy.Rename:
+
+                        var e = file.Extension;
                         while (File.Exists(file.FullPath))
                         {
-                            var extensionIndex = file.Path.LastIndexOf(".");
-                            file.Path = file.Path.Insert(extensionIndex, "_");
-                            file.OnDeskName += "_";
+                            var n = file.OnDeskName;
+                            var f = n + (Globals.IsNotNullNorEmpty(e) ? ("." + e) : "");
+                            var r = n + "_" + (Globals.IsNotNullNorEmpty(e) ? ("." + e) : "");
+                            file.Path = file.Path.Replace(f, r);
+                            file.OnDeskName = n + "_";
                         }
                         break;
                     case FileExistsStrategy.Skip:
@@ -60,20 +90,8 @@ namespace MSDiskManagerData.Data.Repositories
             {
                 File.Copy(oldPath, file.FullPath);
             }
-            file.AddingDate = new NodaTime.Instant();
-            file.MovingDate = new NodaTime.Instant();
-            if (file.ParentId != null)
-            {
-                if (file.Parent == null)
-                {
-                    file.Parent = await context.Directories.FirstOrDefaultAsync(d => d.Id == file.ParentId);
-                }
-                file.AncestorIds = file.Parent.AncestorIds.ToList();
-                file.AncestorIds.Add((long)file.ParentId);
-            }
-            await context.Files.AddAsync(file);
-            await context.SaveChangesAsync();
-            return file;
+            if (dontAddToDB) return file;
+            return await AddFileToDBOnly(file);
         }
         //public async Task<(Boolean success, string message)> Update(FileEntity file)
         //{
@@ -227,7 +245,7 @@ namespace MSDiskManagerData.Data.Repositories
                 else
                 {
 
-                    file.Path = newDirectory.Path + (newDirectory.Path[newDirectory.Path.Length - 1] == '/' ? "" : "/") + file.Name + "." + file.Extension;
+                    file.Path = newDirectory.Path + (newDirectory.Path[newDirectory.Path.Length - 1] == '\\' ? "" : '\\') + file.Name + "." + file.Extension;
                     file.Parent = newDirectory;
                     file.ParentId = newDirectory.Id;
                     file.AncestorIds = newDirectory.AncestorIds.ToList();
@@ -241,11 +259,14 @@ namespace MSDiskManagerData.Data.Repositories
                                 File.Delete(file.FullPath);
                                 break;
                             case FileExistsStrategy.Rename:
+                                var e = file.Extension;
                                 while (File.Exists(file.FullPath))
                                 {
-                                    var extensionIndex = file.Path.LastIndexOf(".");
-                                    file.Path = file.Path.Insert(extensionIndex, "_");
-                                    file.OnDeskName += "_";
+                                    var n = file.OnDeskName;
+                                    var f = n + (Globals.IsNotNullNorEmpty(e) ? ("." + e) : "");
+                                    var r = n + "_" + (Globals.IsNotNullNorEmpty(e) ? ("." + e) : "");
+                                    file.Path = file.Path.Replace(f, r);
+                                    file.OnDeskName = n + "_";
                                 }
 
                                 break;
@@ -389,7 +410,7 @@ namespace MSDiskManagerData.Data.Repositories
         }
         public static IQueryable<FileEntity> QTags(this IQueryable<FileEntity> que, MSDM_DBContext context, List<long> tagIds, string name)
         {
-            if (Globals.IsNullOrEmpty(tagIds)) return que.QTags(context, tagIds);
+            if (Globals.IsNotNullNorEmpty(tagIds)) return que.QTags(context, tagIds);
             return que.QTags(context, name);
         }
         public static IQueryable<FileEntity> QDirectory(this IQueryable<FileEntity> que, long? directoryId)

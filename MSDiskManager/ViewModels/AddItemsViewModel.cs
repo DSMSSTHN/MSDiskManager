@@ -1,4 +1,6 @@
 ﻿using MSDiskManager.Helpers;
+using MSDiskManagerData.Data.Entities;
+using MSDiskManagerData.Helpers;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -12,43 +14,72 @@ namespace MSDiskManager.ViewModels
 {
     public class AddItemsViewModel : INotifyPropertyChanged
     {
-        private DirectoryViewModel parent;
+        private DirectoryEntity parent;
         private DirectoryViewModel currentDirectory;
         private List<FileViewModel> baseFiles = new List<FileViewModel>();
         private List<DirectoryViewModel> baseDirectories = new List<DirectoryViewModel>();
         private List<FileViewModel> filesList = new List<FileViewModel>();
         private List<DirectoryViewModel> directoriesList = new List<DirectoryViewModel>();
-        private string nameFilter = "";
+        private string fileNameFilter = "";
+        private string dirNameFilter = "";
+        private DirectoryEntity distanation;
+        private bool filesOnly = false;
+
+        private object filesLock;
+        private object foldersLock;
+        public AddItemsViewModel()
+        {
+        }
+
 
         public ObservableCollection<FileViewModel> Files { get; set; } = new ObservableCollection<FileViewModel>();
         //public ObservableCollection<BaseEntityViewModel> ItemsToMove  { get; set; } = new ObservableCollection<FileViewModel>();
         public ObservableCollection<DirectoryViewModel> Directories { get; set; } = new ObservableCollection<DirectoryViewModel>();
         public DirectoryViewModel CurrentDirectory { get => currentDirectory; set { currentDirectory = value; NotifyPropertyChanged("CurrentDirectory"); } }
-        public DirectoryViewModel Parent { get => parent; set { parent = value; NotifyPropertyChanged("Parent"); } }
+        public DirectoryEntity Parent { get => parent; set { parent = value; NotifyPropertyChanged("Parent"); } }
         public List<TypeModel> Types { get; } = TypeModel.OnlyFileFilterTypes;
-
-        public string NameFilter
+        public DirectoryEntity Distanation { get => distanation; set { distanation = value; NotifyPropertyChanged("Distanation"); } }
+        public bool FilesOnly { get => filesOnly; set { filesOnly = value; NotifyPropertyChanged("FilesOnly"); } }
+        public string FileNameFilter
         {
-            get => nameFilter; set
+            get => fileNameFilter; set
             {
-                if(value.Length > nameFilter.Length && value.Contains(nameFilter))
+                if (value.Length > fileNameFilter.Length && value.Contains(fileNameFilter))
                 {
                     FilesList = FilesList.Where(f => f.Name.Contains(value)).ToList();
-                    DirectoriesList = DirectoriesList.Where(f => f.Name.Contains(value)).ToList();
-                } else if (nameFilter.Length > value.Length && nameFilter.Contains(value))
+                }
+                else if (fileNameFilter.Length > value.Length && fileNameFilter.Contains(value))
                 {
-                    var fl = BaseFiles.Where(f => f.Name.Contains(value) && !f.Name.Contains(nameFilter)).ToList();
+                    var fl = BaseFiles.Where(f => f.Name.Contains(value) && !f.Name.Contains(fileNameFilter)).ToList();
                     fl.AddRange(FilesList);
                     FilesList = fl;
-                    var dl = BaseDirectories.Where(f => f.Name.Contains(value) && !f.Name.Contains(nameFilter)).ToList();
-                    dl.AddRange(DirectoriesList);
-                    DirectoriesList = dl;
-                } else
+                }
+                else
                 {
                     FilesList = BaseFiles.Where(f => f.Name.Contains(value)).ToList();
+                }
+                fileNameFilter = value;
+            }
+        }
+        public string DirectoryNameFilter
+        {
+            get => dirNameFilter; set
+            {
+                if (value.Length > dirNameFilter.Length && value.Contains(dirNameFilter))
+                {
+                    DirectoriesList = DirectoriesList.Where(f => f.Name.Contains(value)).ToList();
+                }
+                else if (dirNameFilter.Length > value.Length && dirNameFilter.Contains(value))
+                {
+                    var dl = BaseDirectories.Where(f => f.Name.Contains(value) && !f.Name.Contains(dirNameFilter)).ToList();
+                    dl.AddRange(DirectoriesList);
+                    DirectoriesList = dl;
+                }
+                else
+                {
                     DirectoriesList = BaseDirectories.Where(f => f.Name.Contains(value)).ToList();
                 }
-                nameFilter = value;
+                dirNameFilter = value;
             }
         }
         public List<FileViewModel> BaseFiles
@@ -56,7 +87,7 @@ namespace MSDiskManager.ViewModels
             get => baseFiles; set
             {
                 baseFiles = value;
-                FilesList = value;
+                FilesList = Globals.IsNullOrEmpty(FileNameFilter) ? value : value.Where(v => v.Name.Contains(FileNameFilter)).ToList();
             }
         }
         public List<DirectoryViewModel> BaseDirectories
@@ -64,7 +95,7 @@ namespace MSDiskManager.ViewModels
             get => baseDirectories; set
             {
                 baseDirectories = value;
-                DirectoriesList = value;
+                DirectoriesList = Globals.IsNullOrEmpty(DirectoryNameFilter) ? value : value.Where(v => v.Name.Contains(DirectoryNameFilter)).ToList();
             }
         }
         public List<FileViewModel> FilesList
@@ -72,10 +103,18 @@ namespace MSDiskManager.ViewModels
             get => filesList; set
             {
                 filesList = value;
-                var ToRemove = Files.Where(f => value.Contains(f));
-                var ToAdd = value.Where(f => !Files.Contains(f));
-                foreach (var item in ToRemove) Files.Remove(item);
-                foreach (var item in ToAdd) Files.InsertSorted(item, (e) => e.Name);
+                var ToRemove = Files.Where(f => !value.Contains(f)).ToList();
+                var ToAdd = value.Where(f => !Files.Contains(f)).ToList();
+                try
+                {
+                    foreach (var item in ToRemove) Files.Remove(item);
+                    foreach (var item in ToAdd) Files.InsertSorted(item, (e) => e.Name);
+                }
+                catch (Exception)
+                {
+
+                    return;
+                }
             }
         }
         public List<DirectoryViewModel> DirectoriesList
@@ -83,11 +122,32 @@ namespace MSDiskManager.ViewModels
             get => directoriesList; set
             {
                 directoriesList = value;
-                var ToRemove = Directories.Where(f => value.Contains(f));
-                var ToAdd = value.Where(f => !Directories.Contains(f));
-                foreach (var item in ToRemove) Directories.Remove(item);
-                foreach (var item in ToAdd) Directories.InsertSorted(item, (e) => e.Name);
+                var ToRemove = Directories.Where(f => !value.Contains(f)).ToList();
+                var ToAdd = value.Where(f => !Directories.Contains(f)).ToList();
+                try
+                {
+                    foreach (var item in ToRemove) Directories.Remove(item);
+                    foreach (var item in ToAdd) Directories.InsertSorted(item, (e) => e.Name);
+                }
+                catch (Exception)
+                {
+
+                    return;
+                }
             }
+        }
+        public void Reset(List<FileViewModel> Files = null,List<DirectoryViewModel> Directories = null)
+        {
+            this.baseDirectories.Clear();
+            this.directoriesList.Clear();
+            this.Directories.Clear();
+            this.baseFiles.Clear();
+            this.filesList.Clear();
+            this.Files.Clear();
+            this.DirectoryNameFilter = "";
+            this.FileNameFilter = "";
+            this.Files.AddRange(Files ?? new List<FileViewModel>());
+            this.Directories.AddRange(Directories ?? new List<DirectoryViewModel>());
         }
 
 

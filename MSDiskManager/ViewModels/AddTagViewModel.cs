@@ -1,5 +1,4 @@
-﻿#nullable enable
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
@@ -9,17 +8,24 @@ using System.Threading.Tasks;
 
 namespace MSDiskManager.ViewModels
 {
-    public class TagViewModel : INotifyPropertyChanged
+    public class AddTagViewModel : INotifyPropertyChanged
     {
-        private long? _id;
-        private string name = "new tag";
+        private string name = "";
         private int color = 0;
 
-
-        public long? Id { get => _id; set { _id = value; } }
         public string Name { get => name; set { name = value; NotifyPropertyChanged("Name"); } }
         public int Color { get => color; set { color = value; NotifyPropertyChanged("Color"); } }
-
+        public List<int> AllColors
+        {
+            get
+            {
+                var lst = new List<int>(); for (int i = 0; i < 11; i++)
+                {
+                    lst.Add(i);
+                }
+                return lst;
+            }
+        }
 
 
 
@@ -28,6 +34,6 @@ namespace MSDiskManager.ViewModels
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
         }
-
     }
+
 }
