@@ -105,6 +105,7 @@ namespace MSDiskManager.Dialogs.SelectTagsDialog
         private void Grid_Loaded(object sender, RoutedEventArgs e)
         {
             _ = filterTags();
+            FilterTextBox.Focus();
         }
     }
 }

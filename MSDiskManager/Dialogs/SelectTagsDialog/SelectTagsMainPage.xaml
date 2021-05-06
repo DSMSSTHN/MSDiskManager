@@ -15,7 +15,7 @@
         <helpers:IntToColorConverter x:Key="IntToColorConverter"/>
         <helpers:IntToBrushConverter x:Key="IntToBrushConverter"/>
     </Page.Resources>
-    <Grid FocusManager.FocusedElement="{Binding ElementName=FilterTextBox}">
+    <Grid >
         <Grid.RowDefinitions>
             <RowDefinition Height="auto"/>
             <RowDefinition Height="*"/>

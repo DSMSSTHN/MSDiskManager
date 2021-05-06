@@ -78,7 +78,7 @@ namespace MSDiskManager.Dialogs
 
         private void TextBlock_Loaded(object sender, RoutedEventArgs e)
         {
-            this.MouseDown += delegate { DragMove(); };
+            this.MouseLeftButtonDown += delegate { DragMove(); };
         }
     }
 }

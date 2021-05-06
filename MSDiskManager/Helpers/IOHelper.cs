@@ -11,29 +11,40 @@ namespace MSDiskManager.Helpers
 {
     public static class IOHelper
     {
-        public static List<DirectoryViewModel> GetDirectories(this string path, DirectoryViewModel parent = null)
+        public static (List<DirectoryViewModel> dirs, List<string> pathes) GetDirectories(this string path, DirectoryViewModel parent = null)
         {
             if (path.IsFile()) throw new IOException("Get Items was called on a file instaed of  a folder for path :[" + path + "]");
             var directories = Directory.GetDirectories(path);
-            var diresult = directories.Select(d => d.GetFullDirectory(parent));
-            return diresult.ToList();
+            var dirs = new List<DirectoryViewModel>();
+            var pathes = new List<string>();
+            foreach (var d in directories)
+            {
+                var diresult = d.GetFullDirectory(parent);
+                dirs.Add(diresult.directory);
+                pathes.AddRange(diresult.pathes);
+            }
+            return (dirs, pathes);
         }
-        public static List<FileViewModel> GetFiles(this string path, DirectoryViewModel parent = null)
+        public static (List<FileViewModel> files, List<string> pathes) GetFiles(this string path, DirectoryViewModel parent = null)
         {
             if (path.IsFile()) throw new IOException("Get Items was called on a file instaed of  a folder for path :[" + path + "]");
             var files = Directory.GetFiles(path);
-            var firlesult = files.Select(f =>
+            var fs = new List<FileViewModel>();
+            var pathes = new List<string>();
+            foreach (var f in files)
             {
-                return GetFile(f, parent);
-            });
-            return firlesult.ToList();
+                var filesult = GetFile(f, parent);
+                fs.Add(filesult.file);
+                pathes.Add(filesult.path);
+            }
+            return (fs,pathes);
         }
-        public static FileViewModel GetFile(this string path, DirectoryViewModel parent = null)
+        public static (FileViewModel file, string path) GetFile(this string path, DirectoryViewModel parent = null)
         {
             var p = path.FixSeperator();
             var sep = '\\';
             var ne = path.GetFileNameAndExtension();
-            return new FileViewModel
+            var file = new FileViewModel
             {
                 Name = ne.name,
                 OnDeskName = ne.name,
@@ -43,8 +54,9 @@ namespace MSDiskManager.Helpers
                 FileType = GetFileType(ne.extension),
                 Extension = ne.extension
             };
+            return (file, path);
         }
-        public static DirectoryViewModel GetFullDirectory(this string path, DirectoryViewModel parent = null)
+        public static (DirectoryViewModel directory, List<string> pathes) GetFullDirectory(this string path, DirectoryViewModel parent = null)
         {
             var p = path.FixSeperator();
             var sep = '\\';
@@ -57,14 +69,19 @@ namespace MSDiskManager.Helpers
                 Parent = parent,
 
             };
-            dir.Children = p.GetDirectories(dir);
-            dir.Files = p.GetFiles(dir);
+            var diresult = p.GetDirectories(dir);
+            var filesult = p.GetFiles(dir);
+            dir.Children = diresult.dirs;
+            dir.Files = filesult.files;
             dir.ItemsCount = dir.Files.Count;
-            foreach(var c  in dir.Children)
+            foreach (var c in dir.Children)
             {
                 dir.ItemsCount += c.ItemsCount;
             }
-            return dir;
+            var pathes = diresult.pathes.ToList();
+            pathes.AddRange(filesult.pathes);
+            pathes.Add(path);
+            return (dir, pathes);
         }
         public static bool IsFile(this string path)
         {
@@ -81,7 +98,7 @@ namespace MSDiskManager.Helpers
 
         public static string GetDirectoryName(this string path)
         {
-            
+
             var p = path.Trim();
             if (p.Length == 0) return path;
             p = path.FixSeperator();

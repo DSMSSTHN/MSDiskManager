@@ -14,141 +14,102 @@ namespace MSDiskManager.ViewModels
 {
     public class AddItemsViewModel : INotifyPropertyChanged
     {
-        private DirectoryEntity parent;
-        private DirectoryViewModel currentDirectory;
-        private List<FileViewModel> baseFiles = new List<FileViewModel>();
-        private List<DirectoryViewModel> baseDirectories = new List<DirectoryViewModel>();
-        private List<FileViewModel> filesList = new List<FileViewModel>();
-        private List<DirectoryViewModel> directoriesList = new List<DirectoryViewModel>();
-        private string fileNameFilter = "";
-        private string dirNameFilter = "";
-        private DirectoryEntity distanation;
+        private readonly static List<string> typeNames = Enum.GetValues(typeof(FileType)).Cast<FileType>().Select(ft => ft.ToString().ToLower()).ToList();
+        private string filter = "";
         private bool filesOnly = false;
+        private DirectoryEntity parent;
+        private bool canScroll;
 
-        private object filesLock;
-        private object foldersLock;
-        public AddItemsViewModel()
-        {
-        }
+        public DirectoryEntity Distanation { get => parent; set => parent = value; }
 
-
-        public ObservableCollection<FileViewModel> Files { get; set; } = new ObservableCollection<FileViewModel>();
-        //public ObservableCollection<BaseEntityViewModel> ItemsToMove  { get; set; } = new ObservableCollection<FileViewModel>();
-        public ObservableCollection<DirectoryViewModel> Directories { get; set; } = new ObservableCollection<DirectoryViewModel>();
-        public DirectoryViewModel CurrentDirectory { get => currentDirectory; set { currentDirectory = value; NotifyPropertyChanged("CurrentDirectory"); } }
-        public DirectoryEntity Parent { get => parent; set { parent = value; NotifyPropertyChanged("Parent"); } }
-        public List<TypeModel> Types { get; } = TypeModel.OnlyFileFilterTypes;
-        public DirectoryEntity Distanation { get => distanation; set { distanation = value; NotifyPropertyChanged("Distanation"); } }
+        private List<BaseEntityViewModel> removedItems { get; set; } = new List<BaseEntityViewModel>();
+        public ObservableCollection<BaseEntityViewModel> Items { get; } = new ObservableCollection<BaseEntityViewModel>();
+        public bool CanScroll { get => canScroll; set { canScroll = value; NotifyPropertyChanged("CanScroll"); } }
         public bool FilesOnly { get => filesOnly; set { filesOnly = value; NotifyPropertyChanged("FilesOnly"); } }
-        public string FileNameFilter
+        public string Filter
         {
-            get => fileNameFilter; set
+            get => filter; set
             {
-                if (value.Length > fileNameFilter.Length && value.Contains(fileNameFilter))
-                {
-                    FilesList = FilesList.Where(f => f.Name.Contains(value)).ToList();
-                }
-                else if (fileNameFilter.Length > value.Length && fileNameFilter.Contains(value))
-                {
-                    var fl = BaseFiles.Where(f => f.Name.Contains(value) && !f.Name.Contains(fileNameFilter)).ToList();
-                    fl.AddRange(FilesList);
-                    FilesList = fl;
-                }
-                else
-                {
-                    FilesList = BaseFiles.Where(f => f.Name.Contains(value)).ToList();
-                }
-                fileNameFilter = value;
+                //if (filter.Length > value.Length && filter.Contains(value))
+                //{
+                //    Items.InsertSorted(removedItems.RemoveWhere(i => checkEntity(i, value)), (e) => ((e is DirectoryViewModel) ? "0" : "1") + e.Name);
+                //}
+                //else if (filter.Length < value.Length && value.Contains(filter))
+                //{
+                //    removedItems.AddRange(Items.RemoveWhere(i => !checkEntity(i, value)));
+                //}
+                //else
+                //{
+                    var result = removedItems.Where(i => checkEntity(i, value)).ToList();
+                    removedItems.AddRange(Items.RemoveWhere(i => !checkEntity(i, value)).Where(i => !removedItems.Contains(i)));
+                    Items.InsertSorted(result.Where( i => !Items.Contains(i)).ToList(), (e) => ((e is DirectoryViewModel) ? "0" : "1") + e.Name);
+                removedItems.RemoveAll(i => Items.Contains(i));
+                //}
+                filter = value;
+                NotifyPropertyChanged("Filter");
             }
         }
-        public string DirectoryNameFilter
+        private bool checkEntity(BaseEntityViewModel entity, string filter)
         {
-            get => dirNameFilter; set
+            if (entity is DirectoryViewModel && filesOnly) return false;
+            if (entity is FileViewModel) return checkFileEntity(entity as FileViewModel, filter);
+            return entity.Name.ToLower().Contains(filter.ToLower())
+                || entity.OnDeskName.ToLower().Contains(filter.ToLower());
+        }
+        private bool checkFileEntity(FileViewModel file, string filter)
+        {
+            var segments = filter.Trim().ToLower().Split(" ").Where(s => Globals.IsNotNullNorEmpty(s.Trim())).ToList();
+            foreach(var s in segments)
             {
-                if (value.Length > dirNameFilter.Length && value.Contains(dirNameFilter))
-                {
-                    DirectoriesList = DirectoriesList.Where(f => f.Name.Contains(value)).ToList();
-                }
-                else if (dirNameFilter.Length > value.Length && dirNameFilter.Contains(value))
-                {
-                    var dl = BaseDirectories.Where(f => f.Name.Contains(value) && !f.Name.Contains(dirNameFilter)).ToList();
-                    dl.AddRange(DirectoriesList);
-                    DirectoriesList = dl;
-                }
-                else
-                {
-                    DirectoriesList = BaseDirectories.Where(f => f.Name.Contains(value)).ToList();
-                }
-                dirNameFilter = value;
+                if (typeNames.Any(t => s.Contains(t))) {if(!checkFileType(file, s)) return false; }
+                else if (!file.Name.ToLower().Contains(s) && !file.Description.ToLower().Contains(s) && !file.OnDeskName.ToLower().Contains(s)) return false;
             }
+            return true;
+           
         }
-        public List<FileViewModel> BaseFiles
+        private bool checkFileType(FileViewModel file,string segment)
         {
-            get => baseFiles; set
-            {
-                baseFiles = value;
-                FilesList = Globals.IsNullOrEmpty(FileNameFilter) ? value : value.Where(v => v.Name.Contains(FileNameFilter)).ToList();
-            }
+            if (segment[0] == '!' && segment.Contains(file.FileType.ToString().ToLower())) return false; else if (segment[0] != '!') return segment.Contains(file.FileType.ToString().ToLower()); else return true;
         }
-        public List<DirectoryViewModel> BaseDirectories
+        public void Reset()
         {
-            get => baseDirectories; set
-            {
-                baseDirectories = value;
-                DirectoriesList = Globals.IsNullOrEmpty(DirectoryNameFilter) ? value : value.Where(v => v.Name.Contains(DirectoryNameFilter)).ToList();
-            }
+            this.Items.Clear();
+            this.Filter = "";
         }
-        public List<FileViewModel> FilesList
+        public void Reset<T>(List<T> items = null)
+            where T : BaseEntityViewModel
         {
-            get => filesList; set
-            {
-                filesList = value;
-                var ToRemove = Files.Where(f => !value.Contains(f)).ToList();
-                var ToAdd = value.Where(f => !Files.Contains(f)).ToList();
-                try
-                {
-                    foreach (var item in ToRemove) Files.Remove(item);
-                    foreach (var item in ToAdd) Files.InsertSorted(item, (e) => e.Name);
-                }
-                catch (Exception)
-                {
-
-                    return;
-                }
-            }
+            this.Items.Clear();
+            this.Filter = "";
+            if (items != null) this.Items.InsertSorted(items, (i) => ((i is DirectoryViewModel) ? "0" : "1") + i.Name);
         }
-        public List<DirectoryViewModel> DirectoriesList
+        public void RemoveEntity(BaseEntityViewModel entity)
         {
-            get => directoriesList; set
-            {
-                directoriesList = value;
-                var ToRemove = Directories.Where(f => !value.Contains(f)).ToList();
-                var ToAdd = value.Where(f => !Directories.Contains(f)).ToList();
-                try
-                {
-                    foreach (var item in ToRemove) Directories.Remove(item);
-                    foreach (var item in ToAdd) Directories.InsertSorted(item, (e) => e.Name);
-                }
-                catch (Exception)
-                {
-
-                    return;
-                }
-            }
+            Items.Remove(entity);
+            removedItems.Remove(entity);
         }
-        public void Reset(List<FileViewModel> Files = null,List<DirectoryViewModel> Directories = null)
+        public void AddEntity(BaseEntityViewModel entity)
         {
-            this.baseDirectories.Clear();
-            this.directoriesList.Clear();
-            this.Directories.Clear();
-            this.baseFiles.Clear();
-            this.filesList.Clear();
-            this.Files.Clear();
-            this.DirectoryNameFilter = "";
-            this.FileNameFilter = "";
-            this.Files.AddRange(Files ?? new List<FileViewModel>());
-            this.Directories.AddRange(Directories ?? new List<DirectoryViewModel>());
+            Items.InsertSorted(entity, (i) => ((i is DirectoryViewModel) ? "0" : "1") + i.Name);
         }
+        public void AddEntities<T>(ICollection<T> entities)
+            where T : BaseEntityViewModel, new()
+        {
+            Items.InsertSorted(entities, (i) => ((i is DirectoryViewModel) ? "0" : "1") + i.Name);
+        }
+        //public void Reset(List<FileViewModel> Files = null,List<DirectoryViewModel> Directories = null)
+        //{
+        //    this.baseDirectories.Clear();
+        //    this.directoriesList.Clear();
+        //    this.Directories.Clear();
+        //    this.baseFiles.Clear();
+        //    this.filesList.Clear();
+        //    this.Files.Clear();
+        //    this.DirectoryNameFilter = "";
+        //    this.FileNameFilter = "";
+        //    this.Files.AddRange(Files ?? new List<FileViewModel>());
+        //    this.Directories.AddRange(Directories ?? new List<DirectoryViewModel>());
+        //}
 
 
         public void checkType(TypeModel type)

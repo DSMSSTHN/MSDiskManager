@@ -11,7 +11,22 @@ namespace MSDiskManager.Helpers
     {
         public static ObservableCollection<T> Clone<T>(this ObservableCollection<T> col) => new ObservableCollection<T>(col.ToList());
         public static ObservableCollection<T> ToObservableCollection<T>(this ICollection<T> col) => new ObservableCollection<T>(col);
-        public static void AddRange<T>(this ObservableCollection<T> col, ICollection<T> collection, CancellationToken? cancellation = null)
+        public static List<T> RemoveWhere<T>(this ObservableCollection<T> obs,Predicate<T> predicate)
+        {
+            var lst = new List<T>();
+            foreach (var o in obs) if (predicate(o)) lst.Add(o);
+            foreach (var l in lst) obs.Remove(l);
+            return lst;
+        }
+        public static List<T> RemoveWhere<T>(this List<T> obs, Predicate<T> predicate)
+        {
+            var lst = new List<T>();
+            foreach (var o in obs) if (predicate(o)) lst.Add(o);
+            foreach (var l in lst) obs.Remove(l);
+            return lst;
+        }
+        public static void AddMany<T,V>(this ObservableCollection<T> col, ICollection<V> collection, CancellationToken? cancellation = null)
+            where V : T
         {
             foreach (var item in collection)
             {
@@ -24,9 +39,15 @@ namespace MSDiskManager.Helpers
         public static List<TypeModel> Clone(this List<TypeModel> lst) => lst.Select(tm => tm.Clone()).ToList();
         public static List<OrderModel> Clone(this List<OrderModel> lst) => lst.Select(om => om.Clone()).ToList();
 
-
-        public static void InsertSorted<T, E>(this ObservableCollection<T> col, T item, Func<T, E> conversion)
+        public static void InsertSorted<T,V, E>(this ObservableCollection<T> col, ICollection<V> items, Func<T, E> conversion)
             where E : IComparable
+            where V:T
+        {
+            foreach (var item in items) col.InsertSorted(item, conversion);
+        }
+        public static void InsertSorted<T,V, E>(this ObservableCollection<T> col, V item, Func<T, E> conversion)
+            where E : IComparable
+            where V : T
         {
             for (int i = 0; i < col.Count; i++)
             {

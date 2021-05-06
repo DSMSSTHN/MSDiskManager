@@ -35,7 +35,7 @@ namespace MSDiskManager.Pages.Main
         private void Page_Loaded(object sender, RoutedEventArgs e)
         {
             var top = new FiltersPage();
-            var bottom = new FilesFoldersList();
+            var bottom = new FilesFoldersList((a,b,c)=>this.NavigationService.Navigate(new AddItemsPage(a,b,c)));
             TopFrame.NavigationService.Navigate(top);
             BottomControl.Content = bottom;
         }

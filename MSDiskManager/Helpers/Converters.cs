@@ -8,20 +8,38 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 
 namespace MSDiskManager.Helpers
 {
+    public class BooleanScrollVisibilityConverter : IValueConverter
+    {
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            var inverse = parameter != null && bool.Parse(parameter.ToString());
+            if (inverse) return ((bool)value) ? ScrollBarVisibility.Disabled : ScrollBarVisibility.Visible;
+            return ((bool)value) ? ScrollBarVisibility.Visible : ScrollBarVisibility.Disabled;
+        }
+
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            var inverse = parameter != null && bool.Parse(parameter.ToString());
+            if (inverse) return ((ScrollBarVisibility)value) != ScrollBarVisibility.Visible;
+            return ((ScrollBarVisibility)value) == ScrollBarVisibility.Visible;
+        }
+    }
     public class BooleanVisibility_HiddenConverter : IValueConverter
     {
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
             var inverse = parameter != null && bool.Parse(parameter.ToString());
-            if(inverse) return ((bool)value) ? Visibility.Hidden : Visibility.Visible;
+            if (inverse) return ((bool)value) ? Visibility.Hidden : Visibility.Visible;
             return ((bool)value) ? Visibility.Visible : Visibility.Hidden;
         }
 
@@ -67,12 +85,12 @@ namespace MSDiskManager.Helpers
             if (value == null) return "";
             var str = "";
             var seperator = parameter?.ToString() ?? ",";
-            
-            if(value is ICollection<BaseEntity>) foreach (var item in (value as ICollection<BaseEntity>)) str += item.Name + seperator;
-            else if(value is ICollection<BaseEntityViewModel>) foreach (var item in (value as ICollection<BaseEntityViewModel>)) str += item.Name + seperator;
-            else if(value is ICollection<Tag>) foreach (var item in (value as ICollection<Tag>)) str += item.Name + seperator;
-            else if(value is ICollection<DirectoryTag>) foreach (var item in (value as ICollection<DirectoryTag>)) str += item.Tag.Name + seperator;
-            return Globals.IsNullOrEmpty(str) ? "" : str.Substring(0,str.Length - 1);
+
+            if (value is ICollection<BaseEntity>) foreach (var item in (value as ICollection<BaseEntity>)) str += item.Name + seperator;
+            else if (value is ICollection<BaseEntityViewModel>) foreach (var item in (value as ICollection<BaseEntityViewModel>)) str += item.Name + seperator;
+            else if (value is ICollection<Tag>) foreach (var item in (value as ICollection<Tag>)) str += item.Name + seperator;
+            else if (value is ICollection<DirectoryTag>) foreach (var item in (value as ICollection<DirectoryTag>)) str += item.Tag.Name + seperator;
+            return Globals.IsNullOrEmpty(str) ? "" : str.Substring(0, str.Length - 1);
         }
 
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
@@ -150,10 +168,127 @@ namespace MSDiskManager.Helpers
     }
     public static class STRExtensions
     {
-        
-        public static ImageSource AsUri(this string str, bool raw = false)
+        public async static Task<ImageSource> asBitmapAsync(this string str, CancellationTokenSource imgToken = null)
         {
-            
+            if (imgToken.IsCancellationRequested) return null;
+            BitmapImage BitmapSourceToBitmap(BitmapSource source)
+            {
+                var encoder = new PngBitmapEncoder();
+                var memoryStream = new MemoryStream();
+                var image = new BitmapImage();
+                if (imgToken.IsCancellationRequested) return null;
+                encoder.Frames.Add(BitmapFrame.Create(source));
+                encoder.Save(memoryStream);
+                if (imgToken.IsCancellationRequested) return null;
+                image.BeginInit();
+                image.StreamSource = new MemoryStream(memoryStream.ToArray());
+                image.EndInit();
+                memoryStream.Close();
+                if (imgToken.IsCancellationRequested) return null;
+                return image;
+            }
+            BitmapImage ScaleImage(BitmapImage original, double scale)
+            {
+                if (imgToken.IsCancellationRequested) return null;
+                var scaledBitmapSource = new TransformedBitmap();
+                scaledBitmapSource.BeginInit();
+                scaledBitmapSource.Source = original;
+                scaledBitmapSource.Transform = new ScaleTransform(scale, scale);
+                scaledBitmapSource.EndInit();
+                if (imgToken.IsCancellationRequested) return null;
+                return BitmapSourceToBitmap(scaledBitmapSource);
+            }
+            BitmapImage CropImage(BitmapImage original, int width, int height)
+            {
+                if (imgToken.IsCancellationRequested) return null;
+                var deltaWidth = original.PixelWidth - width;
+                var deltaHeight = original.PixelHeight - height;
+                var marginX = deltaWidth / 2;
+                var marginY = deltaHeight / 2;
+                var rectangle = new Int32Rect(marginX, marginY, width, height);
+                var croppedBitmap = new CroppedBitmap(original, rectangle);
+                if (imgToken.IsCancellationRequested) return null;
+                return BitmapSourceToBitmap(croppedBitmap);
+            }
+            if (imgToken.IsCancellationRequested) return null;
+            return await Task.Run(() =>
+            {
+                try
+                {
+                if (imgToken.IsCancellationRequested) return null;
+                    var bi = new BitmapImage(new Uri(str));
+                    var width = bi.PixelWidth;
+                    var height = bi.PixelHeight;
+                    var expectedHeightAtCurrentWidth = width * 4.0 / 3.0;
+                    var expectedWidthAtCurrentHeight = height * 3.0 / 4.0;
+                    var newWidth = Math.Min(expectedWidthAtCurrentHeight, width);
+                    var newHeight = Math.Min(expectedHeightAtCurrentWidth, height);
+                    var croppedImage = CropImage(bi, (int)newWidth, (int)newHeight);
+                    var ratio = 100.0 / newWidth;
+                    var scaledImage = ScaleImage(croppedImage, ratio);
+                    scaledImage?.Freeze();
+                    if (imgToken.IsCancellationRequested) return null;
+                    return scaledImage;
+                }
+                catch(Exception)
+                {
+                    return null;
+                }
+            });
+        }
+
+        public static ImageSource AsUri(this string str, bool raw = false, bool thumbnail = false)
+        {
+            if (thumbnail)
+            {
+                BitmapImage BitmapSourceToBitmap(BitmapSource source)
+                {
+                    var encoder = new PngBitmapEncoder();
+                    var memoryStream = new MemoryStream();
+                    var image = new BitmapImage();
+
+                    encoder.Frames.Add(BitmapFrame.Create(source));
+                    encoder.Save(memoryStream);
+
+                    image.BeginInit();
+                    image.StreamSource = new MemoryStream(memoryStream.ToArray());
+                    image.EndInit();
+                    memoryStream.Close();
+                    return image;
+                }
+                BitmapImage ScaleImage(BitmapImage original, double scale)
+                {
+                    var scaledBitmapSource = new TransformedBitmap();
+                    scaledBitmapSource.BeginInit();
+                    scaledBitmapSource.Source = original;
+                    scaledBitmapSource.Transform = new ScaleTransform(scale, scale);
+                    scaledBitmapSource.EndInit();
+                    return BitmapSourceToBitmap(scaledBitmapSource);
+                }
+                BitmapImage CropImage(BitmapImage original, int width, int height)
+                {
+                    var deltaWidth = original.PixelWidth - width;
+                    var deltaHeight = original.PixelHeight - height;
+                    var marginX = deltaWidth / 2;
+                    var marginY = deltaHeight / 2;
+                    var rectangle = new Int32Rect(marginX, marginY, width, height);
+                    var croppedBitmap = new CroppedBitmap(original, rectangle);
+                    return BitmapSourceToBitmap(croppedBitmap);
+                }
+                var bi = new BitmapImage(new Uri((raw ? "" : "pack://application:,,,/MSDiskManager;component") + str));
+                var width = bi.PixelWidth;
+                var height = bi.PixelHeight;
+                var expectedHeightAtCurrentWidth = width * 4.0 / 3.0;
+                var expectedWidthAtCurrentHeight = height * 3.0 / 4.0;
+                var newWidth = Math.Min(expectedWidthAtCurrentHeight, width);
+                var newHeight = Math.Min(expectedHeightAtCurrentWidth, height);
+                var croppedImage = CropImage(bi, (int)newWidth, (int)newHeight);
+                var ratio = 100.0 / newWidth;
+                var scaledImage = ScaleImage(croppedImage, ratio);
+                scaledImage.Freeze();
+                return scaledImage;
+
+            }
             var imageSource = new ImageSourceConverter().ConvertFromString((raw ? "" : "pack://application:,,,/MSDiskManager;component") + str);//.ConvertFromInvariantString(str);
             return imageSource as ImageSource;
             //return new Uri("pack://application:,,," + str);

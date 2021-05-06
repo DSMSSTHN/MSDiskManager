@@ -9,49 +9,79 @@ using System.Threading.Tasks;
 
 namespace MSDiskManagerData.Data.Repositories
 {
-    public class TagRepository
+    public class TagRepository : BaseRepository
     {
-        private MSDM_DBContext context;
-        private bool IsTest { get; set; }
         public TagRepository(bool isTest = false)
         {
             IsTest = isTest;
-            this.context = new MSDM_DBContext(IsTest);
-            this.context.Database.EnsureCreated();
         }
         public async Task<bool> TagExists(string name)
         {
-            return await context.Tags.AnyAsync(t => t.Name.Trim().ToLower() == name.Trim().ToLower());
+            try
+            {
+                var ctx = await context();
+                var result = await ctx.Tags.AnyAsync(t => t.Name.Trim().ToLower() == name.Trim().ToLower());
+                repotFinished();
+                return result;
+            }
+            catch (Exception)
+            {
+                repotFinished();
+                throw;
+            }
         }
         public async Task<Tag> GetTag(long id)
         {
             if (id < 0) return null;
-            return await context.Tags.FirstOrDefaultAsync(t => t.Id == id);
+            try
+            {
+                var ctx = await context();
+                var result = await ctx.Tags.FirstOrDefaultAsync(t => t.Id == id);
+                repotFinished();
+                return result;
+            }
+            catch (Exception)
+            {
+                repotFinished();
+                throw;
+            }
+        }
+
+        public async Task<List<Tag>> GetTags(string name = null, List<long> excludeIds = null, int page = 0, int limit = 0)
+        {
+            try
+            {
+                var ctx = await context();
+                var que = ctx.Tags.AsQueryable();
+                if (Globals.IsNotNullNorEmpty(name))
+                {
+                    var ns = name.Trim().ToLower().Split(" ").Where(n => n.Trim().IsNotEmpty());
+                    foreach (var n in ns)
+                    {
+                        que = que.Where(t => t.Name.ToLower().Contains(n));
+                    }
+
+                }
+                if (Globals.IsNotNullNorEmpty(excludeIds))
+                {
+                    que = que.Where(t => !excludeIds.Contains((long)t.Id));
+                }
+                if (limit > 0)
+                {
+                    var p = page < 0 ? 0 : page;
+                    que = que.Skip(page * limit).Take(limit);
+                }
+                var result = await que.ToListAsync();
+                repotFinished();
+                return result;
+            }
+            catch (Exception)
+            {
+                repotFinished();
+                throw;
+            }
         }
         
-        public async Task<List<Tag>> GetTags(string name = null,List<long> excludeIds = null, int page = 0, int limit = 0)
-        {
-            var que = context.Tags.AsQueryable();
-            if (Globals.IsNotNullNorEmpty(name))
-            {
-                var ns = name.Trim().ToLower().Split(" ").Where(n => n.Trim().IsNotEmpty());
-                foreach (var n in ns)
-                {
-                    que = que.Where(t => t.Name.ToLower().Contains(n));
-                }
-                
-            }
-            if (Globals.IsNotNullNorEmpty(excludeIds))
-            {
-                que = que.Where(t => !excludeIds.Contains((long)t.Id));
-            }
-            if (limit > 0)
-            {
-                var p = page < 0 ? 0 : page;
-                que = que.Skip(page * limit).Take(limit);
-            }
-            return await que.ToListAsync();
-        }
         public async Task<Tag> AddTag(string name, int color)
         {
             return await AddTag(new Tag { Name = name, Color = color });
@@ -59,64 +89,108 @@ namespace MSDiskManagerData.Data.Repositories
         public async Task<Tag> AddTag(Tag tag)
         {
             if (tag == null) throw new ArgumentException("Null was given instead of a tag");
-            if (Globals.IsNullOrEmpty(tag.Name)) throw new Exception($"Tag has no name"); ;
-            var exitst = await context.Tags.AnyAsync(t => t.Name == tag.Name);
-            if (exitst)
+            if (Globals.IsNullOrEmpty(tag.Name)) throw new Exception($"Tag has no name");
+            try
             {
-                throw new TagAlreadyExists(tag.Name);
+                var ctx = await context();
+                var exitst = await ctx.Tags.AnyAsync(t => t.Name == tag.Name);
+                if (exitst)
+                {
+                    throw new TagAlreadyExists(tag.Name);
+                }
+                if (tag.Id != null)
+                {
+                    tag.Id = null;
+                }
+                await ctx.Tags.AddAsync(tag);
+                await ctx.SaveChangesAsync();
+                repotFinished();
+                return tag;
             }
-            if (tag.Id != null)
+            catch (Exception)
             {
-                tag.Id = null;
+                repotFinished();
+                throw;
             }
-            await context.Tags.AddAsync(tag);
-            await context.SaveChangesAsync();
-            return tag;
         }
+
         public async Task<Tag> UpdateTag(Tag tag)
         {
             if (tag == null) throw new ArgumentException("Null was given instead of a tag");
-            if (tag.Id == null || tag.Id < 0) throw new ArgumentException("tag with no id was given for update"); ;
-            if (Globals.IsNullOrEmpty(tag.Name)) throw new Exception($"Tag has no name"); ;
-            var exitst = await context.Tags.AnyAsync(t => t.Name == tag.Name);
-            if (exitst)
+            if (tag.Id == null || tag.Id < 0) throw new ArgumentException("tag with no id was given for update");
+            if (Globals.IsNullOrEmpty(tag.Name)) throw new Exception($"Tag has no name");
+            try
             {
-                throw new TagAlreadyExists(tag.Name);
+                var ctx = await context();
+                var exitst = await ctx.Tags.AnyAsync(t => t.Name == tag.Name);
+                if (exitst)
+                {
+                    throw new TagAlreadyExists(tag.Name);
+                }
+                ctx.Tags.Update(tag);
+                await ctx.SaveChangesAsync();
+                repotFinished();
+                return tag;
             }
-            context.Tags.Update(tag);
-            await context.SaveChangesAsync();
-            return tag;
+            catch (Exception)
+            {
+                repotFinished();
+                throw;
+            }
         }
         public async Task<bool> delete(long? id)
         {
             if (id == null) return false;
             try
             {
-                var t = await context.Tags.FirstOrDefaultAsync(t => t.Id == id);
+                var ctx = await context();
+                var t = await ctx.Tags.FirstOrDefaultAsync(t => t.Id == id);
                 if (t == null)
                 {
                     return false;
                 }
-                context.Tags.Remove(t);
-                await context.SaveChangesAsync();
+                ctx.Tags.Remove(t);
+                await ctx.SaveChangesAsync();
+                repotFinished();
                 return true;
             }
             catch (Exception e)
             {
+                repotFinished();
                 return false;
             }
         }
         public async Task<List<FileEntity>> GetFiles(long id)
         {
             if (id < 0) return new List<FileEntity>();
-            var files = await this.context.FileTags.Include(f => f.File).Where(f => f.TagId == id).Select(f => f.File).ToListAsync();
-            return files;
+            try
+            {
+                var ctx = await context();
+                var files = await ctx.FileTags.Include(f => f.File).Where(f => f.TagId == id).Select(f => f.File).ToListAsync();
+                repotFinished();
+                return files;
+            }
+            catch (Exception)
+            {
+                repotFinished();
+                throw;
+            }
         }
         public async Task<List<DirectoryEntity>> GetDirectories(long id)
         {
             if (id < 0) return new List<DirectoryEntity>();
-            var directories = await this.context.DirectoryTags.Include(f => f.Directory).Where(f => f.TagId == id).Select(f => f.Directory).ToListAsync();
-            return directories;
+            try
+            {
+                var ctx = await context();
+                var directories = await ctx.DirectoryTags.Include(f => f.Directory).Where(f => f.TagId == id).Select(f => f.Directory).ToListAsync();
+                repotFinished();
+                return directories;
+            }
+            catch (Exception)
+            {
+                repotFinished();
+                throw;
+            }
         }
     }
     public class TagAlreadyExists : Exception

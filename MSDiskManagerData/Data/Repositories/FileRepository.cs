@@ -4,6 +4,8 @@ using MSDiskManagerData.Data.Entities.Relations;
 using MSDiskManagerData.Helpers;
 using System;
 using System.Collections.Generic;
+using System.Drawing;
+using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -11,45 +13,251 @@ using System.Threading.Tasks;
 
 namespace MSDiskManagerData.Data.Repositories
 {
-    public class FileRepository
+    public class FileRepository : BaseRepository
     {
 
-        private MSDM_DBContext context;
-        private bool IsTest { get; set; }
+
         public FileRepository(bool isTest = false)
         {
             IsTest = isTest;
-            this.context = new MSDM_DBContext(IsTest);
-            this.context.Database.EnsureCreated();
         }
         public async Task<FileEntity> AddFileToDBOnly(FileEntity file)
         {
             file.AddingDate = new NodaTime.Instant();
             file.MovingDate = new NodaTime.Instant();
-            if (file.ParentId != null)
+
+            try
             {
-                if (file.Parent == null)
+                var ctx = await context();
+                if (file.ParentId != null)
                 {
-                    file.Parent = await context.Directories.FirstOrDefaultAsync(d => d.Id == file.ParentId);
+                    if (file.Parent == null)
+                    {
+                        file.Parent = await ctx.Directories.FirstOrDefaultAsync(d => d.Id == file.ParentId);
+                    }
+                    file.AncestorIds = file.Parent.AncestorIds.ToList();
+                    file.AncestorIds.Add((long)file.ParentId);
                 }
-                file.AncestorIds = file.Parent.AncestorIds.ToList();
-                file.AncestorIds.Add((long)file.ParentId);
+                var tags = file.FileTags;
+                file.Parent = null;
+                file.FileTags = null;
+                await ctx.Files.AddAsync(file);
+
+                await ctx.SaveChangesAsync();
+                repotFinished();
+                if (file.FileType == FileType.Image)
+                {
+                    await saveThumbnail((long)file.Id, file.FullPath);
+                }
+                if (Globals.IsNotNullNorEmpty(tags))
+                {
+                    foreach (var ft in tags)
+                    {
+                        await AddTag((long)file.Id, (long)ft.TagId);
+                    }
+                }
+
+                return file;
             }
-            var tags = file.FileTags;
-            file.Parent = null;
-            file.FileTags = null;
-            await context.Files.AddAsync(file);
-            await context.SaveChangesAsync();
-            if (Globals.IsNotNullNorEmpty(tags))
+            catch (Exception)
             {
-                foreach (var ft in tags)
-                {
-                    await AddTag((long)file.Id, (long)ft.TagId);
-                }
+                repotFinished();
+                throw;
             }
-            return file;
         }
-        public async Task<FileEntity> AddFile(FileEntity file, string oldPath, FileExistsStrategy fileExistsStratigy = FileExistsStrategy.Rename, bool move = false,bool dontAddToDB = false)
+        public async Task<byte[]> GetThumbnail(long id)
+        {
+            try
+            {
+                var ctx = await context();
+                var thumb = (await ctx.Thumbnails.FirstOrDefaultAsync(t => t.FileId == id))?.Thumbnail ?? null;
+                repotFinished();
+                if (thumb == null)
+                {
+                    var file = await GetFile(id);
+                    var t = await saveThumbnail((long)file.Id, file.FullPath);
+                    thumb = t.Thumbnail;
+                }
+                return thumb;
+            }
+            catch (Exception)
+            {
+                repotFinished();
+                throw;
+            }
+        }
+        private async Task saveThumbnails(List<FileEntity> files)
+        {
+            if (Globals.IsNullOrEmpty(files)) return;
+            List<ImageThumbnail> thumbs = new List<ImageThumbnail>();
+            using (var stream = new MemoryStream())
+            {
+                foreach(var f in files)
+                {
+                    var thumb = new ImageThumbnail { FileId = (long)f.Id };
+                    var img = Image.FromFile(f.FullPath);
+                    var width = img.Width;
+                    var height = img.Height;
+                    var ration = width > height ? (60 / width) : (60 / height);
+                    width = width * ration;
+                    height = height * ration;
+                    var t = img.GetThumbnailImage(width, height, () => false, IntPtr.Zero);
+                    t.Save(stream, ImageFormat.Jpeg);
+                    thumb.Thumbnail = stream.ToArray();
+                    thumbs.Add(thumb);
+                    stream.Position = 0;
+                    stream.SetLength(0);
+                }
+            }
+            try
+            {
+                var ctx = await context();
+                await ctx.Thumbnails.AddRangeAsync(thumbs);
+                await ctx.SaveChangesAsync();
+                repotFinished();
+            }
+            catch (Exception)
+            {
+                repotFinished();
+                throw;
+            }
+        }
+        private async Task<ImageThumbnail> saveThumbnail(long fileId, string fullpath)
+        {
+
+            var thumb = new ImageThumbnail { FileId = fileId };
+            var img = Image.FromFile(fullpath);
+            var width = img.Width;
+            var height = img.Height;
+            var ration = width > height ? (60 / width) : (60 / height);
+            width = width * ration;
+            height = height * ration;
+            var t = img.GetThumbnailImage(width, height, () => false, IntPtr.Zero);
+            using (var stream = new MemoryStream())
+            {
+
+                t.Save(stream, ImageFormat.Jpeg);
+                thumb.Thumbnail = stream.ToArray();
+                stream.Close();
+            }
+            try
+            {
+                var ctx = await context();
+                await ctx.Thumbnails.AddAsync(thumb);
+                await ctx.SaveChangesAsync();
+                repotFinished();
+                return thumb;
+            }
+            catch (Exception)
+            {
+                repotFinished();
+                throw;
+            }
+        }
+        //failureFunction 0 retry 1 skip 2 break;
+        public async Task<List<FileEntity>> AddFiles(List<FileEntity> files,
+            Func<FileEntity, Exception, Task<int>> failureFunction,
+            FileExistsStrategy fileExistsStratigy = FileExistsStrategy.Rename,
+            bool move = false,
+            bool dontAddToDB = false)
+        {
+            if (Globals.IsNullOrEmpty(files)) throw new ArgumentException("File Or Old Path were null");
+            var fs = files.Where(f => f != null && f.Path != null && f.OldPath != null).ToList();
+            var limit = 500;
+            var images = new List<FileEntity>();
+            var succeed = new List<FileEntity>();
+            IDictionary<long, List<long>> idancs = new Dictionary<long, List<long>>();
+            try
+            {
+                var ctx = await context();
+                var parentIds = fs.Where(f => f.ParentId != null && f.Parent == null).Select(f => f.ParentId).Distinct();
+                idancs = await ctx.Directories.Where(d => parentIds.Contains(d.Id)).Select(d => new KeyValuePair<long, List<long>>((long)d.Id, d.AncestorIds)).ToDictionaryAsync(k => k.Key, k => k.Value);
+                repotFinished();
+            }
+            catch (Exception)
+            {
+                repotFinished();
+
+                throw;
+            }
+            List<(string op, List<long> tids)> fts = new List<(string op, List<long> tids)>();
+            foreach (var f in fs)
+            {
+                if (f.FileType == FileType.Image) images.Add(f);
+                var cancel = false;
+                f.AddingDate = new NodaTime.Instant();
+                f.MovingDate = new NodaTime.Instant();
+                f.Parent = null;
+                if (Globals.IsNotNullNorEmpty(f.FileTags)) fts.Add(new { op = f.OldPath, tids = f.FileTags.Select(ft => ft.TagId}));
+                f.FileTags = null;
+                f.Id = null;
+                if (f.ParentId != null)
+                {
+                    List<long> anc = new List<long>();
+                    idancs.TryGetValue((long)f.ParentId, out anc);
+                    f.AncestorIds = anc;
+                }
+                while (!cancel)
+                {
+                    try
+                    {
+                        await AddFile(f, f.OldPath,move:move, dontAddToDB: true);
+                        succeed.Add(f);
+                        break;
+                    }
+                    catch (Exception e)
+                    {
+                        switch (await failureFunction(f, e))
+                        {
+                            case 0:
+                                continue;
+                            case 1:
+                                break;
+                            default:
+                                cancel = true;
+                                break;
+                        }
+                    }
+                }
+                if (cancel) break;
+            }
+
+            try
+            {
+                var ctx = await context();
+                await ctx.Files.AddRangeAsync(succeed);
+                await ctx.SaveChangesAsync();
+                repotFinished();
+                var tags = fts.SelectMany(ft => { var id = succeed.FirstOrDefault(f => f.OldPath == ft.op)?.Id; if (id == null) return new List<FileTag>(); return ft.tids.Select(tid => new FileTag { FileId = (long)id, TagId = tid })}).ToList();
+                await saveThumbnails(images);
+                await AddFileTags(tags);
+
+                return succeed;
+            }
+            catch (Exception)
+            {
+                repotFinished();
+                throw;
+            }
+        }
+        public async Task AddFileTags(List<FileTag> fileTags)
+        {
+            if (Globals.IsNullOrEmpty(fileTags)) return;
+            try
+            {
+                var ctx = await context();
+                await ctx.FileTags.AddRangeAsync(fileTags);
+                await ctx.SaveChangesAsync();
+                repotFinished();
+            }
+            catch (Exception)
+            {
+                repotFinished();
+                throw;
+            }
+
+        }
+        public async Task<FileEntity> AddFile(FileEntity file, string oldPath, FileExistsStrategy fileExistsStratigy = FileExistsStrategy.Rename, bool move = false, bool dontAddToDB = false)
         {
             if (file == null || file.Path == null || oldPath == null) throw new ArgumentException("File Or Old Path were null");
             if (!File.Exists(oldPath))
@@ -64,10 +272,18 @@ namespace MSDiskManagerData.Data.Repositories
                         File.Delete(file.FullPath);
                         break;
                     case FileExistsStrategy.Rename:
-
+                        if (!file.Path.Contains(file.OnDeskName))
+                        {
+                            var slash = file.Path.LastIndexOf('\\') + 1;
+                            var dot = file.Path.LastIndexOf('.');
+                            var length = 0;
+                            length = (dot > 0 && dot > slash) ? (dot - slash) : file.Path.Length - slash;
+                            file.OnDeskName = file.Path.Substring(slash, length);
+                        }
                         var e = file.Extension;
                         while (File.Exists(file.FullPath))
                         {
+
                             var n = file.OnDeskName;
                             var f = n + (Globals.IsNotNullNorEmpty(e) ? ("." + e) : "");
                             var r = n + "_" + (Globals.IsNotNullNorEmpty(e) ? ("." + e) : "");
@@ -99,8 +315,8 @@ namespace MSDiskManagerData.Data.Repositories
         //    if (file.Name == null || file.Name.Trim().Length == 0) return (false, "Not Valid Name");
         //    try
         //    {
-        //        context.Update(file);
-        //        await context.SaveChangesAsync();
+        //        ctx.Update(file);
+        //        await ctx.SaveChangesAsync();
         //        return (true, null);
         //    }
         //    catch (Exception e)
@@ -114,15 +330,18 @@ namespace MSDiskManagerData.Data.Repositories
             if (newName == null || newName.Trim().Length == 0) return (false, "Not Valid Name");
             try
             {
-                var file = await context.Files.FirstOrDefaultAsync(f => f.Id == id);
+                var ctx = await context();
+                var file = await ctx.Files.FirstOrDefaultAsync(f => f.Id == id);
                 if (file == null) return (false, "No file has such an id");
                 file.Name = newName;
-                context.Update(file);
-                await context.SaveChangesAsync();
+                ctx.Update(file);
+                await ctx.SaveChangesAsync();
+                repotFinished();
                 return (true, null);
             }
             catch (Exception e)
             {
+                repotFinished();
                 return (false, e.Message);
             }
         }
@@ -131,15 +350,18 @@ namespace MSDiskManagerData.Data.Repositories
             if (id < 0) return (false, "Not Valid Id", null);
             try
             {
-                var file = await context.Files.FirstOrDefaultAsync(f => f.Id == id);
+                var ctx = await context();
+                var file = await ctx.Files.FirstOrDefaultAsync(f => f.Id == id);
                 if (file == null) return (false, "No file has such an id", null);
                 file.FileType = type;
-                context.Update(file);
-                await context.SaveChangesAsync();
+                ctx.Update(file);
+                await ctx.SaveChangesAsync();
+                repotFinished();
                 return (true, null, file);
             }
             catch (Exception e)
             {
+                repotFinished();
                 return (false, e.Message, null);
             }
         }
@@ -148,15 +370,18 @@ namespace MSDiskManagerData.Data.Repositories
             if (id < 0) return (false, "Not Valid Id", null);
             try
             {
-                var file = await context.Files.FirstOrDefaultAsync(f => f.Id == id);
+                var ctx = await context();
+                var file = await ctx.Files.FirstOrDefaultAsync(f => f.Id == id);
                 if (file == null) return (false, "No file has such an id", null);
                 file.Description = description;
-                context.Update(file);
-                await context.SaveChangesAsync();
+                ctx.Update(file);
+                await ctx.SaveChangesAsync();
+                repotFinished();
                 return (true, null, file);
             }
             catch (Exception e)
             {
+                repotFinished();
                 return (false, e.Message, null);
             }
         }
@@ -165,13 +390,15 @@ namespace MSDiskManagerData.Data.Repositories
             if (id == null || id < 0 || tagId == null || tagId < 0) return false;
             try
             {
-                await context.FileTags.AddAsync(new FileTag { FileId = (long)id, TagId = (long)tagId });
-                await context.SaveChangesAsync();
+                var ctx = await context();
+                await ctx.FileTags.AddAsync(new FileTag { FileId = (long)id, TagId = (long)tagId });
+                await ctx.SaveChangesAsync();
+                repotFinished();
                 return true;
             }
             catch (Exception e)
             {
-
+                repotFinished();
                 return false;
             }
         }
@@ -184,6 +411,7 @@ namespace MSDiskManagerData.Data.Repositories
                 tag.Id = null;
                 try
                 {
+
                     var t = await new TagRepository(IsTest).AddTag(tag);
                     if (t == null) return false;
                     tag.Id = t.Id;
@@ -199,12 +427,23 @@ namespace MSDiskManagerData.Data.Repositories
         {
             if (Globals.IsNullOrEmpty(name)) return false;
 
-            var tag = await context.Tags.FirstOrDefaultAsync(t => t.Name.ToLower().Trim() == name.ToLower().Trim());
-            if(tag == null)
+            try
             {
-                tag = new Tag { Name = name, Color = (color < 0 ? 0 : (color > 10 ? 10 : color)) };
+                var ctx = await context();
+                var tag = await ctx.Tags.FirstOrDefaultAsync(t => t.Name.ToLower().Trim() == name.ToLower().Trim());
+                if (tag == null)
+                {
+                    tag = new Tag { Name = name, Color = (color < 0 ? 0 : (color > 10 ? 10 : color)) };
+                }
+                repotFinished();
+                var result = await AddTag(id, tag);
+                return result;
             }
-            return await AddTag(id, tag);
+            catch (Exception)
+            {
+                repotFinished();
+                throw;
+            }
         }
 
 
@@ -213,15 +452,18 @@ namespace MSDiskManagerData.Data.Repositories
             if (id < 0) return (false, "Not Valid Id", null);
             try
             {
-                var file = await context.Files.FirstOrDefaultAsync(f => f.Id == id);
+                var ctx = await context();
+                var file = await ctx.Files.FirstOrDefaultAsync(f => f.Id == id);
                 if (file == null) return (false, "No file has such an id", null);
                 file.IsHidden = isHidden;
-                context.Update(file);
-                await context.SaveChangesAsync();
+                ctx.Update(file);
+                await ctx.SaveChangesAsync();
+                repotFinished();
                 return (true, null, file);
             }
             catch (Exception e)
             {
+                repotFinished();
                 return (false, e.Message, null);
             }
         }
@@ -231,7 +473,8 @@ namespace MSDiskManagerData.Data.Repositories
             if (id < 0) return (false, "Not Valid Id", null);
             try
             {
-                var file = await context.Files.FirstOrDefaultAsync(f => f.Id == id);
+                var ctx = await context();
+                var file = await ctx.Files.FirstOrDefaultAsync(f => f.Id == id);
                 if (file == null) return (false, "No file has such an id", null);
                 var oldPath = file.FullPath;
                 if (newDirectory == null)
@@ -259,6 +502,14 @@ namespace MSDiskManagerData.Data.Repositories
                                 File.Delete(file.FullPath);
                                 break;
                             case FileExistsStrategy.Rename:
+                                if (!file.Path.Contains(file.OnDeskName))
+                                {
+                                    var slash = file.Path.LastIndexOf('\\') + 1;
+                                    var dot = file.Path.LastIndexOf('.');
+                                    var length = 0;
+                                    length = (dot > 0 && dot > slash) ? (dot - slash) : file.Path.Length - slash;
+                                    file.OnDeskName = file.Path.Substring(slash, length);
+                                }
                                 var e = file.Extension;
                                 while (File.Exists(file.FullPath))
                                 {
@@ -279,12 +530,14 @@ namespace MSDiskManagerData.Data.Repositories
                     File.Move(oldPath, file.FullPath);
                 }
                 file.MovingDate = new NodaTime.Instant();
-                context.Update(file);
-                await context.SaveChangesAsync();
+                ctx.Update(file);
+                await ctx.SaveChangesAsync();
+                repotFinished();
                 return (true, null, file);
             }
             catch (Exception e)
             {
+                repotFinished();
                 return (false, e.Message, null);
             }
         }
@@ -294,14 +547,17 @@ namespace MSDiskManagerData.Data.Repositories
             if (copyPath == null || copyPath.Trim().Length == 0) return (false, "New path is not valid", null);
             try
             {
-                var file = await context.Files.FirstOrDefaultAsync(f => f.Id == id);
+                var ctx = await context();
+                var file = await ctx.Files.FirstOrDefaultAsync(f => f.Id == id);
                 if (file == null) return (false, "No file has such an id", null);
 
                 File.Copy(file.FullPath, copyPath);
+                repotFinished();
                 return (true, null, file);
             }
             catch (Exception e)
             {
+                repotFinished();
                 return (false, e.Message, null);
             }
         }
@@ -310,16 +566,19 @@ namespace MSDiskManagerData.Data.Repositories
             if (id < 0) return (false, "Not Valid Id", null);
             try
             {
-                var file = await context.Files.FirstOrDefaultAsync(f => f.Id == id);
+                var ctx = await context();
+                var file = await ctx.Files.FirstOrDefaultAsync(f => f.Id == id);
                 if (file == null) return (false, "No file has such an id", null);
 
                 File.Delete(file.FullPath);
-                context.Files.Remove(file);
-                await context.SaveChangesAsync();
+                ctx.Files.Remove(file);
+                await ctx.SaveChangesAsync();
+                repotFinished();
                 return (true, null, file);
             }
             catch (Exception e)
             {
+                repotFinished();
                 return (false, e.Message, null);
             }
         }
@@ -328,36 +587,54 @@ namespace MSDiskManagerData.Data.Repositories
             if (id < 0) return (false, "Not Valid Id", null);
             try
             {
-                var file = await context.Files.FirstOrDefaultAsync(f => f.Id == id);
+                var ctx = await context();
+                var file = await ctx.Files.FirstOrDefaultAsync(f => f.Id == id);
                 if (file == null) return (false, "No file has such an id", null);
 
-                context.Files.Remove(file);
-                await context.SaveChangesAsync();
+                ctx.Files.Remove(file);
+                await ctx.SaveChangesAsync();
+                repotFinished();
                 return (true, null, file);
             }
             catch (Exception e)
             {
+                repotFinished();
                 return (false, e.Message, null);
             }
         }
 
         public async Task<FileEntity> GetFile(long id)
         {
-            return await context.Files.FirstOrDefaultAsync(f => f.Id == id);
+            try
+            {
+                var ctx = await context();
+                var result = await ctx.Files.FirstOrDefaultAsync(f => f.Id == id);
+                repotFinished();
+                return result;
+            }
+            catch (Exception)
+            {
+                repotFinished();
+                throw;
+            }
         }
         public async Task<List<FileEntity>> FilterFiles(FileFilter filter)
         {
-            var que = context.Files.AsQueryable().QFileFilter(context, filter);
             try
             {
+                var ctx = await context();
+                var que = ctx.Files.AsQueryable().QFileFilter(ctx, filter);
                 var str = que.ToQueryString();
+                repotFinished();
+                return await que.ToListAsync();
             }
             catch (Exception e)
             {
-
+                repotFinished();
                 var str2 = e.Message;
+                throw;
             }
-            return await que.ToListAsync();
+
         }
 
 
@@ -395,14 +672,14 @@ namespace MSDiskManagerData.Data.Repositories
         public static IQueryable<FileEntity> QTags(this IQueryable<FileEntity> que, MSDM_DBContext context, List<long> tagIds)
         {
             if (Globals.IsNullOrEmpty(tagIds)) return que;
-            return que.Join(context.FileTags.Where(ft => tagIds.Contains(ft.TagId)), f => f.Id, ft => ft.FileId, (f, ft) => f);
+            return que.Join((context).FileTags.Where(ft => tagIds.Contains(ft.TagId)), f => f.Id, ft => ft.FileId, (f, ft) => f);
         }
         public static IQueryable<FileEntity> QTags(this IQueryable<FileEntity> que, MSDM_DBContext context, string name)
         {
             if (Globals.IsNullOrEmpty(name)) return que;
             var ns = name.Trim().ToLower().Split(" ").Where(n => n.IsNotEmpty());
-            var que2 = context.Tags.Include(t => t.FileTags).IgnoreAutoIncludes();
-            foreach(var n in ns)
+            var que2 = (context.Tags.Include(t => t.FileTags).IgnoreAutoIncludes());
+            foreach (var n in ns)
             {
                 que2 = que2.Where(t => t.Name.ToLower().Contains(n));
             }

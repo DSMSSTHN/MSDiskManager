@@ -2,6 +2,7 @@
 using MSDiskManager.Helpers;
 using MSDiskManager.ViewModels;
 using MSDiskManagerData.Data.Entities;
+using MSDiskManagerData.Helpers;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -28,13 +29,15 @@ namespace MSDiskManager.Pages.AddItems
     {
         public AddItemsViewModel Model { get; } = new AddItemsViewModel();
 
-        private List<DirectoryViewModel> allDirs = new List<DirectoryViewModel>();
-        private List<FileViewModel> allFiles = new List<FileViewModel>();
+        private List<DirectoryViewModel> dirs = new List<DirectoryViewModel>();
+        private List<FileViewModel> files = new List<FileViewModel>();
         private List<string> currentPathes { get; set; } = new List<string>();
         private DirectoryViewModel currentDirectory;
-        private object filesLock = new object();
-        private object dirLock = new object();
         private List<BaseEntityViewModel> toRemove = new List<BaseEntityViewModel>();
+        public AddItemsPage(object sender, DragEventArgs e, DirectoryEntity initialDist = null) : this(initialDist)
+        {
+            this.Page_Drop(sender, e);
+        }
         public AddItemsPage(DirectoryEntity initialDist = null)
         {
             this.DataContext = Model;
@@ -50,30 +53,27 @@ namespace MSDiskManager.Pages.AddItems
                 {
                     if (model.FilesOnly)
                     {
-                        var files = allFiles.ToList();
-                        foreach (var d in allDirs)
+                        currentDirectory = null;
+                        BackButton.Background = Application.Current.Resources["primary"] as SolidColorBrush;
+                        var files = this.files.ToList();
+                        foreach (var d in dirs)
                         {
                             files.AddRange(d.FilesRecursive);
                         }
-                        Model.BaseFiles = files;
-                        Model.BaseDirectories = new List<DirectoryViewModel>();
-                        DirectoriesLabel.Visibility = Visibility.Collapsed;
-                        DirectoriesTextBox.Visibility = Visibility.Collapsed;
-                        DirectoriesGrid.Visibility = Visibility.Collapsed;
-                        DirectoriesRowDef.Height = GridLength.Auto;
+                        Model.Reset();
+                        var res = files.OrderBy(f => f.Name).ToList();
+                        Model.Items.AddMany(res);
                     }
                     else
                     {
-                        Model.BaseFiles = allFiles.ToList();
-                        Model.BaseDirectories = allDirs.ToList();
-                        DirectoriesLabel.Visibility = Visibility.Visible;
-                        DirectoriesTextBox.Visibility = Visibility.Visible;
-                        DirectoriesGrid.Visibility = Visibility.Visible;
-                        DirectoriesRowDef.Height = new GridLength(1, GridUnitType.Star);
+                        Model.Reset();
+                        Model.AddEntities(dirs);
+                        Model.AddEntities(files);
                     }
                 }
             };
             InitializeComponent();
+
         }
 
         private void AddTags(object sender, RoutedEventArgs e)
@@ -129,74 +129,100 @@ namespace MSDiskManager.Pages.AddItems
         {
             var check = sender as CheckBox;
             var isChecked = check.IsChecked ?? false;
-            foreach (var f in Model.Directories) f.IsSelected = isChecked;
+            foreach (var f in Model.Items) f.IsSelected = isChecked;
         }
-        private void checkAllFilesClicked(object sender, RoutedEventArgs e)
-        {
-            var check = sender as CheckBox;
-            var isChecked = check.IsChecked ?? false;
-            foreach (var f in Model.Files) f.IsSelected = isChecked;
-        }
+
 
         private void openDirectory(object sender, RoutedEventArgs e)
         {
             var button = sender as Button;
             var dir = button.CommandParameter as DirectoryViewModel;
+            if (dir == null)
+            {
+                var file = button.CommandParameter as FileViewModel;
+                if (file != null) openFile(file.OriginalPath);
+                return;
+            }
             currentDirectory = dir;
-            Model.BaseFiles = dir.Files;
-            Model.BaseDirectories = dir.Children;
+            Model.Reset();
+            dir.Files.ForEach(async f => await f.LoadImage());
+            Model.AddEntities(dir.Children);
+            Model.AddEntities(dir.Files);
+            BackButton.Background = new SolidColorBrush(Colors.White);
         }
         private void GoBack(object sender, RoutedEventArgs e)
         {
             var button = sender as Button;
 
-            if (currentDirectory == null) MessageBox.Show("there are no more parent directories to go back to");
+            if (currentDirectory == null) return;//MessageBox.Show("there are no more parent directories to go back to");
             else
             {
                 currentDirectory = currentDirectory.Parent;
-                Model.BaseFiles = currentDirectory == null ? allFiles.ToList() : currentDirectory.Files;
-                Model.BaseDirectories = currentDirectory == null ? allDirs.ToList() : currentDirectory.Children;
+                Model.Reset();
+                Model.AddEntities(currentDirectory == null ? files.ToList() : currentDirectory.Files);
+                if (!Model.FilesOnly) Model.AddEntities(currentDirectory == null ? dirs.ToList() : currentDirectory.Children);
+                if (currentDirectory == null) BackButton.Background = Application.Current.Resources["primary"] as SolidColorBrush;
             }
         }
 
         private void MoveClicked(object sender, RoutedEventArgs e)
         {
-            var fo = Model.FilesOnly;
-            var files = allFiles.ToList();
-            if (fo) allDirs.ForEach(d => files.AddRange(d.FilesRecursive));
-            var diag = new CopyMoveDialog(fo ? new List<DirectoryViewModel>() : allDirs, files, Model.Parent, true);
-            if (diag.ShowDialog() ?? false)
-            {
-                this.NavigationService.GoBack();
-            } else
-            {
-                removeSuccessful();
-            }
+            CopyMove(true);
         }
-        
+
         private void CopyClicked(object sender, RoutedEventArgs e)
         {
+            CopyMove();
+        }
+        private void CopyMove(bool move = false)
+        {
+            Model.Reset();
             var fo = Model.FilesOnly;
-            var files = allFiles.ToList();
-            if (fo) allDirs.ForEach(d => files.AddRange(d.FilesRecursive));
-            var diag = new CopyMoveDialog(fo ? new List<DirectoryViewModel>() : allDirs, files, Model.Parent, false);
+            var fs = this.files.ToList();
+            List<DirectoryViewModel> ds;
+            if (fo)
+            {
+                dirs.ForEach(d => fs.AddRange(d.FilesRecursive));
+                foreach (var f in fs) { f.Parent = null; f.FreeResources(); }
+                ds = new List<DirectoryViewModel>();
+            }else
+            {
+                ds = dirs.ToList();
+                foreach (var f in fs) f.FreeResources();
+                foreach (var d in ds)d.FreeResources();
+            }
+            
+            var diag = new CopyMoveDialog(fo ? new List<DirectoryViewModel>() : dirs, fs, Model.Distanation, move);
             if (diag.ShowDialog() ?? false)
             {
                 this.NavigationService.GoBack();
-            } else
+            }
+            else
             {
                 removeSuccessful();
+
+                files.ForEach(f => { f.Parent = null; f.ResetResources(); });
+                dirs.ForEach(d => { d.Parent = null;d.ResetResources(); });
+                if (Model.FilesOnly) { Model.FilesOnly = false; }
+                else
+                {
+                    Model.Reset();
+                    Model.AddEntities(dirs);
+                    Model.AddEntities(files);
+                }
             }
+
         }
         private void removeSuccessful()
         {
-            allFiles = allFiles.Where(f => !f.ShouldRemove).ToList();
-            allDirs = allDirs.Where(d => !d.StartRemoving()).ToList();
-            Model.Reset(allFiles, allDirs);
-            allFiles.ForEach(f => f.ShouldRemove = false);
-            allDirs.ForEach(d => { d.ResetShouldRemove();d.Parent = null; });
-            var pathes = allFiles.Select(f => f.OriginalPath).ToList();
-            pathes.AddRange(allDirs.SelectMany(d => d.OriginalPathesRecursive));
+            files = files.Where(f => !f.ShouldRemove).ToList();
+            dirs = dirs.Where(d => !d.StartRemoving()).ToList();
+            Model.Reset(dirs);
+            Model.AddEntities(files);
+            files.ForEach(f => f.ShouldRemove = false);
+            dirs.ForEach(d => { d.ResetShouldRemove(); d.Parent = null; });
+            var pathes = files.Select(f => f.OriginalPath).ToList();
+            pathes.AddRange(dirs.SelectMany(d => d.OriginalPathesRecursive));
             currentPathes = pathes;
         }
 
@@ -205,34 +231,253 @@ namespace MSDiskManager.Pages.AddItems
         {
             if (e.Data.GetDataPresent(DataFormats.FileDrop))
             {
-                var toadd = new List<string>();
-                string[] pathes = (string[])e.Data.GetData(DataFormats.FileDrop);
-                if (pathes != null)
+                addFiles((string[])e.Data.GetData(DataFormats.FileDrop), currentDirectory);
+                AddBorder.Background = Application.Current.Resources["primary"] as SolidColorBrush;
+            }
+        }
+        private void addFiles(string[] pathes, DirectoryViewModel parent = null)
+        {
+            var toadd = new List<string>();
+            if (pathes != null)
+            {
+                foreach (var path in pathes)
                 {
-                    foreach (var path in pathes)
+                    if (currentPathes.Contains(path)) continue;
+                    if (path.IsFile())
                     {
-                        if (currentPathes.Any(cp => path.Contains(cp))) continue;
-                        toadd.Add(path);
-                        if (path.IsFile())
-                        {
-                            allFiles.Add(path.GetFile());
-                        }
-                        else
-                        {
-                            allDirs.Add(path.GetFullDirectory());
-                        }
+                        var f = path.GetFile(parent);
+                        if (parent == null) files.Add(f.file);
+                        else parent.Files.Add(f.file);
+                        toadd.Add(f.path);
                     }
-                    this.currentPathes.AddRange(toadd);
-                    
-                    Model.BaseFiles = allFiles;
-                    Model.BaseDirectories = allDirs;
+                    else
+                    {
+                        var ds = path.GetFullDirectory(parent);
+                        if (parent == null) dirs.Add(ds.directory);
+                        else parent.Children.Add(ds.directory);
+                        toadd.AddRange(ds.pathes);
+                    }
+                }
+                this.currentPathes.AddRange(toadd);
+                if (parent == null)
+                {
+                    Model.Reset();
+                    Model.AddEntities(dirs);
+                    Model.AddEntities(files);
+                }
+                else
+                {
+                    if (parent == currentDirectory)
+                    {
+                        Model.Reset();
+                        Model.AddEntities(parent.Children);
+                        Model.AddEntities(parent.Files);
+                    }
                 }
             }
+
         }
 
         private void CancelClicked(object sender, RoutedEventArgs e)
         {
             this.NavigationService.GoBack();
+        }
+
+
+
+
+        private void Button_MouseEnter(object sender, MouseEventArgs e)
+        {
+            AddDG.VerticalScrollBarVisibility = ScrollBarVisibility.Disabled;
+            var button = sender as Button;
+            var entity = button.CommandParameter as BaseEntityViewModel;
+            if (entity is DirectoryViewModel)
+            {
+                button.ToolTip = entity.TooltipContent;
+            }
+            else
+            {
+
+                var file = entity as FileViewModel;
+                switch (file.FileType)
+                {
+                    case FileType.Unknown:
+                        break;
+                    case FileType.Text:
+                        if (button.ToolTip == null) button.ToolTip = file.TextContent;
+                        break;
+                    case FileType.Image:
+                        if (button.ToolTip == null) button.ToolTip = file.ImageContent;
+                        break;
+                    case FileType.Music:
+                        var audio = file.AudioContent;
+                        audio.Play();
+                        break;
+                    case FileType.Video:
+                        var video = file.VideoContent;
+                        if (button.ToolTip == null) button.ToolTip = video;
+                        video.Play();
+                        break;
+                    case FileType.Compressed:
+                        break;
+                    case FileType.Document:
+                        break;
+                }
+            }
+        }
+
+        private void Button_MouseLeave(object sender, MouseEventArgs e)
+        {
+            AddDG.VerticalScrollBarVisibility = ScrollBarVisibility.Visible;
+            var button = sender as Button;
+            var entity = button.CommandParameter as BaseEntityViewModel;
+            var content = entity.TooltipContent;
+            if (entity is DirectoryViewModel)
+            {
+                return;
+            }
+            else
+            {
+                var file = entity as FileViewModel;
+                switch (file.FileType)
+                {
+                    case FileType.Unknown:
+                        break;
+                    case FileType.Text:
+                        break;
+                    case FileType.Image:
+                        button.ToolTip = null;
+                        break;
+                    case FileType.Music:
+                        file.StopPlaying();
+                        break;
+                    case FileType.Video:
+                        file.StopPlaying();
+                        button.ToolTip = null;
+                        break;
+                    case FileType.Compressed:
+                        break;
+                    case FileType.Document:
+                        break;
+                }
+            }
+        }
+        private void Button_PreviewMouseWheel(object sender, MouseWheelEventArgs e)
+        {
+            e.Handled = true;
+            var button = sender as Button;
+            var entity = button.CommandParameter as BaseEntityViewModel;
+            if (entity is FileViewModel)
+            {
+                var file = entity as FileViewModel;
+                if (e.Delta < 0) file.MouseWheelDown();
+                else if (e.Delta > 0) file.MouseWheelUp();
+            }
+
+        }
+
+        private void DeleteItem(object sender, RoutedEventArgs e)
+        {
+            var button = sender as Button;
+            var entity = button.CommandParameter as BaseEntityViewModel;
+            doDelete(entity);
+        }
+        private void doDelete(BaseEntityViewModel entity)
+        {
+            if (entity.Parent == null)
+            {
+                if (entity is FileViewModel) files.Remove(entity as FileViewModel);
+                else dirs.Remove(entity as DirectoryViewModel);
+
+            }
+            else
+            {
+                entity.Parent.RemoveChild(entity);
+            }
+            Model.RemoveEntity(entity);
+            currentPathes.RemoveAll(p => p.Contains(entity.OriginalPath));
+        }
+
+        private void StackPanel_Drop(object sender, DragEventArgs e)
+        {
+            if (e.Data.GetDataPresent(DataFormats.FileDrop))
+            {
+                var stack = sender as StackPanel;
+                var dir = stack.DataContext as DirectoryViewModel;
+                if (dir != null)
+                {
+                    e.Handled = true;
+
+                    addFiles((string[])e.Data.GetData(DataFormats.FileDrop), dir);
+                    AddBorder.Background = Application.Current.Resources["primary"] as SolidColorBrush;
+                }
+            }
+        }
+
+        private void HandleDragEnter(object sender, DragEventArgs e)
+        {
+            if (e.Data.GetDataPresent(DataFormats.FileDrop))
+            {
+                if (sender is StackPanel && (sender as StackPanel).DataContext is DirectoryViewModel || sender is Page)
+                {
+                    var brush = (((string[])e.Data.GetData(DataFormats.FileDrop))?.All(s => currentPathes.Contains(s)) ?? false) ? Application.Current.Resources["warnColor"] as SolidColorBrush
+                        : Application.Current.Resources["lightBlue900"] as SolidColorBrush;
+                    e.Handled = true;
+                    if (sender is StackPanel) (sender as StackPanel).Background = brush;
+                    else AddBorder.Background = brush;
+
+                }
+            }
+        }
+
+        private void HandleDragLeave(object sender, DragEventArgs e)
+        {
+            if (e.Data.GetDataPresent(DataFormats.FileDrop))
+            {
+                if (sender is StackPanel && (sender as StackPanel).DataContext is DirectoryViewModel || sender is Page)
+                {
+                    e.Handled = true;
+                    if (sender is StackPanel) (sender as StackPanel).Background = new SolidColorBrush(Colors.Transparent);
+                    else AddBorder.Background = Application.Current.Resources["primary"] as SolidColorBrush;
+
+                }
+            }
+        }
+
+        private void AddDG_PreviewKeyDown(object sender, KeyEventArgs e)
+        {
+            var dg = sender as DataGrid;
+            if (dg.ItemsSource is ICollection<BaseEntityViewModel>)
+            {
+                if (e.Key == Key.Delete)
+                {
+                    var items = dg.ItemsSource as ICollection<BaseEntityViewModel>;
+                    var selected = items?.Where(i => i.IsSelected)?.ToList();
+                    if (!Globals.IsNullOrEmpty(selected))
+                    {
+                        foreach (var item in selected) doDelete(item);
+                    }
+                }
+            }
+        }
+
+        private void DataGridRow_Selected(object sender, RoutedEventArgs e)
+        {
+            var row = sender as DataGridRow;
+            var entity = row.DataContext as BaseEntityViewModel;
+            entity.IsSelected = true;
+        }
+
+        private void DataGridRow_Unselected(object sender, RoutedEventArgs e)
+        {
+            var row = sender as DataGridRow;
+            var entity = row.DataContext as BaseEntityViewModel;
+            entity.IsSelected = false;
+        }
+
+        private void AddPage_Loaded(object sender, RoutedEventArgs e)
+        {
+            FilterTBX.Focus();
         }
     }
 }

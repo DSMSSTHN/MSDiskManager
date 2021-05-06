@@ -4,6 +4,7 @@ using MSDiskManager.Helpers;
 using MSDiskManagerData.Data.Entities;
 using MSDiskManagerData.Data.Entities.Relations;
 using MSDiskManagerData.Data.Repositories;
+using MSDiskManagerData.Helpers;
 using Nito.AsyncEx;
 using System;
 using System.Collections.Generic;
@@ -15,7 +16,9 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Media;
+using System.Windows.Media.Imaging;
 
 namespace MSDiskManager.ViewModels
 {
@@ -24,17 +27,91 @@ namespace MSDiskManager.ViewModels
     {
         private FileType fileType = FileType.Unknown;
         private string extension = "txt";
+        private static MediaElement? media;
+        private TextBlock? txt;
+        private Image? img;
+        public static CancellationTokenSource? imgCancel;
+        public void StopPlaying() => media?.Stop();
+        public void MouseWheelDown()
+        {
+            switch (FileType)
+            {
+                case FileType.Unknown:
+                    break;
+                case FileType.Text:
+                    break;
+                case FileType.Image:
+                    if (img == null) return;
+                    if (img.MaxWidth > 100)
+                    {
+                        img.MaxWidth -= 50;
+                    }
+                    break;
+                case FileType.Music:
+                case FileType.Video:
+                    if ((media?.Volume ?? 0) != 0) media!.Volume -= 0.1;
+                    break;
+                case FileType.Compressed:
+                    break;
+                case FileType.Document:
+                    break;
+            }
+        }
+        public void MouseWheelUp()
+        {
+            switch (FileType)
+            {
 
+                case FileType.Unknown:
+                    break;
+                case FileType.Text:
+                    break;
+                case FileType.Image:
+                    if (img == null) return;
+                    if (img.MaxWidth < System.Windows.SystemParameters.FullPrimaryScreenWidth / 2)
+                    {
+                        img.MaxWidth += 50;
+                    }
+                    break;
+                case FileType.Music:
+                case FileType.Video:
+                    if ((media?.Volume ?? 1) != 1) media!.Volume += 0.1;
+                    break;
+                case FileType.Compressed:
+                    break;
+                case FileType.Document:
+                    break;
+            }
+        }
 
 
         public FileType FileType { get => fileType; set { fileType = value; NotifyPropertyChanged("FileType"); } }
         public String Extension { get => extension; set { extension = value; NotifyPropertyChanged("Extension"); } }
 
 
-
+        public FileViewModel()
+        {
+            if (imgCancel == null) imgCancel = new CancellationTokenSource();
+        }
+        public void FreeResources()
+        {
+            Image?.Freeze();
+            Image = null;
+            if(!imgCancel!.IsCancellationRequested) imgCancel?.Cancel();
+            if (img != null) {img?.Source?.Freeze(); img!.Source = null; }
+            if (media != null) { media.Source = null;media.Stop();media.Close(); }
+            img = null;
+            txt = null;
+            media = null;
+        }
+        public void ResetResources()
+        {
+            imgCancel?.Dispose();
+            imgCancel = new CancellationTokenSource();
+        }
         public async Task<bool> AddToDb(bool move, Action<BaseEntityViewModel?, CopyMoveEventType> callback, PauseTokenSource pauses, CancellationTokenSource cancels, bool bypass = false, bool dbOnly = false)
         {
-           
+
             if (!bypass)
             {
                 await pauses.Token.WaitWhilePausedAsync();
@@ -49,17 +126,17 @@ namespace MSDiskManager.ViewModels
                     await rep.AddFile(file, OriginalPath, move: move, dontAddToDB: IgnoreAdd);
                 this.Path = created.Path;
                 this.Id = created.Id;
-                if (callback != null) callback(this,CopyMoveEventType.Success);
+                if (callback != null) callback(this, CopyMoveEventType.Success);
                 if (bypass) pauses.IsPaused = false;
                 ShouldRemove = true;
                 return true;
             }
-            catch(IOException ioe)
+            catch (IOException ioe)
             {
                 pauses.IsPaused = true;
                 var result = false;
                 var msg = $"Directory :[{OriginalPath}]\n{ioe.Message}";
-                var diag = new CopyMoveErrorDialog(msg, pauses, cancels, async ()  => result = await AddToDb(move,callback,pauses,cancels,true),(et)=>callback(this,et));
+                var diag = new CopyMoveErrorDialog(msg, pauses, cancels, async () => result = await AddToDb(move, callback, pauses, cancels, true), (et) => callback(this, et));
                 diag.ShowDialog();
                 return result;
             }
@@ -68,7 +145,7 @@ namespace MSDiskManager.ViewModels
                 pauses.IsPaused = true;
                 var result = false;
                 var msg = $"Directory :[{OriginalPath}]\n{npe.Message}";
-                var diag = new CopyMoveErrorDialog(msg, pauses, cancels, async () => result = await AddToDb(move, callback, pauses, cancels, true,true), (et) => callback(this,et));
+                var diag = new CopyMoveErrorDialog(msg, pauses, cancels, async () => result = await AddToDb(move, callback, pauses, cancels, true, true), (et) => callback(this, et));
                 diag.ShowDialog();
                 return result;
             }
@@ -94,7 +171,8 @@ namespace MSDiskManager.ViewModels
             Parent = Parent?.DirectoryEntity,
             IsHidden = IsHidden,
             ParentId = Parent?.Id,
-            };
+            OldPath = OriginalPath,
+        };
 
 
         public override IconType IconType
@@ -121,34 +199,198 @@ namespace MSDiskManager.ViewModels
                 return IconType.Unknown;
             }
         }
-        public ImageSource Image
+        public override ImageSource? Image
         {
             get
             {
-                switch (IconType)
-                {
-                    case IconType.Unknown:
-                        return "/images/unknownFile.png".AsUri();
-                    case IconType.Text:
-                        return "/images/textFile.png".AsUri();
-                    case IconType.Image:
-                        return OriginalPath?.AsUri(true) ?? FullPath.AsUri(true);
-                    case IconType.Music:
-                        return "/images/musicFile.png".AsUri();
-                    case IconType.Video:
-                        return "/images/videoFile.png".AsUri();
-                    case IconType.Compressed:
-                        return "/images/compressedFile.png".AsUri();
-                    case IconType.Document:
-                        return "/images/documentFile.png".AsUri();
-                    case IconType.Directory:
-                        return "/images/directory.png".AsUri();
-                }
 
-                return "/images/unknownFile.png".AsUri();
+                return base.Image;
+
+            }
+            set
+            {
+                base.Image = value;
             }
         }
+        private bool isBusy = false;
+        public async Task LoadImage(int tries = 0)
+        {
+            if (imgCancel.IsCancellationRequested) return;
+            isBusy = true;
+            var img = await Task.Run(async () =>
+          {
+              try
+              {
+                  if (imgCancel.IsCancellationRequested) return null;
+                  ImageSource? image = null;
+                  switch (fileType)
+                  {
+                      case FileType.Unknown:
+                          image = "/images/unknownFile.png".AsUri();
+                          break;
+                      case FileType.Text:
+                          image = "/images/textFile.png".AsUri();
+                          break;
+                      case FileType.Image:
+                          image = Globals.IsNotNullNorEmpty(OriginalPath) ? await OriginalPath.asBitmapAsync(imgCancel) : await FullPath.asBitmapAsync(imgCancel);
+                          break;
+                      case FileType.Music:
+                          image = "/images/musicFile.png".AsUri();
+                          break;
+                      case FileType.Video:
+                          image = "/images/videoFile.png".AsUri();
+                          break;
+                      case FileType.Compressed:
+                          image = "/images/compressedFile.png".AsUri();
+                          break;
+                      case FileType.Document:
+                          image = "/images/documentFile.png".AsUri();
+                          break;
+                  }
+                  return image;
+              }
+
+              catch (Exception)
+              {
+                  return null;
+
+              }
+          });
+            if (img != null) Application.Current.Dispatcher.Invoke(() => Image = img);
+            else if (tries < 5 && !(imgCancel?.IsCancellationRequested ?? false)) await LoadImage(tries + 1);
+            isBusy = false;
+        }
         public Stretch Stretch => FileType == FileType.Image ? Stretch.UniformToFill : Stretch.Uniform;
+
+        public override double ImageWidth => FileType == FileType.Image ? (System.Windows.SystemParameters.FullPrimaryScreenWidth / 2) : 50;
+
+        public override object? TooltipContent
+        {
+            get
+            {
+                if (content != null) return content;
+                switch (FileType)
+                {
+                    case FileType.Unknown:
+                        content = Image;
+                        break;
+                    case FileType.Text:
+                        content = TextContent;
+                        break;
+                    case FileType.Image:
+                        content = ImageContent;
+                        break;
+                    case FileType.Music:
+                        content = AudioContent;
+                        break;
+                    case FileType.Video:
+                        content = VideoContent;
+                        break;
+                    case FileType.Compressed:
+                        content = Image;
+                        break;
+                    case FileType.Document:
+                        content = Image;
+                        break;
+                }
+                content = Image;
+                return content;
+            }
+        }
+        public Image? ImageContent
+        {
+            get
+            {
+                if (isBusy) return null;
+                if (img != null) return img;
+                if (img == null)
+                {
+                    img = new Image();
+                    img.MaxWidth = System.Windows.SystemParameters.FullPrimaryScreenWidth / 2;
+                }
+                
+                img.Source = Globals.IsNotNullNorEmpty(OriginalPath) ?  OriginalPath.AsUri(true) : FullPath.AsUri(true);
+                NotifyPropertyChanged("ImageContent");
+                return img;
+            }
+        }
+        public TextBlock TextContent
+        {
+            get
+            {
+                if (txt != null) return txt;
+                txt = new TextBlock();
+                txt.TextWrapping = TextWrapping.Wrap;
+                var text = File.ReadAllText(OriginalPath);
+                if (text.Length > 1000)
+                {
+                    text = text.Substring(0, 1000) + "......";
+                }
+                txt.Text = text;
+                txt.Background = Application.Current.Resources["primary"] as SolidColorBrush;
+                txt.Foreground = Application.Current.Resources["textColor"] as SolidColorBrush;
+                txt.MaxWidth = System.Windows.SystemParameters.FullPrimaryScreenWidth / 2;
+                return txt;
+            }
+        }
+
+        private int wheelEvent;
+        public MediaElement VideoContent
+        {
+            get
+            {
+                if (media == null)
+                {
+                    media = new MediaElement();
+
+                    media.LoadedBehavior = MediaState.Manual;
+                    media.UnloadedBehavior = MediaState.Manual;
+                    media.Volume = 0.5;
+                    media.MaxWidth = System.Windows.SystemParameters.FullPrimaryScreenWidth / 2;
+                }
+                media.Source = new Uri(OriginalPath);
+
+                try
+                {
+                    media.Position = new TimeSpan(0, 0, new Random().Next(100));
+                }
+                catch (Exception)
+                {
+                    media.Position = new TimeSpan(0);
+                }
+
+                return media;
+            }
+        }
+        public MediaElement AudioContent
+        {
+            get
+            {
+                if (media == null)
+                {
+                    media = new MediaElement();
+                    media.LoadedBehavior = MediaState.Manual;
+                    media.UnloadedBehavior = MediaState.Manual;
+                    media.Volume = 0.5;
+                    media.MaxWidth = System.Windows.SystemParameters.FullPrimaryScreenWidth / 2;
+                }
+                media.Source = new Uri(OriginalPath);
+
+
+                try
+                {
+                    media.Position = new TimeSpan(0, 0, new Random().Next(100));
+                }
+                catch (Exception)
+                {
+                    media.Position = new TimeSpan(0);
+                }
+
+
+
+                return media;
+            }
+        }
     }
 }
 

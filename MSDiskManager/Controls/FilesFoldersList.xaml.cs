@@ -36,9 +36,10 @@ namespace MSDiskManager.Controls
         //private List<FilterModel> history { get; set; } = new List<FilterModel>();
         private Stack<DirectoryEntity> history { get; set; } = new Stack<DirectoryEntity>();
         public Prop<Boolean> CanGoBack { get; set; } = new Prop<bool>(false);
-        public FilesFoldersList()
+        private Action<object, DragEventArgs, DirectoryEntity> openAdd;
+        public FilesFoldersList(Action<object, DragEventArgs, DirectoryEntity> openAdd)
         {
-
+            this.openAdd = openAdd;
             this.filterTopViewModel = Application.Current.Resources["TopViewModel"] as FilterTopViewModel;
             this.filterTopViewModel.FilterModel.PropertyChanged -= applyFilter;
             this.filterTopViewModel.FilterModel.PropertyChanged += applyFilter;
@@ -58,9 +59,10 @@ namespace MSDiskManager.Controls
         {
             var propName = (args as PropertyChangedEventArgs).PropertyName;
             var filter = (f as FilterModel);
-            if (propName == "Parent" && filter.Parent != null)
+            if (propName == "Parent")
             {
-                if (history.Count ==  0 || history.Peek().Id != filter.Parent.Id)
+                _ = DBImage.LoadDirectory(filter.Parent?.Id);
+                if(filter.Parent != null && (history.Count == 0 || history.Peek().Id != filter.Parent.Id))
                 {
                     history.Push(filter.Parent);
                 }
@@ -169,9 +171,51 @@ namespace MSDiskManager.Controls
         }
         private void Grid_Loaded(object sender, RoutedEventArgs e)
         {
+            _ = DBImage.LoadDirectory(filterTopViewModel.FilterModel.Parent?.Id);
             _ = filterData(filterTopViewModel.FilterModel);
             //filterTopViewModel.FilterModel.Name = "";
             //filterTopViewModel.FilterModel.Name = "";
+        }
+
+        private void DropOnGrid(object sender, DragEventArgs e)
+        {
+            if (e.Data.GetDataPresent(DataFormats.FileDrop))
+            {
+                openAdd( sender, e, filterTopViewModel.FilterModel.Parent);
+            }
+        }
+
+        private void DropOnElement(object sender, DragEventArgs e)
+        {
+            e.Handled = true;
+            var c = sender as Grid;
+            var directory = c.DataContext as DirectoryEntity;
+            if (e.Data.GetDataPresent(DataFormats.FileDrop))
+            {
+                openAdd(sender, e, directory ?? filterTopViewModel.FilterModel.Parent);
+            }
+        }
+
+        private void DragEnterElement(object sender, DragEventArgs e)
+        {
+            var g = sender as Grid;
+            if(!(g.DataContext is FileEntity))
+            {
+                e.Handled = true;
+                g.Background = Application.Current.Resources["lightBlue900"] as SolidColorBrush;
+            }
+            
+        }
+
+        private void DragLeaveElement(object sender, DragEventArgs e)
+        {
+            var g = sender as Grid;
+            if (!(g.DataContext is FileEntity))
+            {
+                e.Handled = true;
+                g.Background = new SolidColorBrush(Colors.Transparent);
+            }
+            
         }
     }
 

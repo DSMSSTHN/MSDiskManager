@@ -1,5 +1,6 @@
 ﻿using MSDiskManager.ViewModels;
 using MSDiskManagerData.Data.Repositories;
+using MSDiskManagerData.Helpers;
 using Nito.AsyncEx;
 using System;
 using System.Collections.Generic;
@@ -51,9 +52,9 @@ namespace MSDiskManager.Dialogs
 
 
 
-        private void Grid_Loaded(object sender, RoutedEventArgs e)
+        private async void Grid_Loaded(object sender, RoutedEventArgs e)
         {
-            this.MouseDown += delegate { DragMove(); };
+            this.MouseLeftButtonDown += delegate { DragMove(); };
             pauses = new PauseTokenSource();
             cancels = new CancellationTokenSource();
             //worker.RunWorkerAsync();
@@ -83,8 +84,25 @@ namespace MSDiskManager.Dialogs
                     }
                 }
             };
-            files.ForEach(async f => await f.AddToDb(move, scp, pauses, cancels));
-            dirs.ForEach(async d => await d.AddToDb(move, scp, pauses, cancels));
+            //foreach (var f in files)
+            //{
+            //    await f.AddToDb(move, scp, pauses, cancels);
+            //}
+            if (Globals.IsNotNullNorEmpty(files))
+            {
+                await new FileRepository().AddFiles(files,
+                    async(f, e) =>
+                    {
+                        pauses.IsPaused = true;
+                        var diag = new CopyMoveErrorDialog($"FILE: [{f.OldPath}]\n{e.Message}", pauses, cancels, async () => result = await AddToDb(move, callback, pauses, cancels, true), (et) => callback(null, et));
+                        diag.ShowDialog();
+                        await pauses.Token.WaitWhilePausedAsync();
+                        return cancels.IsCancellationRequested ? 2 : (pauses.IsPaused ? 1 : 0);
+                    }
+
+                    );
+            }
+            foreach (var d in dirs) await d.AddToDb(move, scp, pauses, cancels);
         }
     }
     public enum CopyMoveEventType

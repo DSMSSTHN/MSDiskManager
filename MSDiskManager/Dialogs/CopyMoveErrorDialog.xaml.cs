@@ -46,13 +46,14 @@ namespace MSDiskManager.Dialogs
         private void skip()
         {
            
-            this.otherFunc(CopyMoveEventType.Skip);
             pauses.IsPaused = false;
+            this.otherFunc(CopyMoveEventType.Skip);
         }
         private void cancel()
         {
             
             cancels.Cancel();
+            pauses.IsPaused = false;
         }
 
         private void CancelClicked(object sender, RoutedEventArgs e)
@@ -79,7 +80,7 @@ namespace MSDiskManager.Dialogs
 
         private void Grid_Loaded(object sender, RoutedEventArgs e)
         {
-            this.MouseDown += delegate { DragMove(); };
+            this.MouseLeftButtonDown += delegate { DragMove(); };
         }
     }
 }

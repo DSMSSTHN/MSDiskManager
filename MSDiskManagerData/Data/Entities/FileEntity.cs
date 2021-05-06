@@ -18,6 +18,7 @@ namespace MSDiskManagerData.Data.Entities
         public string Description { get; set; } = "new_file";
         public String Extension { get; set; } = "txt";
         public String Path { get; set; } = "";
+        public String OldPath { get; set; } = "";
         public FileType FileType { get; set; } = FileType.Unknown;
         public long? ParentId { get; set; }
         public DirectoryEntity? Parent { get; set; }
@@ -26,6 +27,7 @@ namespace MSDiskManagerData.Data.Entities
         public Instant MovingDate { get; set; }
         public virtual List<FileTag> FileTags { get; set; } = new List<FileTag>();
         public bool IsHidden { get; set; }
+        public virtual ImageThumbnail? Thumbnail { get; set; }
 
         public string FullPath { get => MSDM_DBContext.DriverName + Path; }
 
@@ -74,7 +76,7 @@ namespace MSDiskManagerData.Data.Entities
         public string? TagName { get; set; }
         public List<long> tagIds { get; set; } = new List<long>();
         public long? DirectoryId { get; set; }
-        public List<long> AncestorIds { get; set; } = new List<long>();
+        public List<long>? AncestorIds { get; set; } = new List<long>();
         public bool IncludeFileNameInSearch { get; set; }
         public bool IncludeDescriptionInSearch { get; set; }
         public bool IncludeHidden { get; set; } = false;

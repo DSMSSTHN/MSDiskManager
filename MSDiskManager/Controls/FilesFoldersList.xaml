@@ -13,7 +13,7 @@
     </UserControl.Resources>
     <Border Background="{StaticResource primaryLight}" CornerRadius="10">
 
-        <Grid Loaded="Grid_Loaded">
+        <Grid Loaded="Grid_Loaded" AllowDrop="True" Drop="DropOnGrid" DragDrop.DragEnter="DragEnterElement" DragDrop.DragLeave="DragLeaveElement">
             <Grid.RowDefinitions>
                 <RowDefinition Height="auto"/>
                 <RowDefinition Height="*"/>
@@ -38,19 +38,22 @@
             <ListView Grid.Row="1" Background="Transparent"
                       
                       ItemsSource="{Binding Items}" d:ItemsSource="{x:Static local:MockData.Items}">
+                <ListView.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <VirtualizingStackPanel Orientation="Vertical"/>
+                    </ItemsPanelTemplate>
+                </ListView.ItemsPanel>
                 <ListView.ItemTemplate>
                     <DataTemplate>
-                        <Grid Background="Transparent">
+                        <Grid Background="Transparent" AllowDrop="True" Drop="DropOnElement" 
+                              
+                              DragDrop.PreviewDragEnter="DragEnterElement" DragDrop.PreviewDragLeave="DragLeaveElement">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="auto"/>
                                 <ColumnDefinition Width="*"/>
                                 <ColumnDefinition Width="auto"/>
                             </Grid.ColumnDefinitions>
-                            <Image Width="40" Height="40" Grid.Column="0" 
-                                   Source="{Binding IconType,Converter={StaticResource TypeToIconSourceConverter}}"
-                                   d:Source="{Binding IconType,Converter={StaticResource TypeToIconSourceConverter}}"
-                                   
-                                   />
+                            <local:DBImage DataContext="{Binding Path=.}"/>
                             <Button Grid.Column="1" Background="Transparent" BorderBrush="Transparent" BorderThickness="0"
                                 Click="EntityClicked" CommandParameter="{Binding Path=.}"
                                 >

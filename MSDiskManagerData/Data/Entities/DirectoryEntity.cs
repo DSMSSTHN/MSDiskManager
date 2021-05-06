@@ -22,6 +22,7 @@ namespace MSDiskManagerData.Data.Entities
         public DirectoryEntity? Parent { get; set; }
         public List<long> AncestorIds { get; set; } = new List<long>();
         public String Path { get => path; set { path = value; if (value != null && value.Length > 0) while (path[path.Length - 1] == '/' || path[path.Length - 1] == '\\') path = path.Substring(0, path.Length - 1); } }
+        public String OldPath { get; set; } = "";
         public Instant MovingDate { get; set; }
         public Instant LastFileAddedDate { get; set; }
         public int NumberOfFiles { get; set; }

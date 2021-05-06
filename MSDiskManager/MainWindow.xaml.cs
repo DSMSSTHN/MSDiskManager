@@ -30,11 +30,13 @@ namespace MSDiskManager
         public MainWindow()
         {
             InitializeComponent();
+            ToolTipService.ShowDurationProperty.OverrideMetadata(
+    typeof(DependencyObject), new FrameworkPropertyMetadata(Int32.MaxValue));
         }
 
         private void Grid_Loaded(object sender, RoutedEventArgs e)
         {
-            this.MouseDown += delegate { DragMove(); };
+            this.MouseLeftButtonDown += delegate { DragMove(); };
         }
 
         private void CloseWindow(object sender, RoutedEventArgs e)

@@ -80,7 +80,8 @@ namespace MSDiskManager.Dialogs
 
         private void Grid_Loaded(object sender, RoutedEventArgs e)
         {
-            this.MouseDown += delegate { DragMove(); };
+            this.MouseLeftButtonDown += delegate { DragMove(); };
+            NameTBX.Focus();
         }
     }
 }

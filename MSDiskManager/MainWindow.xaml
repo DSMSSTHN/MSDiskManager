@@ -13,7 +13,7 @@
         BorderThickness="0"
         WindowStartupLocation="CenterScreen"
         Title="MainWindow" Height="1080" Width="1080">
-    <Border Loaded="Grid_Loaded" Background="{StaticResource primary}" CornerRadius="5">
+    <Border Loaded="Grid_Loaded" Background="{StaticResource primary}" CornerRadius="5" BorderThickness="3" BorderBrush="{StaticResource primaryLight}">
         <Grid >
             <Grid.RowDefinitions>
                 <RowDefinition Height="auto"/>

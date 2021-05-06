@@ -1,4 +1,5 @@
-﻿using MSDiskManager.Helpers;
+﻿#nullable enable
+using MSDiskManager.Helpers;
 using MSDiskManagerData.Data.Entities;
 using System;
 using System.Collections.Generic;
@@ -72,7 +73,7 @@ namespace MSDiskManager.ViewModels
             IncludeHidden = showHidden,
             Order = selectedOrder.Order,
             Name = Name,
-            tagIds = Tags.Select(t => (long)t.Id).ToList(),
+            tagIds = Tags.Select(t => (long)t.Id!).ToList(),
             TagName = TagName,
             Types = FileTypes
         };
@@ -85,30 +86,30 @@ namespace MSDiskManager.ViewModels
             IncludeHidden = showHidden,
             Order = selectedOrder.DirectoryOrder,
             Name = Name,
-            tagIds = Tags.Select(t => (long)t.Id).ToList(),
+            tagIds = Tags.Select(t => (long)t.Id!).ToList(),
             TagName = TagName,
 
         };
 
         public FilterModel()
         {
-            FilterTypes.ForEach(ft => { ft.PropertyChanged += filterTypesChanged; });
-            Orders.ForEach(o => { o.PropertyChanged += orderChanged; });
+            FilterTypes.ForEach(ft => { ft.PropertyChanged += filterTypesChanged!; });
+            Orders.ForEach(o => { o.PropertyChanged += orderChanged!; });
         }
         private void filterTypesChanged(object f, PropertyChangedEventArgs args)
         {
             var tm = f as TypeModel;
             if (tm.Type == MSItemType.All)
             {
-                foreach (var ft in filterTypes) ft.PropertyChanged -= filterTypesChanged;
+                foreach (var ft in filterTypes) ft.PropertyChanged -= filterTypesChanged!;
                 foreach (var ft in filterTypes) ft.IsChecked = tm.IsChecked;
-                foreach (var ft in filterTypes) ft.PropertyChanged += filterTypesChanged;
+                foreach (var ft in filterTypes) ft.PropertyChanged += filterTypesChanged!;
             }
             else
             {
-                foreach (var ft in filterTypes) ft.PropertyChanged -= filterTypesChanged;
+                foreach (var ft in filterTypes) ft.PropertyChanged -= filterTypesChanged!;
                 filterTypes.First(ft => ft.Type == MSItemType.All).IsChecked = filterTypes.All(ft => ft.IsChecked || ft.Type == MSItemType.All);
-                foreach (var ft in filterTypes) ft.PropertyChanged += filterTypesChanged;
+                foreach (var ft in filterTypes) ft.PropertyChanged += filterTypesChanged!;
             }
             NotifyPropertyChanged("Types");
         }

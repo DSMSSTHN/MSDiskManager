@@ -57,14 +57,14 @@ namespace MSDiskManager.ViewModels
             {
                 var dirs = await new DirectoryRepository().FilterDirectories(new DirectoryFilter { ParentId = Parent?.Id ?? -1 });
                 if (token.IsCancellationRequested) return;
-                Directories.AddRange(dirs, token);
+                Directories.AddMany(dirs, token);
                 Console.WriteLine(Directories.Count);
             }
             else
             {
                 var dirs = await new DirectoryRepository().FilterDirectories(new DirectoryFilter { Name = Filter, AncestorIds = Parent == null ? null : new List<long>(new long[(long)Parent.Id]) });
                 if (token.IsCancellationRequested) return;
-                Directories.AddRange(dirs, token);
+                Directories.AddMany(dirs, token);
             }
             if (!token.IsCancellationRequested)
             {
