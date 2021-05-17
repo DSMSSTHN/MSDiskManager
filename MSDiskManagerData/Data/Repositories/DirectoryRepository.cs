@@ -279,10 +279,10 @@ namespace MSDiskManagerData.Data.Repositories
                 var nntid = (long)tagId;
                 var ctx = await context();
                 var fids = await ctx.Files.Include(f => f.FileTags).IgnoreAutoIncludes().Where(f => f.ParentId == id && !f.FileTags.Any(ft => ft.TagId == nntid)).Select(f => f.Id).ToListAsync();
-                var dids = await ctx.Directories.Include(d => d.DirectoryTags).IgnoreAutoIncludes().Where(d => d.ParentId == id).Select(d => d.Id).ToListAsync();
+                var dids = await ctx.Directories.Include(d => d.DirectoryTags).IgnoreAutoIncludes().Where(d => d.ParentId == id).Select(d => new { id = d.Id, dts = d.DirectoryTags}).ToListAsync();
                 if (dids != null && dids.Count > 0)
                 {
-                    var dtags = dids.Select(did => new DirectoryTag { DirectoryId = (long)did, TagId = (long)tagId }).ToList();
+                    var dtags = dids.Where(ddt => !ddt.dts.Any(dt => dt.TagId == nntid)).Select(did => new DirectoryTag { DirectoryId = (long)did.id, TagId = (long)tagId }).ToList();
                     await ctx.DirectoryTags.AddRangeAsync(dtags);
                     foreach(var d in dids)
                     {
