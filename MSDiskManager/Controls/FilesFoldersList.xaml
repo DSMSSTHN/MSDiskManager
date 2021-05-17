@@ -45,7 +45,10 @@
                                 <TextBlock Text="{Binding Name}" d:Text="Root dir" FontSize="18" FontWeight="Bold"/>
                             </Label>
                         </Border>
-                        <TextBlock VerticalAlignment="Center" Foreground="{StaticResource textColor2}" HorizontalAlignment="Right"  Text="{Binding NumberOfItems,StringFormat=' {0} items'}" d:Text="155 items" Margin="0 0 50 0"/>
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                            <TextBlock VerticalAlignment="Center" Foreground="{StaticResource textColor2}"   Text="{Binding NumberOfItems,StringFormat=' {0} items'}" d:Text="155 items" Margin="0 0 50 0"/>
+                            <TextBlock VerticalAlignment="Center" Foreground="{StaticResource textColor2}"   Text="{Binding OnDeskSize,StringFormat=' {0} items'}" d:Text="155 items" Margin="0 0 50 0"/>
+                        </StackPanel>
                         <Button HorizontalAlignment="Right" Width="40" Height="40" Background="{StaticResource addColor}" Click="CreateDirectory">
                             <Image Source="/images/add.png"/>
                         </Button>
@@ -169,8 +172,11 @@
                                                     </ListView.ItemTemplate>
                                                 </ListView>
                                             </Grid>
-                                            <TextBlock Padding="10 0 0 0 " Text="{Binding NumberOfItems,StringFormat=' {0} items'}" Visibility="{Binding Path=.,Converter={StaticResource DirectoryOnlyVisibilityConverter}}" 
+                                            <StackPanel Orientation="Horizontal">
+                                                <TextBlock Padding="10 0 0 0 " Text="{Binding NumberOfItems,StringFormat=' {0} items'}" Visibility="{Binding Path=.,Converter={StaticResource DirectoryOnlyVisibilityConverter}}" 
                                                        FontSize="7" Foreground="{StaticResource textColor2}"/>
+                                                <TextBlock Padding="10 0 0 0 " Text="{Binding OnDeskSize}" FontSize="7" Foreground="{StaticResource textColor2}"/>
+                                            </StackPanel>
 
                                         </StackPanel>
                                     </Grid>

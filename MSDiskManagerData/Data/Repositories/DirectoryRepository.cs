@@ -286,7 +286,7 @@ namespace MSDiskManagerData.Data.Repositories
                     await ctx.DirectoryTags.AddRangeAsync(dtags);
                     foreach(var d in dids)
                     {
-                        await AddTagRecursive(d, tagId,false);
+                        await AddTagRecursive(d.id, tagId,false);
                     }
                 }
                 if(first)await ctx.DirectoryTags.AddAsync(new DirectoryTag { DirectoryId = (long)id, TagId = (long)tagId });

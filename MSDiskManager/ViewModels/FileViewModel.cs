@@ -306,6 +306,8 @@ namespace MSDiskManager.ViewModels
         private int wheelEvent;
         private long size;
 
+        public override string OnDeskSize { get { if (File.Exists(FullPath) && base.OnDeskSize.Length == 0) base.OnDeskSize = new FileInfo(FullPath).Length.ByteSizeToSizeString(); return base.OnDeskSize; } set => base.OnDeskSize = value; }
+
         public MediaElement VideoContent
         {
             get

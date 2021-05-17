@@ -161,6 +161,17 @@ namespace MSDiskManager.ViewModels
                 return result;
             }
         }
+        public void LoadOnDeskSize()
+        {
+            Console.WriteLine("Gettings size");
+            if (!Directory.Exists(FullPath)) return;
+            long sz = 0;
+            new DirectoryInfo(FullPath).GetDirSize((s) => { sz += s; base.OnDeskSize = sz.ByteSizeToSizeString(); });
+
+
+        }
+
+
         public override bool IsHidden { get => base.IsHidden; set { files.ForEach(f => f.IsHidden = value); children.ForEach(c => c.IsHidden = value); base.IsHidden = value; } }
 
         public override bool IgnoreAdd { get => base.IgnoreAdd; set { files.ForEach(f => f.IgnoreAdd = value); children.ForEach(c => c.IgnoreAdd = value); base.IgnoreAdd = value; } }
@@ -193,7 +204,7 @@ namespace MSDiskManager.ViewModels
             }
         }
 
-        
+
 
         internal async Task LoadNumberOfItems()
         {

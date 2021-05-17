@@ -80,6 +80,7 @@ namespace MSDiskManager.ViewModels
         public bool CurrentFolderRecursive { get => currentFolderRecursive; set { currentFolderRecursive = value; NotifyPropertyChanged("CurrentFolderRecursive"); _ = filterData(); } }
         public bool AllFolders { get => allFolders; set { allFolders = value; NotifyPropertyChanged("AllFolders"); _ = filterData(); } }
         public bool ShowHidden { get => showHidden; set { showHidden = value; NotifyPropertyChanged("ShowHidden"); _ = filterData(); } }
+        public string OnDeskSize => Parent?.OnDeskSize ?? "";
         public int NumberOfItems
         {
             get => numberOfItems;
@@ -119,7 +120,7 @@ namespace MSDiskManager.ViewModels
         public Boolean CanGoBack { get => canGoBack; set { canGoBack = value; NotifyPropertyChanged("CanGoBack"); } }
         public bool OnlyFolders => FilterTypes.All(ft => ft.Type == MSItemType.Directory || !ft.IsChecked);
         public bool IncludeFolders => filterTypes.All(ft => !ft.IsChecked) || FilterTypes.First(ft => ft.Type == MSItemType.Directory).IsChecked;
-        public List<FileType> FileTypes => FilterTypes.Any(t => t.IsChecked) ?  FilterTypes.Where(ft => ft.Type != MSItemType.All && ft.Type != MSItemType.Directory && ft.IsChecked).Select(ft => ft.FileType).ToList() : null;
+        public List<FileType> FileTypes => FilterTypes.Any(t => t.IsChecked) ? FilterTypes.Where(ft => ft.Type != MSItemType.All && ft.Type != MSItemType.Directory && ft.IsChecked).Select(ft => ft.FileType).ToList() : null;
         public bool CanPaste { get => canPaste; set { canPaste = value; NotifyPropertyChanged("CanPaste"); } }
         private OrderModel selectedOrder => Orders.FirstOrDefault(o => o.IsChecked) ?? Orders[0];
         private List<long> ancestorIds { get { var result = new List<long>(); if (Parent != null) result.Add((long)Parent.Id!); return result; } }
@@ -388,6 +389,7 @@ namespace MSDiskManager.ViewModels
         private Visibility loadingVisibility = Visibility.Collapsed;
         private bool canPaste = false;
         private ScrollBarVisibility verticalScrollVisibility = ScrollBarVisibility.Auto;
+        private string onDeskSize = "";
 
         public void BeginRenaming(BaseEntityViewModel? entity)
         {
@@ -494,7 +496,7 @@ namespace MSDiskManager.ViewModels
                         if (token.IsCancellationRequested) return;
                         var d = dir.ToDirectoryViewModel();
                         Items.Add(d);
-                        _ = Task.Run(async () => await getItemsCount(d, token));
+                        _ = Task.Run(async () => { await getItemsCount(d, token); d.LoadOnDeskSize(); }) ;
                     }
                 } while (directories != null && directories.Count > 0);
 

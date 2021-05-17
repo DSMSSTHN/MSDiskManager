@@ -29,7 +29,8 @@ namespace MSDiskManager.Dialogs.SelectTagsDialog
         private List<long> selectedTagIds { get; set; }
         private Action<Tag> selectTagFunction { get; set; }
         private int page = 0;
-        private const int limit = 30;
+        private const int limit = 100;
+        private long operationId = 0;
         public Visibility AddButtonVisibility { get; set; } = Visibility.Collapsed;
         public Prop<string> Filter { get; set; } = new Prop<string>("");
         public Prop<Visibility> LoadMoreVisibility { get; set; } = new Prop<Visibility>(Visibility.Visible);
@@ -52,6 +53,9 @@ namespace MSDiskManager.Dialogs.SelectTagsDialog
 
         private async Task filterTags(string filter = "")
         {
+            var oid = Interlocked.Increment(ref operationId);
+            await Task.Delay(150);
+            if (Interlocked.Read(ref operationId) != oid) return;
             var rep = new TagRepository();
             Interlocked.Exchange(ref page, 0);
             var tags = await rep.GetTags(filter, selectedTagIds, page, limit);

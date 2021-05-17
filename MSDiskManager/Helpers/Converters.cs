@@ -355,7 +355,7 @@ namespace MSDiskManager.Helpers
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
             string str = new IntToColorConverter().Convert(value, targetType, parameter, culture).ToString();
-            return new SolidColorBrush((System.Windows.Media.Color)ColorConverter.ConvertFromString(str));
+            return new SolidColorBrush((System.Windows.Media.Color)ColorConverter.ConvertFromString(str)) ?? new SolidColorBrush(Colors.Black);
 
         }
 

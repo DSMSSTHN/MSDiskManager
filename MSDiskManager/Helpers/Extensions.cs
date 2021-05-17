@@ -24,6 +24,25 @@ namespace MSDiskManager.Helpers
             foreach (var l in lst) obs.Remove(l);
             return lst;
         }
+        public static string ByteSizeToSizeString(this long size)
+        {
+            double s = (double)size;
+            string[] units = new string[] { "Bytes", "KB", "MB", "GB", "TB" };
+            int i = 0;
+            for (; i < units.Length; i++)
+            {
+                var newSize = ((double)size) / 1024;
+                if (s > 1024)
+                {
+                    s = s / 1024;
+                }
+                else
+                {
+                    break;
+                }
+            }
+            return $"{s.ToString().Substring(0, Math.Min(s.ToString().Length, 4))} {units[i]}";
+        }
         public static List<T> RemoveWhere<T>(this List<T> obs, Predicate<T> predicate)
         {
             var lst = new List<T>();
@@ -39,6 +58,25 @@ namespace MSDiskManager.Helpers
                 if (cancellation?.IsCancellationRequested ?? false) return;
                 col.Add(item);
             }
+        }
+        public static long GetDirSize(this DirectoryInfo d, Action<long> reportSize = null)
+        {
+            long size = 0;
+            // Add file sizes.
+            FileInfo[] fis = d.GetFiles();
+            foreach (FileInfo fi in fis)
+            {
+                size += fi.Length;
+            }
+            if (reportSize != null) reportSize(size);
+            // Add subdirectory sizes.
+            DirectoryInfo[] dis = d.GetDirectories();
+            foreach (DirectoryInfo di in dis)
+            {
+                size += di.GetDirSize(reportSize);
+            }
+            return size;
+
         }
         public static string GetUUIDFilePath(this DriveInfo d, string DBName)
         {
@@ -76,16 +114,16 @@ namespace MSDiskManager.Helpers
         public static OrderModel Clone(this OrderModel om) => new OrderModel(om.Order, om.IsChecked);
         public static List<TypeModel> Clone(this List<TypeModel> lst) => lst.Select(tm => tm.Clone()).ToList();
         public static List<OrderModel> Clone(this List<OrderModel> lst) => lst.Select(om => om.Clone()).ToList();
-        public static C With<C,T>(this C lst, T? item)
-            where C:ICollection<T>
+        public static C With<C, T>(this C lst, T? item)
+            where C : ICollection<T>
         {
             if (item != null) lst.Add(item!);
             return lst;
         }
-        public static C With<C,T>(this C lst, ICollection<T> items)
-            where C:ICollection<T>
+        public static C With<C, T>(this C lst, ICollection<T> items)
+            where C : ICollection<T>
         {
-            if (Globals.IsNullOrEmpty(items)) foreach(var i in items)lst.Add(i);
+            if (Globals.IsNullOrEmpty(items)) foreach (var i in items) lst.Add(i);
             return lst;
         }
 
@@ -111,10 +149,10 @@ namespace MSDiskManager.Helpers
         }
         public static DirectoryViewModel ToDirectoryViewModel(this DirectoryEntity entity, DirectoryViewModel? parent = null)
         {
-            var result   =  new DirectoryViewModel
+            var result = new DirectoryViewModel
             {
                 Id = entity.Id,
-                
+
                 Files = entity.Files?.Select(f => f.ToFileViewModel())?.ToList() ?? new List<FileViewModel>(),
                 AddingDate = entity.AddingDate,
                 AncestorIds = entity.AncestorIds ?? new List<long>(),

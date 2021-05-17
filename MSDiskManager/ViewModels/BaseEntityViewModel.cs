@@ -57,6 +57,7 @@ namespace MSDiskManager.ViewModels
         private ImageSource? image;
         private bool isRenaming = false;
         private string errorMessage = "";
+        private string onDeskSize = "";
 
         public bool ShouldRemove { get; set; } = false;
 
@@ -67,7 +68,7 @@ namespace MSDiskManager.ViewModels
             get => onDeskName; set { onDeskName = value; NotifyPropertyChanged("onDeskName"); }
         }
         public int NumberOfItems { get => numberOfItemsRec; set { numberOfItemsRec = value; NotifyPropertyChanged("NumberOfItems"); } }
-        
+
         public string ErrorMessage { get => errorMessage; set { errorMessage = value; NotifyPropertyChanged("ErrorMessage"); } }
         public string Description { get => description; set { description = value; NotifyPropertyChanged("Description"); } }
         public ObservableCollection<Tag> Tags { get => tags; set { tags = value; NotifyPropertyChanged("Tags"); } }
@@ -102,12 +103,12 @@ namespace MSDiskManager.ViewModels
         public bool IsRenaming { get => isRenaming; set { isRenaming = value; NotifyPropertyChanged("IsRenaming"); } }
         public string FullPath { get => MSDM_DBContext.DriverName[0] + ":\\" + Path; }
 
-        public virtual long Size { get;  }
+        public virtual long Size { get; }
 
         public virtual IconType IconType { get; }
         public virtual ImageSource? Image { get => image; set { image = value; NotifyPropertyChanged("Image"); } }
         public virtual double ImageWidth { get; }
-
+        public virtual string OnDeskSize { get => onDeskSize; set { onDeskSize = value; NotifyPropertyChanged("OnDeskSize"); } }
         public virtual object? TooltipContent { get; }
 
 
@@ -124,18 +125,19 @@ namespace MSDiskManager.ViewModels
             this.AncestorIds = be.AncestorIds;
             this.Description = be.Description;
             this.Tags.Clear();
-            
-            if(be is FileEntity)
+
+            if (be is FileEntity)
             {
                 (this as FileViewModel)!.Extension = (be as FileEntity)!.Extension;
                 this.Tags.AddMany((be as FileEntity)!.FileTags.Select(ft => ft.Tag).ToList());
-            } else
+            }
+            else
             {
                 this.Tags.AddMany((be as DirectoryEntity)!.DirectoryTags.Select(ft => ft.Tag).ToList());
             }
             this.ParentId = be.ParentId;
             this.IsHidden = be.IsHidden;
-            
+
 
             return be;
         }
@@ -147,6 +149,6 @@ namespace MSDiskManager.ViewModels
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
         }
-        
+
     }
 }
