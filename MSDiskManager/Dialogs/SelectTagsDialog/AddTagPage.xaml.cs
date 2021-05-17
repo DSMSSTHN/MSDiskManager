@@ -83,5 +83,11 @@ namespace MSDiskManager.Dialogs.SelectTagsDialog
             var num = (int)button.CommandParameter ;
             Model.Color = num;
         }
+
+        private void Grid_Loaded(object sender, RoutedEventArgs e)
+        {
+            NameTBX.Focus();
+            NameTBX.SelectAll();
+        }
     }
 }

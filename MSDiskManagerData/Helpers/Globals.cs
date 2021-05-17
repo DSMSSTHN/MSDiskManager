@@ -13,10 +13,12 @@ namespace MSDiskManagerData.Helpers
             return str == null || str.Trim().Length == 0;
         }
         public static bool IsNotNullNorEmpty(string str) => !IsNullOrEmpty(str);
-        public static bool IsNullOrEmpty<T>(List<T> list)
+        public static bool IsNoneNullOrEmpty(IEnumerable<string> strings) => strings.All(s => IsNotNullNorEmpty(s));
+        public static bool IsNoneNullOrEmpty(params string[] strings) => strings.All(s => IsNotNullNorEmpty(s));
+        public static bool IsNullOrEmpty<T>(ICollection<T> list)
         {
             return list == null || list.Count == 0;
         }
-        public static bool IsNotNullNorEmpty<T>(List<T> list) => !IsNullOrEmpty(list);
+        public static bool IsNotNullNorEmpty<T>(ICollection<T> list) => !IsNullOrEmpty(list);
     }
 }

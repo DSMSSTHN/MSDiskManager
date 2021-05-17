@@ -1,0 +1,47 @@
+﻿<Window x:Class="MSDiskManager.Dialogs.DriverSettings"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+       xmlns:local="clr-namespace:MSDiskManager.Dialogs"
+       xmlns:helpers="clr-namespace:MSDiskManager.Helpers"
+        xmlns:local2="clr-namespace:MSDiskManager.Pages.AddItems"
+        mc:Ignorable="d"
+        WindowStyle="None"
+        AllowsTransparency="True"
+        Background="Transparent"
+        BorderBrush="Transparent"
+        WindowStartupLocation="CenterScreen"
+        BorderThickness="0" 
+        Title="CreateDirectoryDialog" Height="100" Width="400">
+    <Border CornerRadius="5" Background="{StaticResource primary}" BorderBrush="{StaticResource primaryLight}" BorderThickness="3">
+        <Grid Loaded="Grid_Loaded">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition/>
+                <ColumnDefinition/>
+            </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition />
+                <RowDefinition />
+                <RowDefinition />
+            </Grid.RowDefinitions>
+            <TextBlock Text="Choose Driver:" TextAlignment="Center" VerticalAlignment="Center"/>
+            <TextBlock x:Name="InfoTxtBlk" Grid.Row="1" Grid.ColumnSpan="2"  TextAlignment="Center" VerticalAlignment="Center"/>
+            <ComboBox Name="DriverComboBox" SelectionChanged="DriverComboBox_Selected" Grid.Row="0" Grid.Column="1" ItemsSource="{Binding Drivers}">
+                <ComboBox.Resources>
+                    <Style TargetType="ComboBoxItem">
+                        <Setter Property="IsSelected" Value="{Binding IsSelected}"/>
+                    </Style>
+                </ComboBox.Resources>
+                <ComboBox.ItemTemplate>
+                    <DataTemplate>
+                        <TextBlock Text="{Binding DriverLetter}"/>
+                    </DataTemplate>
+                </ComboBox.ItemTemplate>
+            </ComboBox>
+            <Border Padding="5" Grid.Row="2" Grid.ColumnSpan="2">
+                <Button Click="ChooseClicked" IsEnabled="False" x:Name="ChooseButton" Background="{StaticResource lightBlue900}">Choose</Button>
+            </Border>
+        </Grid>
+    </Border>
+</Window>

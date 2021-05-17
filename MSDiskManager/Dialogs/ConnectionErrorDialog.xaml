@@ -5,14 +5,16 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:MSDiskManager.Dialogs"
         mc:Ignorable="d"
+        Title="ConnectionErrorDialog"
         AllowsTransparency="True"
         Background="Transparent"
+        
         WindowStyle="None"
         BorderBrush="Transparent"
         BorderThickness="0"
         WindowStartupLocation="CenterScreen"
-        Title="ConnectionErrorDialog" Height="100" Width="400">
-    <Border CornerRadius="5" Background="{StaticResource primaryLight}" BorderBrush="{StaticResource primaryLight}" BorderThickness="5">
+         Height="100" Width="400">
+    <Border CornerRadius="5" Background="{StaticResource primaryLight}" BorderBrush="{StaticResource primary}" BorderThickness="5">
         <Grid>
             <Grid.RowDefinitions>
                 <RowDefinition Height="*"/>

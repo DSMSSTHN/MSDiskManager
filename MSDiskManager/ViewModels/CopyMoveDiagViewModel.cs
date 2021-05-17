@@ -20,7 +20,7 @@ namespace MSDiskManager.ViewModels
     {
         private bool canGoBack = false;
         private string filter = "";
-        private DirectoryEntity parent;
+        private DirectoryViewModel parent;
 
         public CopyMoveDiagViewModel()
         {
@@ -29,7 +29,7 @@ namespace MSDiskManager.ViewModels
 
         public bool CanGoBack { get => canGoBack; set { canGoBack = value; NotifyPropertyChanged("CanGoBack"); } }
         public string Filter { get => filter; set { filter = value; _ = loadData(); NotifyPropertyChanged("Filter"); } }
-        public DirectoryEntity Parent { get => parent; set { parent = value;
+        public DirectoryViewModel Parent { get => parent; set { parent = value;
                 CanGoBack = value != null;
                 Filter = "";
                 NotifyPropertyChanged("Parent"); } }
@@ -57,14 +57,14 @@ namespace MSDiskManager.ViewModels
             {
                 var dirs = await new DirectoryRepository().FilterDirectories(new DirectoryFilter { ParentId = Parent?.Id ?? -1 });
                 if (token.IsCancellationRequested) return;
-                Directories.AddMany(dirs, token);
+                Directories.AddMany(dirs.Select(d => d.ToDirectoryViewModel()).ToList(), token);
                 Console.WriteLine(Directories.Count);
             }
             else
             {
                 var dirs = await new DirectoryRepository().FilterDirectories(new DirectoryFilter { Name = Filter, AncestorIds = Parent == null ? null : new List<long>(new long[(long)Parent.Id]) });
                 if (token.IsCancellationRequested) return;
-                Directories.AddMany(dirs, token);
+                Directories.AddMany(dirs.Select(d => d.ToDirectoryViewModel()).ToList(), token);
             }
             if (!token.IsCancellationRequested)
             {
@@ -72,7 +72,7 @@ namespace MSDiskManager.ViewModels
             }
         }
 
-        public ObservableCollection<DirectoryEntity> Directories { get; set; } = new ObservableCollection<DirectoryEntity>();
+        public ObservableCollection<DirectoryViewModel> Directories { get; set; } = new ObservableCollection<DirectoryViewModel>();
 
         public event PropertyChangedEventHandler PropertyChanged;
         protected void NotifyPropertyChanged([CallerMemberName] string name = null)

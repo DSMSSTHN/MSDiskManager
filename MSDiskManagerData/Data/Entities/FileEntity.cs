@@ -1,5 +1,6 @@
 ﻿#nullable enable
 using MSDiskManagerData.Data.Entities.Relations;
+using MSDiskManagerData.Helpers;
 using NodaTime;
 using System;
 using System.Collections.Generic;
@@ -12,12 +13,32 @@ namespace MSDiskManagerData.Data.Entities
 {
     public class FileEntity : BaseEntity
     {
+        private string path = "";
+        private string onDeskName = "New_File";
+
         public long? Id { get; set; }
-        public string Name { get; set; } = "new_file";
-        public string OnDeskName { get; set; } = "new_file";
-        public string Description { get; set; } = "new_file";
-        public String Extension { get; set; } = "txt";
-        public String Path { get; set; } = "";
+        public long? DriverId { get; set; }
+        public string Name { get; set; } = "New File";
+        public string OnDeskName { get => onDeskName; set => onDeskName = value.Replace("\\", "").Replace("/", ""); }
+        public string Description { get; set; } = "";
+        public String Extension { get; set; } = "";
+        public String Path
+        {
+            get => path; set
+            {
+                var v = value;
+                if (Globals.IsNotNullNorEmpty(v))
+                {
+                    while (v.Contains('/') || v.Contains("\\\\"))
+                    {
+                        v.Replace('/', '\\'); v.Replace("\\\\", "\\");
+                    }
+                    if (v[0] == '\\') v = v.Length > 1 ? v.Substring(1, v.Length) : "";
+                    if (v[v.Length - 1] == '\\') v = v.Length > 1 ? v.Substring(0, v.Length - 1) : "";
+                }
+                path = v;
+            }
+        }
         public String OldPath { get; set; } = "";
         public FileType FileType { get; set; } = FileType.Unknown;
         public long? ParentId { get; set; }
@@ -29,7 +50,7 @@ namespace MSDiskManagerData.Data.Entities
         public bool IsHidden { get; set; }
         public virtual ImageThumbnail? Thumbnail { get; set; }
 
-        public string FullPath { get => MSDM_DBContext.DriverName + Path; }
+        public string FullPath { get => MSDM_DBContext.DriverName[0] + ":\\" + Path; }
 
         public IconType IconType
         {

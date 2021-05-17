@@ -10,6 +10,7 @@
       d:DesignHeight="1080" d:DesignWidth="1080"
       AllowDrop="True"
       Drop="Page_Drop"
+      KeepAlive="False"
       Background="Transparent"
       Name="AddPage"
       DragDrop.PreviewDragEnter="HandleDragEnter"
@@ -61,13 +62,14 @@
                 PreviewKeyDown="AddDG_PreviewKeyDown"
                 Style="{DynamicResource AddItemsDG}" x:Name="AddDG" Grid.Row="2" ItemsSource="{Binding Items}" 
                       MaxWidth="{Binding ElementName=AddBaseGrid,Path=ActualWidth}"
-                      AutoGenerateColumns="False" CanUserAddRows="False" SelectionUnit="CellOrRowHeader"
+                      AutoGenerateColumns="False" CanUserAddRows="False" 
                       d:ItemsSource="{x:Static local:MockData.Items}">
                 <DataGrid.RowStyle>
                     <Style  TargetType="{x:Type DataGridRow}">
                         <Setter Property="Background" Value="Transparent"/>
-                        <EventSetter Event="DataGridRow.Selected" Handler="DataGridRow_Selected"/>
-                        <EventSetter Event="DataGridRow.Unselected" Handler="DataGridRow_Unselected"/>
+                        <Setter Property="IsSelected" Value="{Binding IsSelected,Mode=OneWay}"/>
+                        <EventSetter Event="PreviewMouseLeftButtonDown" Handler="DataGridRow_MouseDown"/>
+                        
                     </Style>
                 </DataGrid.RowStyle>
                 <DataGrid.Columns>
@@ -77,12 +79,20 @@
                                 <StackPanel 
                                     Background="Transparent"
                                     DragDrop.PreviewDragEnter="HandleDragEnter" DragDrop.PreviewDragLeave="HandleDragLeave" Drop="StackPanel_Drop" Orientation="Horizontal">
+                                    <StackPanel.ContextMenu>
+                                        <ContextMenu>
+                                            <MenuItem Header="Edit" Click="EditClickeds"/>
+                                            <MenuItem Header="Delete" Click="DeleteClickeds" />
+                                        </ContextMenu>
+                                    </StackPanel.ContextMenu>
                                     <Button Click="openDirectory" CommandParameter="{Binding Path=.}" 
                                             PreviewMouseWheel="Button_PreviewMouseWheel"
                                             MouseEnter="Button_MouseEnter" MouseLeave="Button_MouseLeave">
                                         <Image Width="40" Height="40" Source="{Binding Image}"/>
                                     </Button>
-                                    <TextBox Text="{Binding Name,Mode=TwoWay,UpdateSourceTrigger=PropertyChanged}" VerticalAlignment="Center"/>
+                                    <TextBox Text="{Binding Name,Mode=TwoWay,UpdateSourceTrigger=PropertyChanged}" VerticalAlignment="Center" 
+                                             PreviewKeyDown="NamePKeyDown"
+                                             GotFocus="NameGotFocus" LostFocus="NameLostFocus"/>
                                 </StackPanel>
                             </DataTemplate>
                         </DataGridTemplateColumn.CellTemplate>
@@ -119,7 +129,12 @@
                                         </ListView.Resources>
                                         <ListView.ItemTemplate>
                                             <DataTemplate>
-                                                <TextBlock  Text="{Binding Name}"/>
+                                                <Border Background="{Binding Color,Converter={StaticResource IntToBrushConverter}}">
+                                                    <StackPanel>
+                                                        <TextBlock  Text="{Binding Name}"/>
+                                                        <Button Click="DeleteTag" CommandParameter="{Binding RelativeSource={RelativeSource AncestorType=DataGridRow},Path=DataContext}">X</Button>
+                                                    </StackPanel>
+                                                </Border>
                                             </DataTemplate>
                                         </ListView.ItemTemplate>
                                     </ListView>
@@ -131,6 +146,13 @@
                         <DataGridTemplateColumn.CellTemplate>
                             <DataTemplate>
                                 <Button Content="{Binding OriginalPath}"  MouseDoubleClick="OpenOriginalPath" CommandParameter="{Binding OriginalPath}" Foreground="White"/>
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+                    <DataGridTemplateColumn Header="don't add to db">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <CheckBox IsChecked="{Binding IgnoreAdd}" Checked="DontAddToDbChecked" Unchecked="DontAddToDbUnchecked" DataContext="{Binding RelativeSource={RelativeSource AncestorType=DataGridRow},Path=DataContext}"/>
                             </DataTemplate>
                         </DataGridTemplateColumn.CellTemplate>
                     </DataGridTemplateColumn>

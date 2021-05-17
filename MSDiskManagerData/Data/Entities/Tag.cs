@@ -11,7 +11,7 @@ namespace MSDiskManagerData.Data.Entities
     public class Tag
     {
         public long? Id { get; set; }
-        public string Name { get; set; } = "new tag";
+        public string Name { get; set; } = "";
         public int Color { get; set; }
         public virtual List<FileTag> FileTags { get; set; } = new List<FileTag>();
         public virtual List<DirectoryTag> DirectoryTags { get; set; } = new List<DirectoryTag>();

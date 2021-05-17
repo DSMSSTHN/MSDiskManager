@@ -11,17 +11,12 @@ namespace MSDiskManager.Pages.Main
 {
     public static class MockData
     {
-        private static FilterTopViewModel topModel;
-        public static FilterTopViewModel TopModel { get
-            {
-                if (topModel == null) topModel = new FilterTopViewModel { FilterModel = FilterModel };
-                return topModel;
-            } }
-        public static FilterModel FilterModel
+        
+        public static MainViewModel FilterModel
         {
             get
             {
-                return new FilterModel("sdadsad","",true,true,true,false,false,false,new DirectoryEntity { Id = 15 },TypeModel.AllFilterTypes,OrderModel.AllOrdersModels,
+                return new MainViewModel("sdadsad","",true,true,true,false,false,false,new DirectoryViewModel { Id = 15 },TypeModel.AllFilterTypes,OrderModel.AllOrdersModels,
                     toObservable(initList<long>(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15).Select(id => new Tag { Id = id, Name = $"Tag{id + 1}", Color = (int)id }).ToList()));
             }
         }

@@ -12,8 +12,8 @@ namespace MSDiskManager.ViewModels
 {
     public class CreateDirectoryViewModel : INotifyPropertyChanged
     {
-        private string name = "new_file";
-        private string description = "new_file";
+        private string name = "New Directory";
+        private string description = "";
         private ObservableCollection<Tag> tags = new ObservableCollection<Tag>();
         private bool isHidden;
 

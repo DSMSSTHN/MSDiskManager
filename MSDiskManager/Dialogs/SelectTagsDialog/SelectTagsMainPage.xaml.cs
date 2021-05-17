@@ -96,6 +96,7 @@ namespace MSDiskManager.Dialogs.SelectTagsDialog
             var page = new AddTagPage(Filter.Value, (tag) =>
             {
                 this.selectTagFunction(tag);
+                this.Name = "";
                 this.selectedTagIds.Add((long)tag.Id);
                 this.Tags.Remove(tag);
             });

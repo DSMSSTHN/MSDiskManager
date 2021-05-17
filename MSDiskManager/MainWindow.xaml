@@ -12,7 +12,7 @@
         BorderBrush="Transparent"
         BorderThickness="0"
         WindowStartupLocation="CenterScreen"
-        Title="MainWindow" Height="1080" Width="1080">
+        Title="MainWindow" Height="1200" Width="1200">
     <Border Loaded="Grid_Loaded" Background="{StaticResource primary}" CornerRadius="5" BorderThickness="3" BorderBrush="{StaticResource primaryLight}">
         <Grid >
             <Grid.RowDefinitions>
@@ -25,6 +25,14 @@
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="auto"/>
                 </Grid.ColumnDefinitions>
+                <Menu Background="{StaticResource primarySemiDark}" Padding="0  10 0 0">
+                    <MenuItem Header="Settings">
+                        <MenuItem Click="NewConnectionClicked" Header="New Connection"/>
+                        <MenuItem Click="EditCurrentConnectionClicked" Header="Edit Current Connection"/>
+                        <MenuItem Click="ChooseDriveClicked" Header="Choose Drive"/>
+                    </MenuItem>
+                    <MenuItem Header="about"/>
+                </Menu>
                 <Label HorizontalContentAlignment="Center" Grid.Column="1">
                     <TextBlock FontSize="25" FontWeight="Bold" FontFamily="Orbitron"  TextAlignment="Center" Text="MS Disk Managment"/>
                 </Label>
@@ -34,7 +42,7 @@
                     </Button>
                 </StackPanel>
             </Grid>
-            <Frame x:Name="MainWindowFrame" NavigationUIVisibility="Hidden" Grid.Row="1" Source="./Pages/Main/MainPage.xaml"/>
+            <Frame x:Name="MainWindowFrame" NavigationUIVisibility="Hidden" Grid.Row="1" />
         </Grid>
     </Border>
 </Window>

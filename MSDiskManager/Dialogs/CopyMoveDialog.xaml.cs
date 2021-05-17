@@ -34,11 +34,11 @@ namespace MSDiskManager.Dialogs
         private bool move;
 
 
-        public CopyMoveDialog(List<DirectoryViewModel> dirs, List<FileViewModel> files, DirectoryEntity parentDirectory, bool move)
+        public CopyMoveDialog(List<DirectoryViewModel> dirs, List<FileViewModel> files, DirectoryViewModel parentDirectory, bool move)
         {
             this.DataContext = Model;
-            this.dirs = dirs;
-            this.files = files;
+            this.dirs = dirs.ToList();
+            this.files = files.ToList();
             var count = dirs?.Count ?? 0;
             if (dirs != null) foreach (var d in dirs) count += d.DirectoryCountRecursive;
             Model.DirectoryCount = count;
@@ -66,7 +66,7 @@ namespace MSDiskManager.Dialogs
         private void OpenFolder(object sender, MouseButtonEventArgs e)
         {
             var row = sender as DataGridRow;
-            var dir = row.DataContext as DirectoryEntity;
+            var dir = row.DataContext as DirectoryViewModel;
             if (dir != null)
             {
                 Model.Parent = dir;
@@ -87,7 +87,7 @@ namespace MSDiskManager.Dialogs
             }
             Model.CanGoBack = false;
             Model.Directories.Clear();
-            Model.Parent = await new DirectoryRepository().GetDirectory((long)Model.Parent.ParentId);
+            Model.Parent = (await new DirectoryRepository().GetDirectory((long)Model.Parent.ParentId))?.ToDirectoryViewModel();
         }
 
         private void AddDirectory(object sender, RoutedEventArgs e)

@@ -1,0 +1,88 @@
+﻿<Window x:Class="MSDiskManager.Dialogs.CopyMoveExistsHandler"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:MSDiskManager.Dialogs"
+       xmlns:helpers="clr-namespace:MSDiskManager.Helpers"
+        xmlns:local2="clr-namespace:MSDiskManager.Pages.AddItems"
+        mc:Ignorable="d"
+        WindowStyle="None"
+        AllowsTransparency="True"
+        Background="Transparent"
+        DataContext="{Binding RelativeSource={RelativeSource Self}}"
+        BorderBrush="Transparent"
+        WindowStartupLocation="CenterScreen"
+        BorderThickness="0" 
+        Title="CreateDirectoryDialog" Height="450" Width="1200">
+    <Border CornerRadius="5" Background="{StaticResource primary}" BorderBrush="{StaticResource primaryLight}" BorderThickness="3">
+        <Grid Loaded="Grid_Loaded">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="auto"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="auto"/>
+            </Grid.RowDefinitions>
+            <TextBlock Text="These Items already exist in distanation choose what action to do" TextAlignment="Center" Margin="0 10 0 0"/>
+            <DataGrid x:Name="ExistsDG" Grid.Row="1" d:ItemsSource="{x:Static local2:MockData.Items}"
+                      MaxWidth="{Binding RelativeSource={RelativeSource AncestorType=Grid},Path=ActualWidth}"
+                      IsReadOnly="True"
+                      ItemsSource="{Binding Items}" AutoGenerateColumns="False" CanUserAddRows="False">
+                <DataGrid.ColumnHeaderStyle>
+                    <Style TargetType="DataGridColumnHeader">
+                        <Setter Property="Background" Value="{StaticResource primary}"/>
+                    </Style>
+                </DataGrid.ColumnHeaderStyle>
+                <DataGrid.RowStyle>
+                    <Style TargetType="DataGridRow">
+                        <Setter Property="IsSelected" Value="{Binding IsSelected}"/>
+                    </Style>
+                </DataGrid.RowStyle>
+                <DataGrid.Columns>
+                    <DataGridTextColumn Width="auto" Header="Name On Desk" Binding="{Binding OnDeskName}"/>
+                    <DataGridTextColumn Width="*" IsReadOnly="True" Header="Old Path" Binding="{Binding OriginalPath}">
+                        <DataGridTextColumn.ElementStyle>
+                            <Style TargetType="TextBlock">
+                                <Setter Property="ToolTip">
+                                    <Setter.Value>
+                                        <ToolTip Content="{Binding Path=.}"/>
+                                    </Setter.Value>
+                                </Setter>
+                            </Style>
+                        </DataGridTextColumn.ElementStyle>
+                    </DataGridTextColumn>
+                    <DataGridTextColumn Width="*" IsReadOnly="True" Header="New Path" Binding="{Binding FullPath}">
+                        <DataGridTextColumn.ElementStyle>
+                            <Style TargetType="TextBlock">
+                                <Setter Property="ToolTip">
+                                    <Setter.Value>
+                                        <ToolTip Content="{Binding Path=.}"/>
+                                    </Setter.Value>
+                                </Setter>
+                            </Style>
+                        </DataGridTextColumn.ElementStyle>
+                    </DataGridTextColumn>
+                </DataGrid.Columns>
+            </DataGrid>
+            <Grid Grid.Row="2">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition/>
+                    <ColumnDefinition/>
+                    <ColumnDefinition/>
+                    <ColumnDefinition/>
+                </Grid.ColumnDefinitions>
+                <Border>
+                    <Button Click="RenameSelectedClicked" Background="{StaticResource lightBlue900}">Rename Selected</Button>
+                </Border>
+                <Border Grid.Column="1">
+                    <Button Click="ReplaceSelectedClicked" Background="{StaticResource addColor}">Replace Selected</Button>
+                </Border>
+                <Border Grid.Column="2">
+                    <Button Click="SkipSelectedClicked" Background="{StaticResource primaryLight}">Skip Selected</Button>
+                </Border>
+                <Border Grid.Column="3">
+                    <Button Click="CancelOperationClicked" Background="{StaticResource warnColor}">Cancel Operation</Button>
+                </Border>
+            </Grid>
+        </Grid>
+    </Border>
+</Window>

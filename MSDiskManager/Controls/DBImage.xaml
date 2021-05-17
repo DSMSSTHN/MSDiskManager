@@ -8,7 +8,7 @@
              Loaded="UserControl_Loaded"
              Unloaded="UserControl_Unloaded"
              d:DesignHeight="450" d:DesignWidth="800">
-    <Border Width="60">
+    <Border Width="50">
         <Image x:Name="IMG" />
     </Border>
 </UserControl>

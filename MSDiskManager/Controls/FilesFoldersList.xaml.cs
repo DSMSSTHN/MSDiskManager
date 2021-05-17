@@ -21,6 +21,7 @@ using System.Collections.Concurrent;
 using System.Threading;
 using MSDiskManager.ViewModels;
 using System.Diagnostics;
+using MSDiskManager.Dialogs;
 
 namespace MSDiskManager.Controls
 {
@@ -29,150 +30,66 @@ namespace MSDiskManager.Controls
     /// </summary>
     public partial class FilesFoldersList : UserControl
     {
-        private FilterTopViewModel filterTopViewModel;
-        public ObservableCollection<BaseEntity> Items { get; set; } = new ObservableCollection<BaseEntity>();
-        //private int lastFolderIndex = -1;
-        private ConcurrentStack<CancellationTokenSource> _cancellationTokens = new ConcurrentStack<CancellationTokenSource>();
-        //private List<FilterModel> history { get; set; } = new List<FilterModel>();
-        private Stack<DirectoryEntity> history { get; set; } = new Stack<DirectoryEntity>();
-        public Prop<Boolean> CanGoBack { get; set; } = new Prop<bool>(false);
-        private Action<object, DragEventArgs, DirectoryEntity> openAdd;
-        public FilesFoldersList(Action<object, DragEventArgs, DirectoryEntity> openAdd)
+
+        private Action<object, DragEventArgs, DirectoryViewModel> openAdd;
+        public MainViewModel Model { get; set; }
+        public FilesFoldersList(MainViewModel filterModel, Action<object, DragEventArgs, DirectoryViewModel> openAdd)
         {
+            this.Model = filterModel;
             this.openAdd = openAdd;
-            this.filterTopViewModel = Application.Current.Resources["TopViewModel"] as FilterTopViewModel;
-            this.filterTopViewModel.FilterModel.PropertyChanged -= applyFilter;
-            this.filterTopViewModel.FilterModel.PropertyChanged += applyFilter;
-            //this.history.Add(this.filterTopViewModel.FilterModel.Clone);
-            filterTopViewModel.PropertyChanged += (model, args) => filterChanged((model as FilterTopViewModel).FilterModel);
-            this.DataContext = this;
+            this.DataContext = Model;
             InitializeComponent();
         }
-        private void filterChanged(FilterModel filter)
-        {
 
-            filter.PropertyChanged -= applyFilter;
-            filter.PropertyChanged += applyFilter;
-            _ = filterData(filter);
-        }
-        void applyFilter(object f, PropertyChangedEventArgs args)
-        {
-            var propName = (args as PropertyChangedEventArgs).PropertyName;
-            var filter = (f as FilterModel);
-            if (propName == "Parent")
-            {
-                _ = DBImage.LoadDirectory(filter.Parent?.Id);
-                if(filter.Parent != null && (history.Count == 0 || history.Peek().Id != filter.Parent.Id))
-                {
-                    history.Push(filter.Parent);
-                }
-            }
-            checkCanGoBack(filter);
-
-            _ = filterData(f as FilterModel);
-        }
-
-        private async Task filterData(FilterModel filter)
-        {
-            CancellationTokenSource old;
-            var last = _cancellationTokens.TryPop(out old);
-            if (last && old != null)
-            {
-                old.Cancel();
-            }
-            var source = new CancellationTokenSource();
-            var token = source.Token;
-
-            _cancellationTokens.Push(source);
-            if (token.IsCancellationRequested) return;
-            Items.Clear();
-            if (filter.IncludeFolders)
-            {
-
-                var df = filter.DirectoryFilter;
-                var directories = await new DirectoryRepository().FilterDirectories(df);
-                if (token.IsCancellationRequested) return;
-                foreach (var dir in directories)
-                {
-                    if (token.IsCancellationRequested) return;
-                    Items.Add(dir);
-                }
-                if (filter.OnlyFolders)
-                {
-                    return;
-                }
-            }
-            if (token.IsCancellationRequested) return;
-            var ff = filter.FileFilter;
-            var files = await new FileRepository().FilterFiles(ff);
-            if (token.IsCancellationRequested) return;
-            foreach (var file in files)
-            {
-                if (token.IsCancellationRequested) return;
-                Items.Add(file);
-            }
-            _cancellationTokens.TryPop(out old);
-
-        }
-
-
-
-        private void EntityClicked(object sender, RoutedEventArgs e)
+        private void EntityClicked(object sender, MouseButtonEventArgs e)
         {
             var button = sender as Button;
-            var entity = button.CommandParameter as BaseEntity;
-            if (entity is FileEntity)
+            var entity = button.CommandParameter as BaseEntityViewModel;
+            if (entity is FileViewModel)
             {
-                handelFileClicked(entity as FileEntity);
+                handelFileClicked(entity as FileViewModel);
             }
-            else if (entity is DirectoryEntity)
+            else if (entity is DirectoryViewModel)
             {
-                handleDirectoryClicked(entity as DirectoryEntity);
+                handleDirectoryClicked(entity as DirectoryViewModel);
 
             }
         }
-        private void handelFileClicked(FileEntity file)
+        private void handelFileClicked(FileViewModel file)
         {
             try
             {
-                var pi = new ProcessStartInfo { UseShellExecute=true,FileName = file.FullPath,Verb="Open"};
+                var pi = new ProcessStartInfo { UseShellExecute = true, FileName = file.FullPath, Verb = "Open" };
                 System.Diagnostics.Process.Start(pi);
             }
             catch (Exception e)
             {
-                MessageBox.Show($"Error while tying to open file [{file.FullPath}].\n{e.Message}" );
+                MessageBox.Show($"Error while tying to open file [{file.FullPath}].\n{e.Message}");
             }
         }
-        private void handleDirectoryClicked(DirectoryEntity directory)
+        private void handleDirectoryClicked(DirectoryViewModel directory)
         {
-            filterTopViewModel.FilterModel.Parent = directory;
+            if (!Model.CurrentFolderOnly) Model.CurrentFolderOnly = true;
+            Model.Parent = directory;
+
         }
 
         private void GoBack(object sender, RoutedEventArgs e)
         {
-            DirectoryEntity dir;
-            var poped = history.TryPop(out dir);
-            if (!poped) return;
-            var peek = history.TryPeek(out dir);
-            if (!peek) CanGoBack.Value = false;
-            filterTopViewModel.FilterModel.Parent = peek? dir : null;
+            Model.GoBack();
         }
 
         private void GoHome(object sender, RoutedEventArgs e)
         {
-            history.Clear();
-            filterTopViewModel.FilterModel.Parent = null;
+            Model.GoHome();
 
         }
-        private void checkCanGoBack(FilterModel filter)
-        {
-            if (CanGoBack.Value && (filter.Parent == null || !filter.CurrentFolderOnly)) CanGoBack.Value = false;
-           else  if (!CanGoBack.Value && (filter.Parent != null && filter.CurrentFolderOnly)) CanGoBack.Value = true;
-        }
+
         private void Grid_Loaded(object sender, RoutedEventArgs e)
         {
-            _ = DBImage.LoadDirectory(filterTopViewModel.FilterModel.Parent?.Id);
-            _ = filterData(filterTopViewModel.FilterModel);
+            this.PreviewKeyDown += (a, r) => Model.KeyDown(r.Key);
+            this.PreviewKeyUp += (a, r) => Model.KeyUp(r.Key);
+
             //filterTopViewModel.FilterModel.Name = "";
             //filterTopViewModel.FilterModel.Name = "";
         }
@@ -181,42 +98,246 @@ namespace MSDiskManager.Controls
         {
             if (e.Data.GetDataPresent(DataFormats.FileDrop))
             {
-                openAdd( sender, e, filterTopViewModel.FilterModel.Parent);
+                openAdd(sender, e, Model.Parent);
             }
         }
 
         private void DropOnElement(object sender, DragEventArgs e)
         {
-            e.Handled = true;
             var c = sender as Grid;
-            var directory = c.DataContext as DirectoryEntity;
+            var directory = c.DataContext as DirectoryViewModel;
+            if (directory == null) return;
+            e.Handled = true;
             if (e.Data.GetDataPresent(DataFormats.FileDrop))
             {
-                openAdd(sender, e, directory ?? filterTopViewModel.FilterModel.Parent);
+                openAdd(sender, e, directory ?? Model.Parent);
             }
         }
 
         private void DragEnterElement(object sender, DragEventArgs e)
         {
             var g = sender as Grid;
-            if(!(g.DataContext is FileEntity))
+            if (!(g.DataContext is FileViewModel))
             {
                 e.Handled = true;
                 g.Background = Application.Current.Resources["lightBlue900"] as SolidColorBrush;
             }
-            
+
         }
 
         private void DragLeaveElement(object sender, DragEventArgs e)
         {
             var g = sender as Grid;
-            if (!(g.DataContext is FileEntity))
+            if (!(g.DataContext is FileViewModel))
             {
                 e.Handled = true;
                 g.Background = new SolidColorBrush(Colors.Transparent);
             }
-            
+
         }
+
+        private void DeleteEntity(object sender, RoutedEventArgs e)
+        {
+            var button = sender as Button;
+            var entity = button.CommandParameter as BaseEntityViewModel;
+            Model.HandleDelete(entity);
+        }
+
+        private void ListView_PreviewKeyDown(object sender, KeyEventArgs e)
+        {
+            //Model.KeyDown(e.Key);
+
+        }
+
+        private void ListView_PreviewKeyUp(object sender, KeyEventArgs e)
+        {
+            //Model.KeyUp(e.Key);
+        }
+
+        private void TextBox_GotFocus(object sender, RoutedEventArgs e)
+        {
+            var txtbx = sender as TextBox;
+            var entity = txtbx.DataContext as BaseEntityViewModel;
+            Model.BeginRenaming(entity);
+        }
+
+        private void TextBox_LostFocus(object sender, RoutedEventArgs e)
+        {
+            var txtbx = sender as TextBox;
+            var entity = txtbx.DataContext as BaseEntityViewModel;
+            Model.StoppedRenaming(entity);
+        }
+
+        private void Grid_GotFocus(object sender, RoutedEventArgs e)
+        {
+            var grid = sender as Grid;
+            var entity = grid.DataContext as BaseEntityViewModel;
+            Model.SelectItem(entity);
+        }
+
+        private void TextBox_PreviewKeyDown(object sender, KeyEventArgs e)
+        {
+            //if (e.Key == Key.F2)
+            //{
+            //    var txtbx = sender as TextBox;
+            //    var entity = txtbx.DataContext as BaseEntityViewModel;
+            //    if (entity != null && Model.LastSelectedItem == entity)
+            //    {
+            //        txtbx.Focus();
+            //        txtbx.SelectAll();
+            //    }
+            //}
+        }
+
+        private void TextBox_PreviewMouseDown(object sender, MouseButtonEventArgs e)
+        {
+            var txtbx = sender as TextBox;
+            var entity = txtbx.DataContext as BaseEntityViewModel;
+            Model.SelectItem(entity);
+        }
+
+        private void EditEntity(object sender, RoutedEventArgs e)
+        {
+            var mi = sender as MenuItem;
+            var entity = mi.DataContext as BaseEntityViewModel;
+            Model.Edit(entity);
+        }
+
+        private void DeleteEntityCTX(object sender, RoutedEventArgs e)
+        {
+            var mi = sender as MenuItem;
+            var entity = mi.DataContext as BaseEntityViewModel;
+            Model.HandleDelete(entity);
+        }
+        private void ShowInExplorerClicked(object sender, RoutedEventArgs e)
+        {
+            var mi = sender as MenuItem;
+            var entity = mi.DataContext as BaseEntityViewModel;
+            string args = "/select, \"" + entity.FullPath + "\"";
+
+            System.Diagnostics.Process.Start("explorer.exe", args);
+        }
+        private void CopyEntity(object sender, RoutedEventArgs e)
+        {
+            var mi = sender as MenuItem;
+            var entity = mi.DataContext as BaseEntityViewModel;
+            Model.BeginCopy(entity);
+        }
+
+        private void MoveEntity(object sender, RoutedEventArgs e)
+        {
+            var mi = sender as MenuItem;
+            var entity = mi.DataContext as BaseEntityViewModel;
+            Model.BeginMove(entity);
+        }
+
+        private void PasteEntity(object sender, RoutedEventArgs e)
+        {
+            var mi = sender as MenuItem;
+            var entity = mi.DataContext as BaseEntityViewModel;
+            Model.CommitCopyMove(entity as DirectoryViewModel);
+        }
+
+        private void CreateDirectory(object sender, RoutedEventArgs e)
+        {
+            var diag = new CreateDirectoryDialog((dir) => Model.Parent = dir,Model.Parent) ;
+            diag.ShowDialog();
+
+        }
+
+        private void Grid_MouseEnter(object sender, MouseEventArgs e)
+        {
+            Model.VerticalScrollVisibility = ScrollBarVisibility.Disabled;
+            var grid = sender as Grid;
+            var entity = grid.DataContext as BaseEntityViewModel;
+            if (entity is DirectoryViewModel)
+            {
+                grid.ToolTip = entity.TooltipContent;
+                
+            }
+            else
+            {
+
+                var file = entity as FileViewModel;
+                switch (file.FileType)
+                {
+                    case FileType.Unknown:
+                        break;
+                    case FileType.Text:
+                        if (grid.ToolTip == null) grid.ToolTip = file.TextContent;
+                        break;
+                    case FileType.Image:
+                        if (grid.ToolTip == null) grid.ToolTip = file.ImageContent;
+                        break;
+                    case FileType.Music:
+                        var audio = file.AudioContent;
+                        audio.Play();
+                        break;
+                    case FileType.Video:
+                        var video = file.VideoContent;
+                        if (grid.ToolTip == null) grid.ToolTip = video;
+                        video.Play();
+                        break;
+                    case FileType.Compressed:
+                        break;
+                    case FileType.Document:
+                        break;
+                }
+            }
+            if (grid.ToolTip as Control != null) (grid.ToolTip as Control).Background = Application.Current.Resources["primary"] as SolidColorBrush;
+        }
+
+        private void Grid_MouseLeave(object sender, MouseEventArgs e)
+        {
+            Model.VerticalScrollVisibility = ScrollBarVisibility.Auto;
+            var grid = sender as Grid;
+            var entity = grid.DataContext as BaseEntityViewModel;
+            var content = entity.TooltipContent;
+            if (entity is DirectoryViewModel)
+            {
+                return;
+            }
+            else
+            {
+                var file = entity as FileViewModel;
+                switch (file.FileType)
+                {
+                    case FileType.Unknown:
+                        break;
+                    case FileType.Text:
+                        break;
+                    case FileType.Image:
+                        grid.ToolTip = null;
+                        break;
+                    case FileType.Music:
+                        file.StopPlaying();
+                        break;
+                    case FileType.Video:
+                        file.StopPlaying();
+                        grid.ToolTip = null;
+                        break;
+                    case FileType.Compressed:
+                        break;
+                    case FileType.Document:
+                        break;
+                }
+            }
+        }
+
+        private void Grid_PreviewMouseWheel(object sender, MouseWheelEventArgs e)
+        {
+            e.Handled = true;
+            var grid = sender as Grid;
+            var entity = grid.DataContext as BaseEntityViewModel;
+            if (entity is FileViewModel)
+            {
+                var file = entity as FileViewModel;
+                if (e.Delta < 0) file.MouseWheelDown();
+                else if (e.Delta > 0) file.MouseWheelUp();
+            }
+        }
+
+        
     }
 
 

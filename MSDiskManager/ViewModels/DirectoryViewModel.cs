@@ -28,10 +28,14 @@ namespace MSDiskManager.ViewModels
         private List<DirectoryViewModel> children = new List<DirectoryViewModel>();
         private int itemsCount = 0;
         private bool hasRemovedItem = false;
+
+
         public virtual List<FileViewModel> Files { get => files; set { files = value; NotifyPropertyChanged("Files"); } }
         public virtual List<DirectoryViewModel> Children { get => children; set { children = value; NotifyPropertyChanged("Children"); } }
         public override IconType IconType => IconType.Directory;
         public int ItemsCount { get => itemsCount; set { itemsCount = value; NotifyPropertyChanged("ItemsCount"); } }
+
+
         public void RemoveChild(BaseEntityViewModel entity)
         {
 
@@ -64,100 +68,27 @@ namespace MSDiskManager.ViewModels
             Files.ForEach(f => f.ResetResources());
             children.ForEach(c => c.ResetResources());
         }
-        public async Task<bool> AddToDb(bool move,
-            Action<BaseEntityViewModel?, CopyMoveEventType> callback,
-            PauseTokenSource pauses, CancellationTokenSource cancels, bool bypass = false, bool dbOnly = false)
+
+        public DirectoryEntity DirectoryEntity
         {
-            if (!bypass)
+            get
             {
-                await pauses.Token.WaitWhilePausedAsync();
-                if (cancels.IsCancellationRequested) return false;
-            }
-            DirectoryRepository dRep = new DirectoryRepository();
-            this.Path = Parent != null ? Parent.Path + '\\' + OnDeskName : OnDeskName;
-            var dir = DirectoryEntity;
-            try
-            {
-                if (Id == null)
+                Path = Parent != null ? (Parent.Path + '\\' + OnDeskName) : OnDeskName;
+                var result = new DirectoryEntity
                 {
-                    var created = await dRep.CreateDirectory(dir, dontAddToDB: IgnoreAdd);
-                    this.Path = created.Path;
-                    this.Id = created.Id;
-                }
-                else
-                {
-                    var updated = await dRep.Update(dir);
-                    this.Path = updated.Path;
-                }
-                var result = true;
-                if (Globals.IsNotNullNorEmpty(files))
-                {
-                    var success = await new FileRepository().AddFiles(
-                    files.Select(f => f.FileEntity).ToList(), async (f, e) =>
-                     {
-                         pauses.IsPaused = true;
-                         var diag = new CopyMoveErrorDialog($"FILE: [{f.OldPath}]\n{e.Message}", pauses, cancels, async () => result = await AddToDb(move, callback, pauses, cancels, true), (e)=> { });
-                         diag.ShowDialog();
-                         await pauses.Token.WaitWhilePausedAsync();
-                         return cancels.IsCancellationRequested ? 2 : (pauses.IsPaused ? 1 : 0);
-                     }, move: move
-                    );
-                    if (cancels.IsCancellationRequested) return false;
-                    files.ForEach(async f => await Task.Run(() => callback(f, f.Id == null ? CopyMoveEventType.Skip : CopyMoveEventType.Success)));
-                }
-                foreach (var child in children)
-                {
-                    result &= await child.AddToDb(move, callback, pauses, cancels);
-                }
-                if (result && move && !hasRemovedItem)
-                {
-                    Directory.Delete(this.OriginalPath);
-                }
-                if (callback != null) callback(this, CopyMoveEventType.Success);
-                if (bypass) pauses.IsPaused = false;
-                ShouldRemove = true;
+                    Name = Name,
+                    Description = Description,
+                    OnDeskName = OnDeskName,
+                    DirectoryTags = Tags.Select(t => new DirectoryTag { TagId = t.Id ?? -1 }).ToList(),
+                    Path = Path,
+                    Parent = null,//(Parent?.Id ?? null) != null ? Parent.DirectoryEntity : null,
+                    IsHidden = IsHidden,
+                    ParentId = Parent?.Id,
+                    OldPath = OriginalPath,
+                };
                 return result;
-            }
-            catch (IOException ioe)
-            {
-                pauses.IsPaused = true;
-                bool result = false;
-                var msg = $"Directory :[{OriginalPath}]\n{ioe.Message}";
-                var diag = new CopyMoveErrorDialog(msg, pauses, cancels, async () => result = await AddToDb(move, callback, pauses, cancels, true), (et) => callback(null, et));
-                diag.ShowDialog();
-                return result;
-            }
-            catch (Npgsql.NpgsqlException npe)
-            {
-                pauses.IsPaused = true;
-                bool result = false;
-                var msg = $"Directory :[{OriginalPath}]\n{npe.Message}";
-                var diag = new CopyMoveErrorDialog(msg, pauses, cancels, async () => result = await AddToDb(move, callback, pauses, cancels, true, true), (et) => callback(null, et));
-                diag.ShowDialog();
-                return result;
-            }
-            catch (Exception e)
-            {
-                cancels.Cancel();
-                var msg = $"Directory :[{OriginalPath}]\n{e.Message}";
-                MessageBox.Show(msg);
-                ShouldRemove = false;
-                pauses.IsPaused = false;
-                return false;
             }
         }
-        public DirectoryEntity DirectoryEntity => new DirectoryEntity
-        {
-            Name = Name,
-            Description = Description,
-            OnDeskName = OnDeskName,
-            DirectoryTags = Tags.Select(t => new DirectoryTag { TagId = t.Id ?? -1 }).ToList(),
-            Path = Path,
-            Parent = Parent?.DirectoryEntity,
-            IsHidden = IsHidden,
-            ParentId = Parent?.Id,
-            OldPath = OriginalPath,
-        };
         public int AllItemsCountRecursive
         {
             get
@@ -218,7 +149,18 @@ namespace MSDiskManager.ViewModels
                 return result;
             }
         }
-
+        public List<DirectoryViewModel> ChildrenRecursive
+        {
+            get
+            {
+                var result = children.ToList();
+                foreach (var c in children)
+                {
+                    result.AddRange(c.ChildrenRecursive);
+                }
+                return result;
+            }
+        }
         public override bool IsHidden { get => base.IsHidden; set { files.ForEach(f => f.IsHidden = value); children.ForEach(c => c.IsHidden = value); base.IsHidden = value; } }
 
         public override bool IgnoreAdd { get => base.IgnoreAdd; set { files.ForEach(f => f.IgnoreAdd = value); children.ForEach(c => c.IgnoreAdd = value); base.IgnoreAdd = value; } }
@@ -238,6 +180,25 @@ namespace MSDiskManager.ViewModels
                 content = img;
                 return img;
             }
+        }
+
+        public override long Size
+        {
+            get
+            {
+                long size = 0;
+                foreach (var f in files) size += f.Size;
+                foreach (var d in children) size += d.Size;
+                return size;
+            }
+        }
+
+        
+
+        internal async Task LoadNumberOfItems()
+        {
+            NumberOfItems = await new DirectoryRepository().GetItemsCount(Id);
+            NotifyPropertyChanged("NumberOfItems");
         }
     }
 }

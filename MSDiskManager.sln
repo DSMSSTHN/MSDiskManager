@@ -7,7 +7,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MSDiskManager", "MSDiskMana
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MSDiskManagerData", "MSDiskManagerData\MSDiskManagerData.csproj", "{48AEDE6F-EB6D-4801-961D-E02EE9DE24C2}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MSDiskManagmentDBTests", "MSDiskManagmentDBTests\MSDiskManagmentDBTests.csproj", "{B7FF6F8D-0B3F-4280-BB73-073F6307B189}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MSDiskManagmentDBTests", "MSDiskManagmentDBTests\MSDiskManagmentDBTests.csproj", "{B7FF6F8D-0B3F-4280-BB73-073F6307B189}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MSDM_IO", "MSDM_IO\MSDM_IO.csproj", "{C7B522AC-EB94-45F9-A666-B8C2791CC9B5}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -26,7 +28,10 @@ Global
 		{B7FF6F8D-0B3F-4280-BB73-073F6307B189}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{B7FF6F8D-0B3F-4280-BB73-073F6307B189}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B7FF6F8D-0B3F-4280-BB73-073F6307B189}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{B7FF6F8D-0B3F-4280-BB73-073F6307B189}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C7B522AC-EB94-45F9-A666-B8C2791CC9B5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C7B522AC-EB94-45F9-A666-B8C2791CC9B5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C7B522AC-EB94-45F9-A666-B8C2791CC9B5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C7B522AC-EB94-45F9-A666-B8C2791CC9B5}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

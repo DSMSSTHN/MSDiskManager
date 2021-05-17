@@ -1,9 +1,12 @@
-﻿using MSDiskManager.ViewModels;
+﻿using MSDiskManager.Helpers;
+using MSDiskManager.ViewModels;
 using MSDiskManagerData.Data.Repositories;
 using MSDiskManagerData.Helpers;
 using Nito.AsyncEx;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
 using System.Text;
@@ -23,31 +26,21 @@ namespace MSDiskManager.Dialogs
     /// <summary>
     /// Interaction logic for CopyMoveProcessDialog.xaml
     /// </summary>
+    
     public partial class CopyMoveProcessDialog : Window
     {
-        public Prop<int> Finished { get; } = new Prop<int>(0);
-        private int allFinished = 0;
-        public int FileCount { get; set; }
-        private int allCount { get; set; }
-        private List<DirectoryViewModel> dirs;
-        private List<FileViewModel> files;
-        private readonly bool move;
-        private object lk = new object();
-        private PauseTokenSource pauses;
-        private CancellationTokenSource cancels;
-        private bool result = true;
-        public CopyMoveProcessDialog(List<DirectoryViewModel> allDirs, List<FileViewModel> allFiles, bool move)
+        public CopyMoveProcessVM Model {get;}
+
+
+
+        public CopyMoveProcessDialog(List<DirectoryViewModel> dirs, List<FileViewModel> files, bool move)
         {
-            this.files = allFiles;
-            this.dirs = allDirs;
-            var count = dirs?.Count ?? 0;
-            if (dirs != null) foreach (var d in dirs) count += d.AllItemsCountRecursive;
-            var filecount = files?.Count ?? 0;
-            if (dirs != null) foreach (var d in dirs) filecount += d.FileCountRecursive;
-            this.move = move;
-            this.FileCount = filecount;
-            this.allCount = (files?.Count ?? 0) + count;
+            Model = new CopyMoveProcessVM(dirs, files, move, () => { if (DialogResult == null) { DialogResult = false; Close(); } }, () => { if (DialogResult == null) { DialogResult = true; Close(); } });
+            this.DataContext = Model;
+            Closed += (a, b) => { Model.Clear(); };
+           
             InitializeComponent();
+
         }
 
 
@@ -55,54 +48,58 @@ namespace MSDiskManager.Dialogs
         private async void Grid_Loaded(object sender, RoutedEventArgs e)
         {
             this.MouseLeftButtonDown += delegate { DragMove(); };
-            pauses = new PauseTokenSource();
-            cancels = new CancellationTokenSource();
-            //worker.RunWorkerAsync();
-            void scp(BaseEntityViewModel entity, CopyMoveEventType eventType)
-            {
-                if (eventType == CopyMoveEventType.Cancel)
-                {
-                    this.DialogResult = false;
-                    this.Close();
-                    return;
-                }
+            await Model.Start();
 
-                lock (lk)
-                {
 
-                    if (entity is FileViewModel || eventType == CopyMoveEventType.Skip)
-                    {
-                        Finished.Value += 1;
-                    }
-                    if (eventType == CopyMoveEventType.Skip) this.result = false;
-                    //if (eventType == CopyMoveEventType.Success) successCallback(entity);
-                    allFinished += 1;
-                    if (allFinished == allCount)
-                    {
-                        this.DialogResult = this.result;
-                        this.Close();
-                    }
-                }
-            };
-            //foreach (var f in files)
-            //{
-            //    await f.AddToDb(move, scp, pauses, cancels);
-            //}
-            if (Globals.IsNotNullNorEmpty(files))
-            {
-                await new FileRepository().AddFiles(files,
-                    async(f, e) =>
-                    {
-                        pauses.IsPaused = true;
-                        var diag = new CopyMoveErrorDialog($"FILE: [{f.OldPath}]\n{e.Message}", pauses, cancels, async () => result = await AddToDb(move, callback, pauses, cancels, true), (et) => callback(null, et));
-                        diag.ShowDialog();
-                        await pauses.Token.WaitWhilePausedAsync();
-                        return cancels.IsCancellationRequested ? 2 : (pauses.IsPaused ? 1 : 0);
-                    }
+        }
+       
+        private void CancelClicked(object sender, RoutedEventArgs e)
+        {
+            Model.Cancel();
+        }
 
-                    );
-            }
-            foreach (var d in dirs) await d.AddToDb(move, scp, pauses, cancels);
+        private void SkipClicked(object sender, RoutedEventArgs e)
+        {
+
+        }
+
+        private void RetryClicked(object sender, RoutedEventArgs e)
+        {
+
+        }
+
+        private void DataGridRow_Selected(object sender, RoutedEventArgs e)
+        {
+            var row = sender as DataGridRow;
+            var entity = row.DataContext as BaseEntityViewModel;
+            entity.IsSelected = true;
+        }
+        
+        private void DataGridRow_Unselected(object sender, RoutedEventArgs e)
+        {
+            var row = sender as DataGridRow;
+            var entity = row.DataContext as BaseEntityViewModel;
+            entity.IsSelected = false;
+        }
+
+        private async void RowRetryClicked(object sender, RoutedEventArgs e)
+        {
+            var button = sender as Button;
+            var item = button.CommandParameter as BaseEntityViewModel;
+            await Model.Retry(item);
+
+        }
+
+        private async void RowSkipClicked(object sender, RoutedEventArgs e)
+        {
+            var button = sender as Button;
+            var item = button.CommandParameter as BaseEntityViewModel;
+            Model.Skip(item);
+        }
+
+        private void FailureDB_Loaded(object sender, RoutedEventArgs e)
+        {
+            (sender as DataGrid).ItemsSource = Model.CurrentFails;
         }
     }
     public enum CopyMoveEventType

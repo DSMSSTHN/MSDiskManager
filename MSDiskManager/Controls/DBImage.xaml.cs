@@ -19,6 +19,7 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 using System.Threading;
+using MSDiskManager.ViewModels;
 
 namespace MSDiskManager.Controls
 {
@@ -30,7 +31,7 @@ namespace MSDiskManager.Controls
         private static ConcurrentDictionary<long, byte[]> images = new ConcurrentDictionary<long, byte[]>();
         private static ConcurrentDictionary<long, ImageSource?> sources = new ConcurrentDictionary<long, ImageSource?>();
         private static ConcurrentBag<long?> loadedDirectories = new ConcurrentBag<long?>();
-        private FileEntity file;
+        private FileViewModel file;
         private CancellationTokenSource cancels;
         private static PauseTokenSource pauses = new PauseTokenSource();
         private static int processing = 0;
@@ -41,19 +42,19 @@ namespace MSDiskManager.Controls
 
         private async void UserControl_Loaded(object sender, RoutedEventArgs e)
         {
-            var dc = DataContext as BaseEntity;
+            var dc = DataContext as BaseEntityViewModel;
             byte[] thumb;
             ImageSource source = null;
-            if (dc is FileEntity && (dc as FileEntity).FileType == FileType.Image)
+            if (dc is FileViewModel && (dc as FileViewModel).FileType == FileType.Image)
             {
-                if (sources.TryGetValue((long)dc.Id, out source))
+                if (sources.TryGetValue(dc.Id ?? 0, out source))
                 {
                     IMG.Source = source;
                     return;
                 }
-                file = dc as FileEntity;
+                file = dc as FileViewModel;
                 byte[] s = null;
-                if (images.TryGetValue((long)file.Id, out s))
+                if (images.TryGetValue(file.Id ?? 0, out s))
                 {
                     source = bytesToIS(s);
                     sources.TryAdd((long)file.Id, source);
@@ -81,9 +82,9 @@ namespace MSDiskManager.Controls
             //}
 
             ImageSource image = null;
-            if (dc is FileEntity)
+            if (dc is FileViewModel)
             {
-                var f = dc as FileEntity;
+                var f = dc as FileViewModel;
                 var fileType = f.FileType;
 
                 switch (fileType)
@@ -198,6 +199,16 @@ namespace MSDiskManager.Controls
                 image.EndInit();
                 image.Freeze();
                 sources.TryAdd((long)file.Id, image);
+                var count = sources.Count;
+                
+                    if(count > 400)
+                {
+                    foreach(var kv in sources.Take(count - 400))
+                    {
+                        sources.GetValueOrDefault(kv.Key);
+                    }
+                }
+                
                 return image;
             }
         }

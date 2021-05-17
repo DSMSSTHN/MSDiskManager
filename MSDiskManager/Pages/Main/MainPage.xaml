@@ -5,17 +5,174 @@
       xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
       mc:Ignorable="d" 
       KeepAlive="True"
-      d:DesignHeight="450" d:DesignWidth="800"
+      PreviewKeyDown="Page_PreviewKeyDown"
+      KeyUp="Page_KeyUp"
+      xmlns:local="clr-namespace:MSDiskManager.Pages.Main"
+      xmlns:helpers="clr-namespace:MSDiskManager.Helpers"
+      xmlns:mscontrols="clr-namespace:MSDiskManager.Controls"
+      d:DesignHeight="600" d:DesignWidth="1200"
       Loaded="Page_Loaded"
       Title="MainPage">
+    <Page.Resources>
+        <helpers:IntToColorConverter x:Key="IntToColorConverter"/>
+        <helpers:IntToBrushConverter x:Key="IntToBrushConverter"/>
+    </Page.Resources>
     <DockPanel>
-        <Frame NavigationUIVisibility="Hidden" DockPanel.Dock="Top"  x:Name="TopFrame" Height="200"/>
-        <Grid>
+        
+        <Grid DockPanel.Dock="Top" Margin="20" >
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition/>
+                <ColumnDefinition/>
+                <ColumnDefinition/>
+            </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="150"/>
+            </Grid.RowDefinitions>
+            <StackPanel d:DataContext="{x:Static local:MockData.FilterModel}"  Grid.Row="0" Grid.Column="0" VerticalAlignment="Stretch"
+                    HorizontalAlignment="Stretch"
+                    >
+                <TextBlock TextAlignment="Center" Foreground="White" Text="Name:"/>
+                <TextBox TextAlignment="Center" Name="NameFilterTXTBX" Text="{Binding Name,Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                <CheckBox Foreground="White" HorizontalAlignment="Center"
+                      Content="Include File Name  " 
+                      Margin="3" Name="IncludeFileNameCheckBox"
+                      IsChecked="{Binding FilterFileName,Mode=TwoWay,UpdateSourceTrigger=PropertyChanged}"/>
+                <CheckBox Foreground="White" HorizontalAlignment="Center"
+                      Content="Include Description" 
+                      Margin="3"  Name="IncludeDescriptionCheckBox"
+                      IsChecked="{Binding FilterDescription,Mode=TwoWay,UpdateSourceTrigger=PropertyChanged}"/>
+            </StackPanel>
+            <StackPanel d:DataContext="{x:Static local:MockData.FilterModel}"  Grid.Row="0" Grid.Column="1" VerticalAlignment="Stretch"
+                    HorizontalAlignment="Stretch"
+                    >
+                <TextBlock TextAlignment="Center" Foreground="White" Text="In Directory:"/>
+                <RadioButton Content="search this folder only" 
+                         Foreground="White"  IsChecked="{Binding CurrentFolderOnly,Mode=TwoWay,UpdateSourceTrigger=PropertyChanged}"
+                         Name="CurrentFolderBtn" GroupName="DirBtnGrp"/>
+                <RadioButton Content="search this folder recursive" 
+                         Foreground="White" IsChecked="{Binding CurrentFolderRecursive,Mode=TwoWay,UpdateSourceTrigger=PropertyChanged}"
+                         Name="CurrentFolderRecursiveBtn" GroupName="DirBtnGrp"/>
+                <RadioButton Content="search all folders" 
+                         Foreground="White"
+                         IsChecked="{Binding AllFolders,Mode=TwoWay,UpdateSourceTrigger=PropertyChanged}"
+                         Name="AllFoldersBtn" GroupName="DirBtnGrp"/>
+            </StackPanel>
+            <Grid d:DataContext="{x:Static local:MockData.FilterModel}"   x:Name="TagsGrid" Grid.Row="0" Grid.RowSpan="1"
+                    
+                    Grid.Column="2" VerticalAlignment="Stretch"
+                    HorizontalAlignment="Stretch"
+                    >
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="auto"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+                <Grid >
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="auto"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Grid.Column="0" TextAlignment="Center" 
+                           
+                           Foreground="White" Text="        Tags:"/>
+                    <Border Grid.Column="1"  Background="Green" CornerRadius="3">
+                        <Button 
+                        Click="OpenTagsDialog"
+                        Content="   +   " Background="Transparent"
+                        Padding="8 2"
+                        BorderBrush="Transparent"
+                        BorderThickness="0"
+                        FontSize="12"
+                        
+                        Foreground="{StaticResource textColor}"/>
+                    </Border>
+                </Grid>
+                <ListView Grid.Row="1" ItemsSource="{Binding Tags}"
+                      Background="{StaticResource primary}"
+                      ScrollViewer.HorizontalScrollBarVisibility="Hidden"
+                      Name="TagsList">
+
+                    <ListView.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <WrapPanel 
+                            MaxWidth="{Binding ElementName=TagsList, Path=ActualWidth}"
+                             
+                            Margin="0"
+                            Orientation="Horizontal" HorizontalAlignment="Center" 
+                                   >
+
+                            </WrapPanel>
+                        </ItemsPanelTemplate>
+                    </ListView.ItemsPanel>
+                    <ListView.ItemTemplate>
+                        <DataTemplate>
+                            <Border
+                            CornerRadius="5"
+                            Background="{Binding Color,Converter={StaticResource IntToBrushConverter}}"
+                            Padding="3 1"
+                            >
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Label Grid.Column="0">
+                                        <TextBlock Text="{Binding Name}"
+                                           Foreground="{StaticResource textColor}"
+                                           FontSize="10"
+                                           TextWrapping="WrapWithOverflow"/>
+                                    </Label>
+                                    <Button Grid.Column="1" Content="X" CommandParameter="{Binding Id}" Background="#00000066" Foreground="{StaticResource warnColor}" Click="DeleteTag"/>
+                                </Grid>
+                            </Border>
+                        </DataTemplate>
+                    </ListView.ItemTemplate>
+                </ListView>
+
+            </Grid>
+            <Grid  d:DataContext="{x:Static local:MockData.FilterModel}"  Grid.Row="1" Grid.Column="0" VerticalAlignment="Stretch"
+                    HorizontalAlignment="Stretch"
+                    >
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="auto"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+                <TextBlock TextAlignment="Center" Foreground="White" Text="Type:"/>
+                <ListView Grid.Row="1" x:Name="TypesListView" 
+                      ItemsSource="{Binding FilterTypes}" >
+                    <ListView.ItemTemplate>
+                        <DataTemplate>
+                            <CheckBox Content="{Binding TypeName}" IsChecked="{Binding IsChecked,Mode=TwoWay}" Checked="TypeChecked" CommandParameter="{Binding Type}" />
+                        </DataTemplate>
+                    </ListView.ItemTemplate>
+                </ListView>
+            </Grid>
+            <Grid d:DataContext="{x:Static local:MockData.FilterModel}"  Grid.Row="1" Grid.Column="1" VerticalAlignment="Stretch"
+                    HorizontalAlignment="Stretch"
+                    >
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="auto"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+                <TextBlock TextAlignment="Center" Foreground="White" Text="order by:"/>
+                <ListView Grid.Row="1" x:Name="OrderListView" ItemsSource="{Binding Orders}" >
+                    <ListView.ItemTemplate>
+                        <DataTemplate>
+                            <RadioButton Content="{Binding OrderName}" IsChecked="{Binding IsChecked}" GroupName="OrderGroup"  />
+                        </DataTemplate>
+                    </ListView.ItemTemplate>
+                </ListView>
+            </Grid>
+        </Grid>
+        <Grid DockPanel.Dock="Bottom" >
             <Grid.RowDefinitions>
                 <RowDefinition/>
                 <RowDefinition Height="auto"/>
             </Grid.RowDefinitions>
-            <UserControl Padding="20" x:Name="BottomControl" DockPanel.Dock="Bottom" />
+            <UserControl Padding="20" x:Name="BottomControl" />
             <Button Grid.Row="1" Margin="5" Height="30" Content="Add" Background="{StaticResource addColor}" Click="Button_Click"/>
         </Grid>
         

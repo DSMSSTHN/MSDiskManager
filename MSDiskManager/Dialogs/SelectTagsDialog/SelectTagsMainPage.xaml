@@ -9,7 +9,7 @@
       KeepAlive="True"
       ShowsNavigationUI="False"
       DataContext="{Binding RelativeSource={RelativeSource Self}}"
-      d:DesignHeight="225" d:DesignWidth="400"
+      d:DesignHeight="600" d:DesignWidth="800"
       Title="SelectTagsMainPage">
     <Page.Resources>
         <helpers:IntToColorConverter x:Key="IntToColorConverter"/>

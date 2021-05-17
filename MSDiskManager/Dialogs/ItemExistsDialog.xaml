@@ -1,0 +1,45 @@
+﻿<Window x:Class="MSDiskManager.Dialogs.ItemExistsDialog"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:MSDiskManager.Dialogs"
+        mc:Ignorable="d"
+        Title="DeleteEntityDialog" AllowsTransparency="True"
+        Background="Transparent"
+        DataContext="{Binding RelativeSource={RelativeSource Self}}"
+        WindowStyle="None"
+        BorderBrush="Transparent"
+        WindowStartupLocation="CenterScreen"
+        BorderThickness="0"
+         Height="130" Width="500">
+    <Border CornerRadius="5" Background="{StaticResource primaryLight}" BorderBrush="{StaticResource primary}" BorderThickness="5">
+        <Grid Loaded="Grid_Loaded">
+            <Grid.RowDefinitions>
+                <RowDefinition/>
+                <RowDefinition Height="auto"/>
+                <RowDefinition/>
+            </Grid.RowDefinitions>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition/>
+                <ColumnDefinition/>
+                <ColumnDefinition/>
+                <ColumnDefinition/>
+            </Grid.ColumnDefinitions>
+            <TextBlock x:Name="ContentTxtBx" Grid.ColumnSpan="4" d:Text="File asd sads a Already Exists. what do you want to do?" TextAlignment="Center" Padding="5"/>
+            <CheckBox Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="2" HorizontalAlignment="Center"  IsChecked="False" Content="Do this for all items" Checked="CheckBox_Checked" />
+            <Border Grid.Row="2" Grid.Column="0" Padding="5">
+                <Button Click="CancelClicked" Background="{StaticResource warnColor}" >Cancel</Button>
+            </Border>
+            <Border Grid.Row="2" Grid.Column="1" Padding="5">
+                <Button Click="SkipClicked" Background="{StaticResource lightBlue900}">Skip</Button>
+            </Border>
+            <Border Grid.Row="2" Grid.Column="2" Padding="5">
+                <Button x:Name="ReplaceButton" Click="RelaceClicked" Background="{StaticResource addColor}">Replace</Button>
+            </Border>
+            <Border Grid.Row="2" Grid.Column="3" Padding="5">
+                <Button Click="RenameClicked" Background="{StaticResource primarySemiDark}">Rename</Button>
+            </Border>
+        </Grid>
+    </Border>
+</Window>

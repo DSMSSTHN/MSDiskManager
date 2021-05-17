@@ -34,11 +34,11 @@ namespace MSDiskManager.Pages.AddItems
         private List<string> currentPathes { get; set; } = new List<string>();
         private DirectoryViewModel currentDirectory;
         private List<BaseEntityViewModel> toRemove = new List<BaseEntityViewModel>();
-        public AddItemsPage(object sender, DragEventArgs e, DirectoryEntity initialDist = null) : this(initialDist)
+        public AddItemsPage(object sender, DragEventArgs e, DirectoryViewModel initialDist = null) : this(initialDist)
         {
             this.Page_Drop(sender, e);
         }
-        public AddItemsPage(DirectoryEntity initialDist = null)
+        public AddItemsPage(DirectoryViewModel initialDist = null)
         {
             this.DataContext = Model;
             if (initialDist != null)
@@ -80,7 +80,7 @@ namespace MSDiskManager.Pages.AddItems
         {
             var button = sender as Button;
             var entity = button.CommandParameter as BaseEntityViewModel;
-            var diag = new SelectTagsWindow(entity.Tags.Select(t => (long)t.Id).ToList(), (tag) => entity.Tags.Add(tag), true);
+            var diag = new SelectTagsWindow(entity.Tags.Select(t => (long)t.Id).ToList(), (tag) => { entity.Tags.Add(tag); Model.SelectedItems.ForEach(i => { if (!i.Tags.Contains(tag))i.Tags.Add(tag); }); }, true);
             diag.ShowDialog();
         }
 
@@ -90,6 +90,7 @@ namespace MSDiskManager.Pages.AddItems
             var entity = button.CommandParameter as BaseEntityViewModel;
             var tag = button.DataContext as Tag;
             entity.Tags.Remove(tag);
+            Model.SelectedItems.ForEach(i => { if (i.Tags.Contains(tag)) i.Tags.Remove(tag); });
         }
 
         private void OpenOriginalPath(object sender, MouseButtonEventArgs e)
@@ -182,7 +183,7 @@ namespace MSDiskManager.Pages.AddItems
             List<DirectoryViewModel> ds;
             if (fo)
             {
-                dirs.ForEach(d => fs.AddRange(d.FilesRecursive));
+                foreach (var d in dirs) fs.AddRange(d.FilesRecursive);
                 foreach (var f in fs) { f.Parent = null; f.FreeResources(); }
                 ds = new List<DirectoryViewModel>();
             }else
@@ -192,8 +193,8 @@ namespace MSDiskManager.Pages.AddItems
                 foreach (var d in ds)d.FreeResources();
             }
             
-            var diag = new CopyMoveDialog(fo ? new List<DirectoryViewModel>() : dirs, fs, Model.Distanation, move);
-            if (diag.ShowDialog() ?? false)
+            var diag = new CopyMoveDialog(fo ? new List<DirectoryViewModel>() : ds, fs, Model.Distanation, move);
+            if (diag?.ShowDialog() ?? false)
             {
                 this.NavigationService.GoBack();
             }
@@ -447,18 +448,18 @@ namespace MSDiskManager.Pages.AddItems
         private void AddDG_PreviewKeyDown(object sender, KeyEventArgs e)
         {
             var dg = sender as DataGrid;
-            if (dg.ItemsSource is ICollection<BaseEntityViewModel>)
-            {
-                if (e.Key == Key.Delete)
-                {
-                    var items = dg.ItemsSource as ICollection<BaseEntityViewModel>;
-                    var selected = items?.Where(i => i.IsSelected)?.ToList();
-                    if (!Globals.IsNullOrEmpty(selected))
-                    {
-                        foreach (var item in selected) doDelete(item);
-                    }
-                }
-            }
+            //if (dg.ItemsSource is ICollection<BaseEntityViewModel>)
+            //{
+            //    if (e.Key == Key.Delete)
+            //    {
+            //        var items = dg.ItemsSource as ICollection<BaseEntityViewModel>;
+            //        var selected = items?.Where(i => i.IsSelected)?.ToList();
+            //        if (!Globals.IsNullOrEmpty(selected))
+            //        {
+            //            foreach (var item in selected) doDelete(item);
+            //        }
+            //    }
+            //}
         }
 
         private void DataGridRow_Selected(object sender, RoutedEventArgs e)
@@ -478,6 +479,82 @@ namespace MSDiskManager.Pages.AddItems
         private void AddPage_Loaded(object sender, RoutedEventArgs e)
         {
             FilterTBX.Focus();
+            FilterTBX.SelectAll();
+            this.PreviewKeyDown += (a, r) => Model.KeyDown(r.Key);
+            this.PreviewKeyUp += (a, r) => Model.KeyUp(r.Key);
+        }
+
+        private void NameGotFocus(object sender, RoutedEventArgs e)
+        {
+            var textBox = sender as TextBox;
+            var entity = textBox.DataContext as BaseEntityViewModel;
+        }
+
+        private void NameLostFocus(object sender, RoutedEventArgs e)
+        {
+            var textBox = sender as TextBox;
+            var entity = textBox.DataContext as BaseEntityViewModel;
+            if (entity?.NameChanged ?? false)
+            {
+                entity?.CommitName();
+                //Model.CommitName(entity.Name);
+            }
+        }
+
+        private void NamePKeyDown(object sender, KeyEventArgs e)
+        {
+            var textBox = sender as TextBox;
+            var entity = textBox.DataContext as BaseEntityViewModel;
+            if(e.Key == Key.Enter)
+            {
+                if (entity.NameChanged)
+                {
+                    entity.CommitName();
+                    //Model.CommitName(entity.Name);
+                }
+            } else if (e.Key == Key.Escape)
+            {
+                entity.RestoreName();
+            }
+        }
+
+      
+
+        private void DeleteClickeds(object sender, RoutedEventArgs e)
+        {
+            var mi = sender as MenuItem;
+            var entity = mi.DataContext as BaseEntityViewModel;
+            if (entity == null) return;
+            var rm = Model.HandleDelete(entity);
+            files = files.Where(f => !rm.Contains(f)).ToList();
+            dirs = dirs.Where(d => !rm.Contains(d)).ToList();
+        }
+
+        private void EditClickeds(object sender, RoutedEventArgs e)
+        {
+            var mi = sender as MenuItem;
+            var entity = mi.DataContext as BaseEntityViewModel;
+            if (entity == null) return;
+            Model.Edit(entity);
+        }
+
+        private void DontAddToDbChecked(object sender, RoutedEventArgs e)
+        {
+            var checkbox = sender as CheckBox;
+            var entity = checkbox.DataContext as BaseEntityViewModel;
+            Model.SelectedItems.ForEach(i => { if (!i.IgnoreAdd) i.IgnoreAdd = true; });
+        }
+
+        private void DontAddToDbUnchecked(object sender, RoutedEventArgs e)
+        {
+            Model.SelectedItems.ForEach(i => { if (i.IgnoreAdd) i.IgnoreAdd = false; });
+        }
+
+        private void DataGridRow_MouseDown(object sender, MouseButtonEventArgs e)
+        {
+            var row = sender as DataGridRow;
+            var entity = row.DataContext as BaseEntityViewModel;
+            Model.SelectEntity(entity);
         }
     }
 }

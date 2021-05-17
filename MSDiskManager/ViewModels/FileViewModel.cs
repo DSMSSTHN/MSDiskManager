@@ -25,6 +25,7 @@ namespace MSDiskManager.ViewModels
 
     public class FileViewModel : BaseEntityViewModel
     {
+
         private FileType fileType = FileType.Unknown;
         private string extension = "txt";
         private static MediaElement? media;
@@ -84,6 +85,17 @@ namespace MSDiskManager.ViewModels
             }
         }
 
+        public override long Size
+        {
+            get
+            {
+                if (size == 0)
+                {
+                    try { size = new FileInfo(File.Exists(FullPath) ? FullPath : OriginalPath).Length; } catch { return 0; };
+                }
+                return size;
+            }
+        }
 
         public FileType FileType { get => fileType; set { fileType = value; NotifyPropertyChanged("FileType"); } }
         public String Extension { get => extension; set { extension = value; NotifyPropertyChanged("Extension"); } }
@@ -97,9 +109,9 @@ namespace MSDiskManager.ViewModels
         {
             Image?.Freeze();
             Image = null;
-            if(!imgCancel!.IsCancellationRequested) imgCancel?.Cancel();
-            if (img != null) {img?.Source?.Freeze(); img!.Source = null; }
-            if (media != null) { media.Source = null;media.Stop();media.Close(); }
+            if (!imgCancel!.IsCancellationRequested) imgCancel?.Cancel();
+            if (img != null) { img?.Source?.Freeze(); img!.Source = null; }
+            if (media != null) { media.Source = null; media.Stop(); media.Close(); }
             img = null;
             txt = null;
             media = null;
@@ -109,71 +121,28 @@ namespace MSDiskManager.ViewModels
             imgCancel?.Dispose();
             imgCancel = new CancellationTokenSource();
         }
-        public async Task<bool> AddToDb(bool move, Action<BaseEntityViewModel?, CopyMoveEventType> callback, PauseTokenSource pauses, CancellationTokenSource cancels, bool bypass = false, bool dbOnly = false)
-        {
 
-            if (!bypass)
+        public FileEntity FileEntity
+        {
+            get
             {
-                await pauses.Token.WaitWhilePausedAsync();
-                if (cancels.IsCancellationRequested) return false;
-            }
-            FileRepository rep = new FileRepository();
-            this.Path = (Parent != null ? Parent.Path + '\\' + OnDeskName : OnDeskName) + "." + extension;
-            var file = FileEntity;
-            try
-            {
-                var created = dbOnly ? await rep.AddFileToDBOnly(file) :
-                    await rep.AddFile(file, OriginalPath, move: move, dontAddToDB: IgnoreAdd);
-                this.Path = created.Path;
-                this.Id = created.Id;
-                if (callback != null) callback(this, CopyMoveEventType.Success);
-                if (bypass) pauses.IsPaused = false;
-                ShouldRemove = true;
-                return true;
-            }
-            catch (IOException ioe)
-            {
-                pauses.IsPaused = true;
-                var result = false;
-                var msg = $"Directory :[{OriginalPath}]\n{ioe.Message}";
-                var diag = new CopyMoveErrorDialog(msg, pauses, cancels, async () => result = await AddToDb(move, callback, pauses, cancels, true), (et) => callback(this, et));
-                diag.ShowDialog();
-                return result;
-            }
-            catch (Npgsql.NpgsqlException npe)
-            {
-                pauses.IsPaused = true;
-                var result = false;
-                var msg = $"Directory :[{OriginalPath}]\n{npe.Message}";
-                var diag = new CopyMoveErrorDialog(msg, pauses, cancels, async () => result = await AddToDb(move, callback, pauses, cancels, true, true), (et) => callback(this, et));
-                diag.ShowDialog();
-                return result;
-            }
-            catch (Exception e)
-            {
-                cancels.Cancel();
-                var msg = $"Directory :[{OriginalPath}]\n{e.Message}";
-                MessageBox.Show(msg);
-                pauses.IsPaused = false;
-                ShouldRemove = false;
-                return false;
+                Path = (Parent != null ? Parent.Path + '\\' + OnDeskName : OnDeskName) + "." + extension;
+                return new FileEntity
+                {
+                    Name = Name,
+                    Description = Description,
+                    OnDeskName = OnDeskName,
+                    Extension = extension,
+                    FileType = FileType,
+                    FileTags = Tags.Select(t => new FileTag { TagId = t.Id ?? -1 }).ToList(),
+                    Path = Path,
+                    Parent = null,//(Parent?.Id ?? null) != null ? Parent?.DirectoryEntity : null,
+                    IsHidden = IsHidden,
+                    ParentId = Parent?.Id,
+                    OldPath = OriginalPath,
+                };
             }
         }
-        public FileEntity FileEntity => new FileEntity
-        {
-            Name = Name,
-            Description = Description,
-            OnDeskName = OnDeskName,
-            Extension = extension,
-            FileType = FileType,
-            FileTags = Tags.Select(t => new FileTag { TagId = t.Id ?? -1 }).ToList(),
-            Path = Path,
-            Parent = Parent?.DirectoryEntity,
-            IsHidden = IsHidden,
-            ParentId = Parent?.Id,
-            OldPath = OriginalPath,
-        };
-
 
         public override IconType IconType
         {
@@ -308,8 +277,8 @@ namespace MSDiskManager.ViewModels
                     img = new Image();
                     img.MaxWidth = System.Windows.SystemParameters.FullPrimaryScreenWidth / 2;
                 }
-                
-                img.Source = Globals.IsNotNullNorEmpty(OriginalPath) ?  OriginalPath.AsUri(true) : FullPath.AsUri(true);
+
+                img.Source = Globals.IsNotNullNorEmpty(OriginalPath) ? OriginalPath.AsUri(true) : FullPath.AsUri(true);
                 NotifyPropertyChanged("ImageContent");
                 return img;
             }
@@ -335,6 +304,8 @@ namespace MSDiskManager.ViewModels
         }
 
         private int wheelEvent;
+        private long size;
+
         public MediaElement VideoContent
         {
             get

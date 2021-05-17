@@ -1,10 +1,13 @@
-﻿using MSDiskManager.ViewModels;
+﻿using MSDiskManager.Helpers;
+using MSDiskManager.ViewModels;
+using MSDiskManagerData.Data;
 using MSDiskManagerData.Data.Entities;
 using MSDiskManagerData.Data.Repositories;
 using MSDiskManagerData.Helpers;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -25,9 +28,10 @@ namespace MSDiskManager.Dialogs
     public partial class CreateDirectoryDialog : Window
     {
         public CreateDirectoryViewModel Model { get; } = new CreateDirectoryViewModel();
-        Action<DirectoryEntity> DirectoryCreatedCallback;
-        private readonly DirectoryEntity parentDirectory;
-        public CreateDirectoryDialog(Action<DirectoryEntity> directoryCreatedCallback,DirectoryEntity parentDirectory = null )
+        Action<DirectoryViewModel> DirectoryCreatedCallback;
+        private readonly DirectoryViewModel parentDirectory;
+
+        public CreateDirectoryDialog(Action<DirectoryViewModel> directoryCreatedCallback, DirectoryViewModel parentDirectory = null)
         {
             this.DirectoryCreatedCallback = directoryCreatedCallback;
 
@@ -36,7 +40,7 @@ namespace MSDiskManager.Dialogs
             InitializeComponent();
         }
 
-        
+
 
         private void AddTags(object sender, RoutedEventArgs e)
         {
@@ -56,17 +60,43 @@ namespace MSDiskManager.Dialogs
             {
                 LoadingLabel.Visibility = Visibility.Visible;
                 var rep = new DirectoryRepository();
+                var path = ((parentDirectory?.FullPath ?? (MSDM_DBContext.DriverName[0]+ ":")) + "\\" + Model.Name);
+                var strategy = MSDM_IO.ExistsStrategy.None;
+                if (Directory.Exists(path))
+                {
+                    var diag = new ItemExistsDialog(path);
+                    diag.ShowDialog();
+                    strategy = diag.ExistsStrategy;
+                    if (diag.Cancel) this.Close();
+                    if (strategy == MSDM_IO.ExistsStrategy.Replace)
+                    {
+                        try
+                        {
+                            Directory.Delete(path, true);
+                            await rep.DeletePerPath(path);
+                        }
+                        catch (Exception ex)
+                        {
+                            MessageBox.Show(ex.Message);
+                            diag = new ItemExistsDialog(path, false);
+                            diag.ShowDialog();
+                            strategy = diag.ExistsStrategy;
+                        }
+                    }
+                }
+                MSDM_IO.MSDMIO.CreateDirectory(path, strategy);
                 var dir = await rep.CreateDirectory(parentDirectory?.Id, Model.Name, Model.Description);
                 foreach (var tag in Model.Tags)
                 {
-                    await rep.AddTag(dir.Id,tag.Id);
+                    await rep.AddTag(dir.Id, tag.Id);
                 }
                 LoadingLabel.Visibility = Visibility.Collapsed;
-                DirectoryCreatedCallback(dir);
+                DirectoryCreatedCallback(dir.ToDirectoryViewModel());
                 this.Close();
-            } else
+            }
+            else
             {
-            MessageBox.Show("Cannot create a Directory with an empty name");
+                MessageBox.Show("Cannot create a Directory with an empty name");
 
             }
         }
@@ -81,7 +111,9 @@ namespace MSDiskManager.Dialogs
         private void Grid_Loaded(object sender, RoutedEventArgs e)
         {
             this.MouseLeftButtonDown += delegate { DragMove(); };
+            this.KeyDown += (a, r) => { if (r.Key == Key.Escape) if (this.DialogResult == null) { this.DialogResult = false; this.Close(); } };
             NameTBX.Focus();
+            NameTBX.SelectAll();
         }
     }
 }

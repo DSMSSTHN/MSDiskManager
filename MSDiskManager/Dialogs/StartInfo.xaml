@@ -1,0 +1,60 @@
+﻿<Window x:Class="MSDiskManager.Dialogs.StartInfo"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:MSDiskManager.Dialogs"
+       xmlns:helpers="clr-namespace:MSDiskManager.Helpers"
+        xmlns:local2="clr-namespace:MSDiskManager.Pages.AddItems"
+        mc:Ignorable="d"
+        WindowStyle="None"
+        AllowsTransparency="True"
+        Background="Transparent"
+        BorderBrush="Transparent"
+        WindowStartupLocation="CenterScreen"
+        BorderThickness="0" 
+        Title="CreateDirectoryDialog" Height="450" Width="1200">
+    <Border CornerRadius="5" Background="{StaticResource primary}" BorderBrush="{StaticResource primaryLight}" BorderThickness="3">
+        <Grid Loaded="Grid_Loaded">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition/>
+                <ColumnDefinition/>
+            </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="auto" />
+                <RowDefinition />
+                <RowDefinition />
+                <RowDefinition />
+                <RowDefinition />
+                <RowDefinition />
+                <RowDefinition />
+                <RowDefinition />
+            </Grid.RowDefinitions>
+            <TextBlock Grid.Row="1" Text="Database Host:" TextAlignment="Center" VerticalAlignment="Center"/>
+            <TextBlock Grid.Row="2" Text="Database Port:" TextAlignment="Center" VerticalAlignment="Center"/>
+            <TextBlock Grid.Row="3" Text="Database UserName:" TextAlignment="Center" VerticalAlignment="Center"/>
+            <TextBlock Grid.Row="4" Text="Database Password:" TextAlignment="Center" VerticalAlignment="Center"/>
+            <TextBlock Grid.Row="5" Text="Database Name:" TextAlignment="Center" VerticalAlignment="Center"/>
+            
+            <TextBox Name="HostNameTxtBx" Grid.Row="1" Grid.Column="1" Text="{Binding HostName,Mode=TwoWay,UpdateSourceTrigger=PropertyChanged}"/>
+            <TextBox Name="PortTextBx" Grid.Row="2" Grid.Column="1" Text="{Binding Port,Mode=TwoWay,UpdateSourceTrigger=PropertyChanged}"/>
+            <TextBox Name="UserNameTextBx" Grid.Row="3" Grid.Column="1" Text="{Binding UserName,Mode=TwoWay,UpdateSourceTrigger=PropertyChanged}"/>
+            <TextBox Name="PasswordTextBx" Grid.Row="4" Grid.Column="1" Text="{Binding Password,Mode=TwoWay,UpdateSourceTrigger=PropertyChanged}"/>
+            <TextBox Name="DBNameTextBx" Grid.Row="5" Grid.Column="1" Text="{Binding DatabaseName,Mode=TwoWay,UpdateSourceTrigger=PropertyChanged}"/>
+            <Grid Grid.Row="6" Grid.ColumnSpan="2">
+                <Border Background="{StaticResource warnColor}" Visibility="{Binding ConnectionErrorVisibility}">
+                    <TextBlock Text="Connection Invalid"  VerticalAlignment="Center" HorizontalAlignment="Center" FontWeight="Bold" FontSize="20"/>
+                </Border>
+                <Border Background="{StaticResource addColor}" Visibility="{Binding ConnectionVisibility}">
+                    <TextBlock Text="Connection Valid"  VerticalAlignment="Center" HorizontalAlignment="Center" FontWeight="Bold" FontSize="20"/>
+                </Border>
+            </Grid>
+            <Border Grid.Row="7" Grid.Column="0" Padding="5">
+                <Button x:Name="CancelButton" Click="CancelClicked" Background="{StaticResource darkRed}">Cancel</Button>
+            </Border>
+            <Border Grid.Row="7" Grid.Column="1" Padding="5">
+                <Button Click="ProceedClicked   " IsEnabled="{Binding ConnectionValid}" Background="{StaticResource lightBlue900}">Proceed</Button>
+            </Border>
+        </Grid>
+    </Border>
+</Window>

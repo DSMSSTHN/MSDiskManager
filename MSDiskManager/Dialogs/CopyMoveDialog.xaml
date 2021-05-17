@@ -59,7 +59,7 @@
                         <DataGridTemplateColumn Width="30">
                             <DataGridTemplateColumn.Header>
                                 <Border CornerRadius="0" Margin="-4" >
-                                    <Button Click="GoBack" IsEnabled="{Binding CanGoBack.Value}"  Background="White" Width="30">
+                                    <Button Click="GoBack" IsEnabled="{Binding CanGoBack}"  Background="White" Width="30">
                                         <Image Width="22" Height="28" Source="/images/up.png"/>
                                     </Button>
                                 </Border>
@@ -74,7 +74,7 @@
                         <DataGridTemplateColumn Header="Tags">
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
-                                    <TextBlock Foreground="Black" Text="{Binding DirectoryTags, Converter={StaticResource EntityListToStringConverter}, ConverterParameter=','}" TextWrapping="Wrap"/>
+                                    <TextBlock Foreground="Black" Text="{Binding Tags, Converter={StaticResource EntityListToStringConverter}, ConverterParameter=','}" TextWrapping="Wrap"/>
                                 </DataTemplate>
                             </DataGridTemplateColumn.CellTemplate>
                         </DataGridTemplateColumn>

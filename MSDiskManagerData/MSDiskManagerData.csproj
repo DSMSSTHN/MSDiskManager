@@ -6,6 +6,8 @@
 
   <ItemGroup>
     <PackageReference Include="EFCore.NamingConventions" Version="5.0.2" />
+    <PackageReference Include="EntityFrameworkCore.Sqlite.NodaTime" Version="5.0.2" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="5.0.6" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="5.0.5">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
@@ -15,7 +17,6 @@
     <PackageReference Include="NodaTime" Version="3.0.5" />
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="5.0.5.1" />
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL.NodaTime" Version="5.0.5.1" />
-    <PackageReference Include="Npgsql.NodaTime" Version="5.0.4" />
     <PackageReference Include="System.Drawing.Common" Version="5.0.2" />
   </ItemGroup>
 

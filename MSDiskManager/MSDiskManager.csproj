@@ -16,6 +16,7 @@
     <None Remove="images\directory.png" />
     <None Remove="images\documentFile.png" />
     <None Remove="images\documentImg.jpg" />
+    <None Remove="images\error.png" />
     <None Remove="images\home.png" />
     <None Remove="images\imageFile.png" />
     <None Remove="images\musicFile.png" />
@@ -34,19 +35,21 @@
     <Resource Include="images\blackImg.jpg">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
+    <Resource Include="images\error.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Resource>
     <Resource Include="images\musicImg.jpg">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Nito.AsyncEx.Coordination" Version="5.1.0" />
-    <PackageReference Include="NodaTime" Version="3.0.5" />
-    <PackageReference Include="System.Drawing.Common" Version="5.0.2" />
+    <PackageReference Include="System.Management" Version="5.0.0" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\MSDiskManagerData\MSDiskManagerData.csproj" />
+    <ProjectReference Include="..\MSDM_IO\MSDM_IO.csproj" />
   </ItemGroup>
 
   <ItemGroup>

@@ -18,6 +18,62 @@ using System.Windows.Media.Imaging;
 
 namespace MSDiskManager.Helpers
 {
+ 
+    public class BooleanOppositConverter : IValueConverter
+    {
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            return !((bool)value);
+        }
+
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            return !((bool)value);
+        }
+    }
+    public class PathExistsVisibility_CollapseConverter : IValueConverter
+    {
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            var str = value?.ToString();
+            var bol = File.Exists(str) || Directory.Exists(str);
+            var inverse = parameter != null && bool.Parse(parameter.ToString());
+            if (inverse) return bol ? Visibility.Visible : Visibility.Collapsed;
+            return bol ? Visibility.Collapsed : Visibility.Visible;
+        }
+
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            throw new NotImplementedException();
+        }
+    }
+    public class DirectoryOnlyVisibilityConverter : IValueConverter
+    {
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            return (value is DirectoryEntity || value is DirectoryViewModel) ? Visibility.Visible : Visibility.Collapsed;
+
+        }
+
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            throw new NotImplementedException();
+        }
+    }
+    public class BaseEntityNumberOfItemsConverter : IValueConverter
+    {
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            if (value is DirectoryEntity) return $"{(value as DirectoryEntity).NumberOfItemsRec} items";
+            if (value is DirectoryViewModel) return $"{(value as DirectoryViewModel).NumberOfItems} items";
+            return "";
+        }
+
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            throw new NotImplementedException();
+        }
+    }
     public class BooleanScrollVisibilityConverter : IValueConverter
     {
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)

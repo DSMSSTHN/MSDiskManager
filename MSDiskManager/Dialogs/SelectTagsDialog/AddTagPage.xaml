@@ -14,7 +14,7 @@
         <helpers:IntToColorConverter x:Key="IntToColorConverter"/>
         <helpers:IntToBrushConverter x:Key="IntToBrushConverter"/>
     </Page.Resources>
-    <Grid >
+    <Grid Loaded="Grid_Loaded">
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="100"/>
             <ColumnDefinition Width="*"/>
@@ -26,7 +26,7 @@
             <RowDefinition Height="auto"/>
         </Grid.RowDefinitions>
         <TextBlock VerticalAlignment="Center" HorizontalAlignment="Center" Grid.Row="0" Grid.Column="0" Text="Name:"/>
-        <TextBox TextAlignment="Center" VerticalContentAlignment="Center" Grid.Row="0" Grid.Column="1" Text="{Binding Name, Mode=TwoWay}"/>
+        <TextBox x:Name="NameTBX" TextAlignment="Center" VerticalContentAlignment="Center" Grid.Row="0" Grid.Column="1" Text="{Binding Name, Mode=TwoWay}"/>
         <TextBlock VerticalAlignment="Center" HorizontalAlignment="Center" Grid.Row="1" Grid.Column="0" Text="Color:"/>
         <ListView x:Name="ColorsListView" Grid.Row="1" Grid.Column="1" ItemsSource="{Binding AllColors}"
                   

@@ -1,7 +1,10 @@
 ﻿#nullable enable
+using MSDiskManager.Helpers;
 using MSDiskManagerData.Data;
 using MSDiskManagerData.Data.Entities;
 using MSDiskManagerData.Data.Entities.Relations;
+using MSDiskManagerData.Data.Repositories;
+using MSDiskManagerData.Helpers;
 using NodaTime;
 using System;
 using System.Collections.Generic;
@@ -18,14 +21,26 @@ namespace MSDiskManager.ViewModels
 {
     public abstract class BaseEntityViewModel : INotifyPropertyChanged
     {
+        protected string originalName = "";
+        public void RestoreName()
+        {
+            Name = originalName;
+            IsRenaming = false;
+        }
+        public void CommitName()
+        {
+            originalName = Name;
+            IsRenaming = false;
+        }
+        public bool NameChanged => Name != originalName;
         protected object? content;
         private Brush originalBrush => Application.Current.Resources["primary"] as SolidColorBrush ?? new SolidColorBrush(Colors.DarkGray);
         private Brush ignoredBrush => new SolidColorBrush(Colors.Black);
 
         private long? _id;
-        private string name = "new_file";
-        private string onDeskName = "new_file";
-        private string description = "new_file";
+        private string name = "New Item";
+        private string onDeskName = "New_Item";
+        private string description = "";
         private string path = "";
         private long? parentId;
         private DirectoryViewModel? parent;
@@ -36,18 +51,24 @@ namespace MSDiskManager.ViewModels
         private string originalPath = "";
         private bool ignoreAdd = false;
         private bool isSelected = false;
+        private int numberOfItemsRec = 0;
         private ObservableCollection<Tag> tags = new ObservableCollection<Tag>();
         private Brush background = Application.Current.Resources["primaryLight"] as SolidColorBrush ?? new SolidColorBrush(Colors.DarkGray);
         private ImageSource? image;
+        private bool isRenaming = false;
+        private string errorMessage = "";
 
         public bool ShouldRemove { get; set; } = false;
 
         public long? Id { get => _id; set { _id = value; } }
-        public string Name { get => name; set { name = value; NotifyPropertyChanged("Name"); } }
+        public string Name { get => name; set { name = value; if (Globals.IsNullOrEmpty(originalName)) originalName = value; NotifyPropertyChanged("Name"); } }
         public string OnDeskName
         {
             get => onDeskName; set { onDeskName = value; NotifyPropertyChanged("onDeskName"); }
         }
+        public int NumberOfItems { get => numberOfItemsRec; set { numberOfItemsRec = value; NotifyPropertyChanged("NumberOfItems"); } }
+        
+        public string ErrorMessage { get => errorMessage; set { errorMessage = value; NotifyPropertyChanged("ErrorMessage"); } }
         public string Description { get => description; set { description = value; NotifyPropertyChanged("Description"); } }
         public ObservableCollection<Tag> Tags { get => tags; set { tags = value; NotifyPropertyChanged("Tags"); } }
         public string OriginalPath { get => originalPath; set => originalPath = value; }
@@ -77,16 +98,11 @@ namespace MSDiskManager.ViewModels
                 NotifyPropertyChanged("IgnoreAdd");
             }
         }
-        public bool IsSelected
-        {
-            get => isSelected; set
-            {
-                isSelected = value;
+        public bool IsSelected { get => isSelected; set { isSelected = value; NotifyPropertyChanged("IsSelected"); } }
+        public bool IsRenaming { get => isRenaming; set { isRenaming = value; NotifyPropertyChanged("IsRenaming"); } }
+        public string FullPath { get => MSDM_DBContext.DriverName[0] + ":\\" + Path; }
 
-                NotifyPropertyChanged("IsSelected");
-            }
-        }
-        public string FullPath { get => MSDM_DBContext.DriverName + Path; }
+        public virtual long Size { get;  }
 
         public virtual IconType IconType { get; }
         public virtual ImageSource? Image { get => image; set { image = value; NotifyPropertyChanged("Image"); } }
@@ -94,11 +110,43 @@ namespace MSDiskManager.ViewModels
 
         public virtual object? TooltipContent { get; }
 
+
+        public async Task<BaseEntity> Refresh()
+        {
+            if (Id == null) return null;
+            var id = (long)Id;
+            BaseEntity be = (this is FileViewModel) ? (await new FileRepository().GetFile(id)) : (await new DirectoryRepository().GetDirectoryFull(id));
+            if (be == null) return null;
+            this.Name = be.Name;
+            this.Path = be.Path;
+            this.onDeskName = be.OnDeskName;
+            this.MovingDate = be.MovingDate;
+            this.AncestorIds = be.AncestorIds;
+            this.Description = be.Description;
+            this.Tags.Clear();
+            
+            if(be is FileEntity)
+            {
+                (this as FileViewModel)!.Extension = (be as FileEntity)!.Extension;
+                this.Tags.AddMany((be as FileEntity)!.FileTags.Select(ft => ft.Tag).ToList());
+            } else
+            {
+                this.Tags.AddMany((be as DirectoryEntity)!.DirectoryTags.Select(ft => ft.Tag).ToList());
+            }
+            this.ParentId = be.ParentId;
+            this.IsHidden = be.IsHidden;
+            
+
+            return be;
+        }
+
+
+
         public event PropertyChangedEventHandler? PropertyChanged;
         protected void NotifyPropertyChanged([CallerMemberName] string? name = null)
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
         }
-
+        
     }
 }

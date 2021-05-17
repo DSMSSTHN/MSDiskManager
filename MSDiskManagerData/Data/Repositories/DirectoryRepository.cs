@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace MSDiskManagerData.Data.Repositories
@@ -23,25 +24,36 @@ namespace MSDiskManagerData.Data.Repositories
             if (name == null || name.IsEmpty()) return null;
             var parent = parentId == null ? null : await GetDirectory((long)parentId);
             var path = "";
-            if (parent != null) path = parent.Path + (parent.Path[parent.Path.Length - 1] == '\\' ? "" : '\\') + name;
-            var dn = name;
+            if (parent != null) path = parent.Path + '\\' + name;
+            else path = name;
 
-
-            var dir = new DirectoryEntity { Name = name, ParentId = parentId, Path = path, OnDeskName = dn, Description = name };
+            var dir = new DirectoryEntity { Name = name, ParentId = parentId, Path = path, OnDeskName = name, Description = description };
             return await CreateDirectory(dir, directoryExistsStrategy, dontAddToDB);
         }
         public async Task<DirectoryEntity> AddToDbOnly(DirectoryEntity directory)
         {
+            if (MSDM_DBContext.currentDriverId == null) throw new Exception("No Driver was configured yet");
             directory.AddingDate = new NodaTime.Instant();
             directory.MovingDate = new NodaTime.Instant();
+            directory.DriverId = MSDM_DBContext.currentDriverId;
+            try
+            {
+                var ctx = await context();
+                var exists = await ctx.Directories.FirstOrDefaultAsync(d => d.Path == directory.Path);
+                repotFinished();
+                if (exists != null) return exists;
+
+            }
+            catch (Exception)
+            {
+                repotFinished();
+            }
             if (directory.ParentId != null)
             {
                 try
                 {
                     var ctx = await context();
-                    var parent = await ctx.Directories.FirstOrDefaultAsync(d => d.Id == directory.ParentId);
-                    directory.AncestorIds = parent.AncestorIds.ToList();
-                    directory.AncestorIds.Add((long)directory.ParentId);
+                    await directory.LoadParentWithAncestorIds(ctx);
                     repotFinished();
                 }
                 catch (Exception)
@@ -101,147 +113,79 @@ namespace MSDiskManagerData.Data.Repositories
             }
             return directory;
         }
-        public async Task<DirectoryEntity> CreateDirectory(DirectoryEntity directory, DirectoryExistsStrategy directoryExistsStrategy = DirectoryExistsStrategy.Rename, bool dontAddToDB = false)
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="directories"></param>
+        /// <param name="directoryExistsStrategy"></param>
+        /// <param name=""></param>
+        /// <param name="dontAddToDB"></param>
+        /// <returns></returns>
+        public async Task<List<DirectoryEntity>> CreateDirectories(List<DirectoryEntity> directories,
+            DirectoryExistsStrategy directoryExistsStrategy = DirectoryExistsStrategy.Rename
+            , bool dontAddToDB = false, CancellationToken? cancels = null)
         {
+            if (MSDM_DBContext.currentDriverId == null) throw new Exception("No Driver was configured yet");
+            if (cancels?.IsCancellationRequested ?? false) return null;
+            if (Globals.IsNullOrEmpty(directories)) throw new Exception("No data was given");
+            var waiting = directories.ToList();
 
-            if (directory == null || directory.Path == null || Globals.IsNullOrEmpty(directory.Name)) throw new ArgumentException("Directory Or Path or name were null");
-            if (Globals.IsNullOrEmpty(directory.OnDeskName)) directory.OnDeskName = directory.Name;
-            if (Directory.Exists(directory.FullPath))
-            {
-                switch (directoryExistsStrategy)
-                {
-                    case DirectoryExistsStrategy.Replace:
-                        Directory.Delete(directory.FullPath);
-                        break;
-                    case DirectoryExistsStrategy.Rename:
-
-                        while (Directory.Exists(directory.FullPath))
-                        {
-                            directory.Path += "_";
-                            directory.OnDeskName += "_";
-                        }
-                        break;
-                    case DirectoryExistsStrategy.Skip:
-                        return null;
-                    default:
-                        throw new DirectoryAlreadtExistsException(directory.FullPath);
-                }
-            }
-
-            Directory.CreateDirectory(directory.FullPath);
-            if (dontAddToDB) return directory;
-            return await AddToDbOnly(directory);
-        }
-        public async Task<DirectoryEntity> AddDirectory(DirectoryEntity directory, string oldPath, DirectoryExistsStrategy directoryExistsStratigy = DirectoryExistsStrategy.Rename, bool move = false, bool dontAddToDB = false)
-        {
-
-            if (directory == null || directory.Path == null || oldPath == null) throw new ArgumentException("Directory Or Old Path were null");
-            if (!Directory.Exists(oldPath))
-            {
-                throw new DirectoryNotFoundException($"no directory was found at the given location: ${oldPath}");
-            }
-            if (Directory.Exists(directory.FullPath))
-            {
-                switch (directoryExistsStratigy)
-                {
-                    case DirectoryExistsStrategy.Replace:
-                        Directory.Delete(directory.FullPath);
-                        break;
-                    case DirectoryExistsStrategy.Rename:
-                        if (!directory.Path.Contains(directory.OnDeskName))
-                        {
-                            var p = directory.Path;
-                            if (p[p.Length - 1] == '\\' || p[p.Length - 1] == '/') p = p.Substring(0, p.Length - 1);
-                            var slash = p.LastIndexOf('\\') + 1;
-                            var length = p.Length - slash;
-                            directory.OnDeskName = directory.Path.Substring(slash, length);
-                        }
-                        while (Directory.Exists(directory.FullPath))
-                        {
-                            directory.Path += "_";
-                            directory.OnDeskName += "_";
-
-                        }
-                        break;
-                    case DirectoryExistsStrategy.Skip:
-                        return null;
-                    default:
-                        throw new DirectoryAlreadtExistsException(directory.FullPath);
-                }
-            }
-            if (move)
-            {
-                Directory.Move(oldPath, directory.FullPath);
-            }
-            else
-            {
-                //foreach (string dirPath in Directory.GetDirectories(oldPath, "*", SearchOption.AllDirectories))
-                //{
-                //    Directory.CreateDirectory(dirPath.Replace(sourcePath, targetPath));
-                //}
-
-                ////Copy all the files & Replaces any files with the same name
-                //foreach (string newPath in Directory.GetFiles(sourcePath, "*.*", SearchOption.AllDirectories))
-                //{
-                //    File.Copy(newPath, newPath.Replace(sourcePath, targetPath), true);
-                //}
-            }
-            if (dontAddToDB) return directory;
-            directory.AddingDate = new NodaTime.Instant();
-            directory.MovingDate = new NodaTime.Instant();
+            if (cancels?.IsCancellationRequested ?? false) return null;
+            List<long> pids = new List<long>();
+            List<List<long>> paids = new List<List<long>>();
             try
             {
                 var ctx = await context();
-
-                if (directory.ParentId != null)
-                {
-                    if (directory.Parent == null)
-                    {
-                        directory.Parent = await ctx.Directories.FirstOrDefaultAsync(d => d.Id == directory.ParentId);
-                    }
-                    directory.AncestorIds = directory.Parent.AncestorIds.ToList();
-                    directory.AncestorIds.Add((long)directory.ParentId);
-                }
-                var tags = directory.DirectoryTags;
-                directory.Parent = null;
-                directory.Parent = null; directory.DirectoryTags = null;
-                directory.Children = null;
-                directory.Files = null;
-                await ctx.Directories.AddAsync(directory);
-                await ctx.SaveChangesAsync();
+                pids = waiting.Where(f => f.ParentId != null && f.Parent == null).Select(f => (long)f.ParentId).OrderBy(id => id).Distinct().ToList();
+                paids = await ctx.Directories.Where(d => pids.Contains((long)d.Id)).OrderBy(d => d.Id).Select(d => d.AncestorIds).ToListAsync();
                 repotFinished();
-                if (Globals.IsNotNullNorEmpty(tags))
-                {
-                    foreach (var dt in tags)
-                    {
-                        await AddTag((long)directory.Id, (long)dt.TagId);
-                    }
-                }
-
             }
             catch (Exception)
             {
                 repotFinished();
+
                 throw;
             }
-
-            return directory;
+            foreach (var d in waiting)
+            {
+                if (cancels?.IsCancellationRequested ?? false) return null;
+                if (d.ParentId != null)
+                {
+                    List<long> anc = paids[pids.IndexOf((long)d.ParentId)];
+                    anc.Add((long)d.ParentId);
+                    d.AncestorIds = anc;
+                }
+                else
+                {
+                    d.AncestorIds = new List<long>();
+                }
+                d.DriverId = MSDM_DBContext.currentDriverId;
+            }
+            try
+            {
+                var ctx = await context();
+                await ctx.AddRangeAsync(waiting);
+                await ctx.SaveChangesAsync();
+            }
+            catch (Exception e)
+            {
+                throw;
+            }
+            return waiting;
         }
-        //public async Task<(Boolean success, string message)> Update(DirectoryEntity directory)
-        //{
-        //    if (directory.Id < 0) return (false, "Not Valid Id");
-        //    if (directory.Name == null || directory.Name.Trim().Length == 0) return (false, "Not Valid Name");
-        //    try
-        //    {
-        //        ctx.Update(directory);
-        //        await ctx.SaveChangesAsync();
-        //        return (true, null);
-        //    }
-        //    catch (Exception e)
-        //    {
-        //        return (false, e.Message);
-        //    }
-        //}
+
+
+
+        public async Task<DirectoryEntity> CreateDirectory(DirectoryEntity directory, DirectoryExistsStrategy directoryExistsStrategy = DirectoryExistsStrategy.Rename, bool dontAddToDB = false)
+        {
+            if (MSDM_DBContext.currentDriverId == null) throw new Exception("No Driver was configured yet");
+            if (directory == null || directory.Path == null || Globals.IsNullOrEmpty(directory.Name)) throw new ArgumentException("Directory Or Path or name were null");
+            if (Globals.IsNullOrEmpty(directory.OnDeskName)) directory.OnDeskName = directory.Name;
+            directory.DriverId = MSDM_DBContext.currentDriverId;
+            if (dontAddToDB) return directory;
+            return await AddToDbOnly(directory);
+        }
+        
         public async Task<(Boolean success, string message)> ChangeName(long id, string newName)
         {
             if (id < 0) return (false, "Not Valid Id");
@@ -386,79 +330,61 @@ namespace MSDiskManagerData.Data.Repositories
                 throw;
             }
         }
-        public async Task<(Boolean success, string message, DirectoryEntity directory)> Move(long id, DirectoryEntity newDirectory, DirectoryExistsStrategy directoryExistsStratigy = DirectoryExistsStrategy.Rename)
+        public async Task<bool> AddTags(long? id, List<long> tagIds)
         {
-
-            if (id < 0) return (false, "Not Valid Id", null);
+            if (id == null || Globals.IsNullOrEmpty(tagIds)) return false;
             try
             {
                 var ctx = await context();
-                var directory = await ctx.Directories.FirstOrDefaultAsync(d => d.Id == id);
-                if (directory == null) return (false, "No directory has such an id", null);
-                var oldFullPath = directory.FullPath;
-                var oldpath = directory.Path;
-                if (newDirectory == null)
-                {
-                    directory.Path = "";
-                    directory.Parent = null;
-                    directory.ParentId = null;
-                    directory.AncestorIds = new List<long>();
-                    Directory.Move(oldFullPath, directory.FullPath);
-                }
-                else
-                {
-
-                    directory.Path = newDirectory.Path + (newDirectory.Path[newDirectory.Path.Length - 1] == '\\' ? "" : '\\') + directory.OnDeskName;
-                    directory.Parent = null;
-                    directory.ParentId = newDirectory.Id;
-                    directory.AncestorIds = newDirectory.AncestorIds.ToList();
-                    directory.AncestorIds.Add((long)newDirectory.Id);
-                }
-                if (Directory.Exists(directory.FullPath))
-                {
-                    switch (directoryExistsStratigy)
-                    {
-
-                        case DirectoryExistsStrategy.Replace:
-                            Directory.Delete(directory.FullPath);
-                            break;
-                        case DirectoryExistsStrategy.Rename:
-                            if (!directory.Path.Contains(directory.OnDeskName))
-                            {
-                                var p = directory.Path;
-                                if (p[p.Length - 1] == '\\' || p[p.Length - 1] == '/') p = p.Substring(0, p.Length - 1);
-                                var slash = p.LastIndexOf('\\') + 1;
-                                var length = p.Length - slash;
-                                directory.OnDeskName = directory.Path.Substring(slash, length);
-                            }
-                            while (Directory.Exists(directory.FullPath))
-                            {
-                                directory.Path += "_";
-                                directory.OnDeskName += "_";
-
-                            }
-                            break;
-                        case DirectoryExistsStrategy.Skip:
-                            return (false, "directory already exists", null);
-                        default:
-                            throw new DirectoryAlreadtExistsException(directory.FullPath);
-                    }
-
-                    Directory.Move(oldFullPath, directory.FullPath);
-                }
-                directory.MovingDate = new NodaTime.Instant();
-                ctx.Update(directory);
-                await updateDecendantsPath((long)directory.Id, oldpath, directory.Path);
+                var dirTags = tagIds.Select(tid => new DirectoryTag { DirectoryId = (long)id, TagId = tid });
+                await ctx.DirectoryTags.AddRangeAsync(dirTags);
                 await ctx.SaveChangesAsync();
                 repotFinished();
-                return (true, null, directory);
+                return true;
             }
-            catch (Exception e)
+            catch (Exception)
             {
                 repotFinished();
-                return (false, e.Message, null);
+                return false;
             }
         }
+        public async Task<bool> RemoveTag(long? id, long? tagId)
+        {
+            if (id == null || tagId == null) return false;
+            try
+            {
+                var ctx = await context();
+                var fileTag = await ctx.DirectoryTags.FirstAsync(t => t.DirectoryId == id && t.TagId == tagId);
+                ctx.DirectoryTags.Remove(fileTag);
+                await ctx.SaveChangesAsync();
+                repotFinished();
+                return true;
+            }
+            catch (Exception)
+            {
+                repotFinished();
+                return false;
+            }
+        }
+        public async Task<bool> RemoveTags(long? id, List<long> tagIds)
+        {
+            if (id == null || Globals.IsNullOrEmpty(tagIds)) return false;
+            try
+            {
+                var ctx = await context();
+                var fileTags = await ctx.DirectoryTags.Where(t => t.DirectoryId == id && tagIds.Contains(t.TagId)).ToListAsync();
+                ctx.DirectoryTags.RemoveRange(fileTags);
+                await ctx.SaveChangesAsync();
+                repotFinished();
+                return true;
+            }
+            catch (Exception)
+            {
+                repotFinished();
+                return false;
+            }
+        }
+
         private async Task updateDecendantsPath(long ancestorId, string oldAncestorPath, string newAncestorPath)
         {
             try
@@ -473,6 +399,7 @@ namespace MSDiskManagerData.Data.Repositories
                 var files = await ctx.Files.Where(d => d.AncestorIds.Contains(ancestorId)).Select(d => new FileEntity { Id = d.Id, Path = d.Path }).ToListAsync();
                 foreach (var f in files)
                 {
+
                     ctx.Files.Attach(f);
                     f.Path = f.Path.Replace(oldAncestorPath, newAncestorPath);
                 }
@@ -484,33 +411,24 @@ namespace MSDiskManagerData.Data.Repositories
                 throw;
             }
         }
-        public async Task<(Boolean success, string message, DirectoryEntity directory)> Copy(long id, string copyPath, DirectoryExistsStrategy directoryExistsStratigy = DirectoryExistsStrategy.Rename)
+        public async Task<bool> DeletePerPath(string path)
         {
-            if (id < 0) return (false, "Not Valid Id", null);
-            if (copyPath == null || copyPath.Trim().Length == 0) return (false, "New path is not valid", null);
+            if (path == null || path.IsEmpty()) return false;
             try
             {
                 var ctx = await context();
-                var directory = await ctx.Directories.FirstOrDefaultAsync(d => d.Id == id);
-                if (directory == null) return (false, "No directory has such an id", null);
-
-                foreach (string dirPath in Directory.GetDirectories(directory.FullPath, "*", SearchOption.AllDirectories))
-                {
-                    Directory.CreateDirectory(dirPath.Replace(directory.FullPath, copyPath));
-                }
-
-                //Copy all the files & Replaces any files with the same name
-                foreach (string newPath in Directory.GetFiles(directory.FullPath, "*.*", SearchOption.AllDirectories))
-                {
-                    File.Copy(newPath, newPath.Replace(directory.FullPath, copyPath), true);
-                }
+                var allFiles = await ctx.Files.Where(f => f.Path.Contains(path)).ToListAsync();
+                var allDirs = await ctx.Directories.Where(d => d.Path.Contains(path)).ToListAsync();
+                if(Globals.IsNotNullNorEmpty(allFiles))ctx.Files.RemoveRange(allFiles);
+                if (Globals.IsNotNullNorEmpty(allDirs)) ctx.Directories.RemoveRange(allDirs);
+                if (Globals.IsNotNullNorEmpty(allFiles) && Globals.IsNotNullNorEmpty(allDirs)) await ctx.SaveChangesAsync();
                 repotFinished();
-                return (true, null, directory);
+                return true;
             }
-            catch (Exception e)
+            catch (Exception)
             {
                 repotFinished();
-                return (false, e.Message, null);
+                return false;
             }
         }
         public async Task<(Boolean success, string message, DirectoryEntity directory)> DeleteDirectory(long id)
@@ -522,7 +440,7 @@ namespace MSDiskManagerData.Data.Repositories
                 var directory = await ctx.Directories.FirstOrDefaultAsync(d => d.Id == id);
                 if (directory == null) return (false, "No directory has such an id", null);
 
-                Directory.Delete(directory.FullPath);
+                Directory.Delete(directory.FullPath, true);
                 ctx.Directories.Remove(directory);
                 await ctx.SaveChangesAsync();
                 repotFinished();
@@ -554,6 +472,49 @@ namespace MSDiskManagerData.Data.Repositories
                 return (false, e.Message, null);
             }
         }
+        public async Task<(Boolean success, string message, List<DirectoryEntity> file)> DeleteInvalidReference(ICollection<long> ids)
+        {
+            if (ids == null || ids.IsEmpty()) return (false, "Not Valid Id", null);
+            try
+            {
+                var ctx = await context();
+                var dirs = await ctx.Directories.Where(d => ids.Contains((long)d.Id)).ToListAsync();
+                dirs = dirs.Where(f => !Directory.Exists(f.FullPath)).ToList();
+                if (Globals.IsNullOrEmpty(dirs)) return (false, "No file has such an id", null);
+
+                ctx.Directories.RemoveRange(dirs);
+                await ctx.SaveChangesAsync();
+                repotFinished();
+                return (true, null, dirs);
+
+            }
+            catch (Exception e)
+            {
+                repotFinished();
+                return (false, e.Message, null);
+            }
+        }
+        public async Task<(Boolean success, string message, List<DirectoryEntity> directories)> DeleteReferenceOnly(ICollection<long> ids)
+        {
+            if (ids == null || ids.IsEmpty()) return (false, "Not Valid Id", null);
+            try
+            {
+                var ctx = await context();
+                var directories = await ctx.Directories.Where(d => ids.Contains((long)d.Id)).ToListAsync();
+                if (Globals.IsNullOrEmpty(directories)) return (false, "No directory has such an id", null);
+
+                ctx.Directories.RemoveRange(directories);
+                await ctx.SaveChangesAsync();
+                repotFinished();
+                return (true, null, directories);
+
+            }
+            catch (Exception e)
+            {
+                repotFinished();
+                return (false, e.Message, null);
+            }
+        }
 
         public async Task<DirectoryEntity> GetDirectory(long id)
 
@@ -576,7 +537,7 @@ namespace MSDiskManagerData.Data.Repositories
             try
             {
                 var ctx = await context();
-                var result = await ctx.Directories.Include(d => d.Files).IgnoreAutoIncludes().Include(d => d.Children).IgnoreAutoIncludes().FirstOrDefaultAsync(d => d.Id == id);
+                var result = await ctx.Directories.AsNoTracking().Include(d => d.Files).IgnoreAutoIncludes().Include(d => d.Children).IgnoreAutoIncludes().FirstOrDefaultAsync(d => d.Id == id);
                 repotFinished();
                 return result;
             }
@@ -586,15 +547,19 @@ namespace MSDiskManagerData.Data.Repositories
                 throw;
             }
         }
-        public async Task<List<DirectoryEntity>> FilterDirectories(DirectoryFilter filter)
+        public async Task<List<DirectoryEntity>> FilterDirectories(DirectoryFilter filter, long? driverId = null)
         {
+            var did = driverId ?? MSDM_DBContext.currentDriverId;
+            if (did == null) throw new Exception("No Driver was configured yet");
             try
             {
                 var ctx = await context();
-                var que = ctx.Directories.AsQueryable().QDirectoryFilter(ctx, filter);
+                var que = ctx.Directories.AsNoTracking().Include(d => d.DirectoryTags).ThenInclude(ft => ft.Tag).IgnoreAutoIncludes().Where(d => d.DriverId == did).QDirectoryFilter(ctx, filter);
                 var str = que.ToQueryString();
+                var result = await que.ToListAsync();
+
                 repotFinished();
-                return await que.ToListAsync();
+                return result;
             }
             catch (Exception e)
             {
@@ -605,7 +570,24 @@ namespace MSDiskManagerData.Data.Repositories
             }
         }
 
+        public async Task<int> GetItemsCount(long? id)
+        {
+            try
+            {
+                var ctx = await context();
 
+                var ds = await ctx.Directories.Where(d => d.ParentId == id).CountAsync();
+                var fs = await ctx.Files.Where(d => d.ParentId == id).CountAsync();
+                repotFinished();
+                return ds + fs;
+
+            }
+            catch (Exception)
+            {
+                repotFinished();
+                return 0;
+            }
+        }
         public async Task<List<FileEntity>> GetFiles(long? id)
         {
             try
@@ -788,6 +770,7 @@ namespace MSDiskManagerData.Data.Repositories
             return q.QPageLimit(filter.Page, filter.Limit);
         }
 
+
     }
 
 
@@ -814,7 +797,7 @@ namespace MSDiskManagerData.Data.Repositories
         ThrowException,
         Replace,
         Rename,
-        //Merge,//TODO: Check To Make It Possible
+        Merge,//TODO: Check To Make It Possible
         Skip
     }
 }

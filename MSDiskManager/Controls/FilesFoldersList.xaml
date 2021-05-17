@@ -6,80 +6,198 @@
              xmlns:local="clr-namespace:MSDiskManager.Controls"
              xmlns:helpers="clr-namespace:MSDiskManager.Helpers"
              mc:Ignorable="d" 
-             DataContext="{Binding RelativeSource={RelativeSource Self}}"
+             PreviewKeyDown="ListView_PreviewKeyDown"
+                      PreviewKeyUp="ListView_PreviewKeyUp"
              d:DesignHeight="450" d:DesignWidth="800">
     <UserControl.Resources>
-        <helpers:TypeToIconSourceConverter x:Key="TypeToIconSourceConverter"/>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="./ControlsDict.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+        
     </UserControl.Resources>
     <Border Background="{StaticResource primaryLight}" CornerRadius="10">
 
-        <Grid Loaded="Grid_Loaded" AllowDrop="True" Drop="DropOnGrid" DragDrop.DragEnter="DragEnterElement" DragDrop.DragLeave="DragLeaveElement">
-            <Grid.RowDefinitions>
-                <RowDefinition Height="auto"/>
-                <RowDefinition Height="*"/>
-            </Grid.RowDefinitions>
-            <Grid Grid.Row="0">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="auto"/>
-                    <ColumnDefinition Width="*"/>
-                </Grid.ColumnDefinitions>
-                <StackPanel Grid.Column="0"  Orientation="Horizontal">
-                    <Button IsEnabled="{Binding CanGoBack.Value}" Click="GoBack">
-                        <Image Source="/images/back.png"/>
-                    </Button>
-                    <Button  IsEnabled="{Binding CanGoBack.Value}" Click="GoHome">
-                        <Image Source="/images/home.png"/>
-                    </Button>
-                </StackPanel>
-                <Label Grid.Column="1" DataContext="{Binding filter.Parent}">
-                    <TextBlock Text="{Binding Name}"/>
-                </Label>
-            </Grid>
-            <ListView Grid.Row="1" Background="Transparent"
-                      
+        <Grid>
+            <Grid Loaded="Grid_Loaded" AllowDrop="True" Drop="DropOnGrid" DragDrop.DragEnter="DragEnterElement" DragDrop.DragLeave="DragLeaveElement">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="auto"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+
+                <Grid Grid.Row="0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="auto"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <StackPanel Grid.Column="0"  Orientation="Horizontal">
+                        <Button Width="40" Style="{DynamicResource ButtonStyle1}"  IsEnabled="{Binding CanGoBack}" d:IsEnabled="False" Click="GoBack">
+                            <Image  Source="/images/back.png"/>
+                        </Button>
+                        <Button  Margin="5 0 0 0" Width="40"  Style="{DynamicResource ButtonStyle1}"  IsEnabled="{Binding CanGoBack}" d:IsEnabled="False" Click="GoHome">
+                            <Image  Source="/images/home.png"/>
+                        </Button>
+                    </StackPanel>
+                    <Grid Grid.Column="1" >
+                        <Border VerticalAlignment="Center" HorizontalAlignment="Center" BorderBrush="{StaticResource primarySemiDark}" Background="{StaticResource primary}" BorderThickness="2" Margin="2 2 100 2">
+                            <Label   DataContext="{Binding Parent}" >
+                                <TextBlock Text="{Binding Name}" d:Text="Root dir" FontSize="18" FontWeight="Bold"/>
+                            </Label>
+                        </Border>
+                        <TextBlock VerticalAlignment="Center" Foreground="{StaticResource textColor2}" HorizontalAlignment="Right"  Text="{Binding NumberOfItems,StringFormat=' {0} items'}" d:Text="155 items" Margin="0 0 50 0"/>
+                        <Button HorizontalAlignment="Right" Width="40" Height="40" Background="{StaticResource addColor}" Click="CreateDirectory">
+                            <Image Source="/images/add.png"/>
+                        </Button>
+                    </Grid>
+                </Grid>
+                <ListView Grid.Row="1" Background="Transparent"
+                          Name="ItemsListView"
+                      ScrollViewer.VerticalScrollBarVisibility="{Binding VerticalScrollVisibility}"
+                          
+                      HorizontalContentAlignment="Stretch"
                       ItemsSource="{Binding Items}" d:ItemsSource="{x:Static local:MockData.Items}">
-                <ListView.ItemsPanel>
-                    <ItemsPanelTemplate>
-                        <VirtualizingStackPanel Orientation="Vertical"/>
-                    </ItemsPanelTemplate>
-                </ListView.ItemsPanel>
-                <ListView.ItemTemplate>
-                    <DataTemplate>
-                        <Grid Background="Transparent" AllowDrop="True" Drop="DropOnElement" 
-                              
+                    <ListView.Resources>
+                        <Style TargetType="ListViewItem">
+                            <Setter Property="IsSelected" Value="{Binding IsSelected}"/>
+                        </Style>
+                    </ListView.Resources>
+                    <ListView.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <VirtualizingStackPanel Name="ItemsListViewStackPanel" Orientation="Vertical"/>
+                        </ItemsPanelTemplate>
+                    </ListView.ItemsPanel>
+                    <ListView.ItemTemplate>
+                        <DataTemplate>
+                            <Grid  Background="Transparent" AllowDrop="True" Drop="DropOnElement" 
+                                   GotFocus="Grid_GotFocus"
                               DragDrop.PreviewDragEnter="DragEnterElement" DragDrop.PreviewDragLeave="DragLeaveElement">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="auto"/>
-                                <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="auto"/>
-                            </Grid.ColumnDefinitions>
-                            <local:DBImage DataContext="{Binding Path=.}"/>
-                            <Button Grid.Column="1" Background="Transparent" BorderBrush="Transparent" BorderThickness="0"
-                                Click="EntityClicked" CommandParameter="{Binding Path=.}"
+                                <Grid.ContextMenu>
+                                    <ContextMenu >
+                                        <MenuItem Header="Edit" Click="EditEntity"/>
+                                        <MenuItem Header="Delete" Click="DeleteEntityCTX"/>
+                                        <MenuItem Header="Copy" Click="CopyEntity"/>
+                                        <MenuItem Header="Move" Click="MoveEntity"/>
+                                        <MenuItem Header="Paste" Click="PasteEntity"/>
+                                        <MenuItem Header="Show In Explrer" Click="ShowInExplorerClicked"/>
+                                    </ContextMenu>
+                                </Grid.ContextMenu>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="auto"/>
+                                </Grid.ColumnDefinitions>
+                                <Grid Background="Transparent"  MouseEnter="Grid_MouseEnter" MouseLeave="Grid_MouseLeave" PreviewMouseWheel="Grid_PreviewMouseWheel" >
+                                    <local:DBImage DataContext="{Binding Path=.}"/>
+                                    <Image  Visibility="{Binding FullPath,Converter={StaticResource PathExistsVisibility_CollapseConverter}}" Source="/images/error.png" Width="25" />
+                                </Grid>
+                                <Button PreviewMouseDoubleClick="EntityClicked" 
+                                    
+                                    Grid.Column="1" Background="Transparent" BorderBrush="Transparent" BorderThickness="0"
+                                 CommandParameter="{Binding Path=.}"
                                 >
-                                <Button.Style>
-                                    <Style TargetType="Button">
-                                        <Setter Property="Background" Value="Transparent" />
-                                        <Setter Property="Template">
-                                            <Setter.Value>
-                                                <ControlTemplate TargetType="Button">
-                                                    <Grid Background="{TemplateBinding Background}">
-                                                        <ContentPresenter />
-                                                    </Grid>
-                                                </ControlTemplate>
-                                            </Setter.Value>
-                                        </Setter>
-                                    </Style>
-                                </Button.Style>
-                                <StackPanel Background="Transparent" >
-                                    <Label  FontWeight="Medium" Margin="0 6 0 0" Padding="0"  Content="{Binding Name}"/>
-                                    <Label  FontWeight="Medium" Margin="0" Padding="10 0 0 0 " Foreground="{StaticResource textColor2}" FontSize="10" Content="{Binding FullPath}"/>
-                                </StackPanel>
-                            </Button>
-                        </Grid>
-                    </DataTemplate>
-                </ListView.ItemTemplate>
-            </ListView>
+                                    <Button.Style>
+                                        <Style TargetType="Button">
+                                            <Setter Property="Background" Value="Transparent" />
+                                            <Setter Property="Template">
+                                                <Setter.Value>
+                                                    <ControlTemplate TargetType="Button">
+                                                        <Grid Background="{TemplateBinding Background}">
+                                                            <ContentPresenter />
+                                                        </Grid>
+                                                    </ControlTemplate>
+                                                </Setter.Value>
+                                            </Setter>
+                                        </Style>
+                                    </Button.Style>
+                                    <Button.ToolTip>
+                                        <TextBlock Text="{Binding Description}"/>
+                                    </Button.ToolTip>
+                                    <Grid Background="Transparent">
+                                        <StackPanel Background="Transparent" >
+                                            <Grid Background="Transparent">
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="auto"/>
+                                                    <ColumnDefinition/>
+                                                </Grid.ColumnDefinitions>
+                                                <TextBlock Background="Transparent" PreviewKeyDown="TextBox_PreviewKeyDown"  
+                                                  
+                                                      Width="auto"
+                                                 FontWeight="SemiBold" Margin="0 6 0 0" Padding="0" Foreground="{StaticResource textColor}"
+                                                     Text="{Binding Name,Mode=TwoWay,UpdateSourceTrigger=PropertyChanged}"/>
+                                                <!--GotFocus="TextBox_GotFocus"
+                                                IsReadOnly="{Binding IsSelected, Converter={StaticResource BooleanOpposetConverter}}" 
+                                                  LostFocus="TextBox_LostFocus"
+                                                     PreviewMouseDown="TextBox_PreviewMouseDown"-->
+                                            </Grid>
+                                            <Grid Background="Transparent">
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="auto"/>
+                                                    <ColumnDefinition Width="*"/>
+                                                </Grid.ColumnDefinitions>
+                                                <TextBlock VerticalAlignment="Center"  FontWeight="Medium" Margin="0" Padding="10 0 0 0 " Foreground="{StaticResource textColor2}" FontSize="10" Text="{Binding FullPath}"/>
+                                                <ListView HorizontalAlignment="Left" d:ItemsSource="{x:Static local:MockData.Tags}" Grid.Column="1"
+                                                      MaxWidth="300"
+                                                      Margin="30 0 0 0" ItemsSource="{Binding Tags}" BorderBrush="Transparent">
+                                                    <ListView.ItemsPanel>
+                                                        <ItemsPanelTemplate>
+                                                            <WrapPanel  MaxWidth="300"  HorizontalAlignment="Left" Orientation="Horizontal" />
+                                                        </ItemsPanelTemplate>
+                                                    </ListView.ItemsPanel>
+                                                    <ListView.ItemContainerStyle>
+                                                        <Style TargetType="ListViewItem">
+                                                            <Setter Property="Margin" Value="0"/>
+                                                            <Setter Property="Padding" Value="0"/>
+                                                        </Style>
+                                                    </ListView.ItemContainerStyle>
+                                                    <ListView.ItemTemplate>
+                                                        <DataTemplate>
+                                                            <Border Padding="4 1" Margin="0" CornerRadius="5" >
+                                                                <Border.Style>
+                                                                    <Style TargetType="Border">
+                                                                        <Setter Property="Background">
+                                                                            <Setter.Value>
+                                                                                <SolidColorBrush Color="{Binding Color,Converter={StaticResource IntToColorConverter}}" Opacity="0.3"/>
+                                                                            </Setter.Value>
+                                                                        </Setter>
+                                                                    </Style>
+                                                                </Border.Style>
+                                                                <TextBlock  Text="{Binding Name}" FontSize="6"/>
+                                                            </Border>
+                                                        </DataTemplate>
+                                                    </ListView.ItemTemplate>
+                                                </ListView>
+                                            </Grid>
+                                            <TextBlock Padding="10 0 0 0 " Text="{Binding NumberOfItems,StringFormat=' {0} items'}" Visibility="{Binding Path=.,Converter={StaticResource DirectoryOnlyVisibilityConverter}}" 
+                                                       FontSize="7" Foreground="{StaticResource textColor2}"/>
+
+                                        </StackPanel>
+                                    </Grid>
+                                </Button>
+                                <Button Grid.Column="2" Click="DeleteEntity" CommandParameter="{Binding Path=.}">
+                                    <Image Source="/images/delete.png"/>
+                                </Button>
+
+                            </Grid>
+                        </DataTemplate>
+                    </ListView.ItemTemplate>
+                </ListView>
+
+            </Grid>
+            <Label Content="Loading..." Width="100" Height="30"
+                   HorizontalContentAlignment="Center" VerticalContentAlignment="Center" VerticalAlignment="Bottom" Margin="0 0 0 20"
+                   Visibility="{Binding LoadingVisibility}"
+                   >
+                <Label.Style>
+                    <Style TargetType="Label">
+                        <Setter Property="Background">
+                            <Setter.Value>
+                                <SolidColorBrush Color="Black" Opacity="0.2"/>
+                            </Setter.Value>
+                        </Setter>
+                    </Style>
+                </Label.Style>
+            </Label>
         </Grid>
     </Border>
 </UserControl>

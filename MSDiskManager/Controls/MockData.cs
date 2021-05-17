@@ -1,4 +1,5 @@
-﻿using MSDiskManager.ViewModels;
+﻿using MSDiskManager.Helpers;
+using MSDiskManager.ViewModels;
 using MSDiskManagerData.Data.Entities;
 using MSDiskManagerData.Data.Entities.Relations;
 using System;
@@ -11,7 +12,7 @@ namespace MSDiskManager.Controls
 {
     public static class MockData
     {
-        public static List<FileEntity> Files
+        public static List<FileViewModel> Files
         {
             get
             {
@@ -20,10 +21,10 @@ namespace MSDiskManager.Controls
                 {
                     return fileTypes[new Random().Next(fileTypes.Count)];
                 }
-                var result = new List<FileEntity>();
+                var result = new List<FileViewModel>();
                 for (int i = 0; i < 15; i++)
                 {
-                    result.Add(new FileEntity
+                    result.Add(new FileViewModel
                     {
                         Name = "FileName" + i,
                         AddingDate = new NodaTime.Instant(),
@@ -34,23 +35,23 @@ namespace MSDiskManager.Controls
                         IsHidden = false,
                         MovingDate = new NodaTime.Instant(),
                         OnDeskName = "sdadsa",
-
+                        Tags = Tags.ToObservableCollection(),
 
                     });
                 }
                 return result;
             }
         }
-        public static List<DirectoryEntity> Folders
+        public static List<DirectoryViewModel> Folders
         {
             get
             {
 
 
-                var result = new List<DirectoryEntity>();
+                var result = new List<DirectoryViewModel>();
                 for (int i = 0; i < 5; i++)
                 {
-                    result.Add(new DirectoryEntity
+                    result.Add(new DirectoryViewModel
                     {
                         Name = "DirectoryName" + i,
                         AddingDate = new NodaTime.Instant(),
@@ -59,27 +60,28 @@ namespace MSDiskManager.Controls
                         IsHidden = false,
                         MovingDate = new NodaTime.Instant(),
                         OnDeskName = "sdadsa",
-                        DirectoryTags = DTags,
+                        Tags = Tags.ToObservableCollection(),
 
                     }) ;
                 }
                 return result;
             }
         }
-        public static List<DirectoryTag> DTags {get
+        public static List<Tag> Tags{
+            get
             {
-                var result = new List<DirectoryTag>();
+                var result = new List<Tag>();
                 for (int i = 0; i < 10; i++)
                 {
-                    result.Add(new DirectoryTag { Tag = new Tag { Name = $"Tag{ i}" } });
+                    result.Add( new Tag { Name = $"Tag{ i}", Color = new Random().Next(10) });
                 }
                 return result;
             } }
-        public static List<BaseEntity> Items
+        public static List<BaseEntityViewModel> Items
         {
             get
             {
-                var result = new List<BaseEntity>();
+                var result = new List<BaseEntityViewModel>();
                 result.AddRange(Folders);
                 result.AddRange(Files);
                 return result;
