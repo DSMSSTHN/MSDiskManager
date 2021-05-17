@@ -79,6 +79,7 @@
                                         <MenuItem Header="Copy" Click="CopyEntity"/>
                                         <MenuItem Header="Move" Click="MoveEntity"/>
                                         <MenuItem Header="Paste" Click="PasteEntity"/>
+                                        <MenuItem Header="AddTagsRecursive" Click="AddTagsRecursiveClicked"/>
                                         <MenuItem Header="Show In Explrer" Click="ShowInExplorerClicked"/>
                                     </ContextMenu>
                                 </Grid.ContextMenu>
@@ -184,20 +185,22 @@
                 </ListView>
 
             </Grid>
-            <Label Content="Loading..." Width="100" Height="30"
-                   HorizontalContentAlignment="Center" VerticalContentAlignment="Center" VerticalAlignment="Bottom" Margin="0 0 0 20"
-                   Visibility="{Binding LoadingVisibility}"
+            <TextBlock Name="LoadingTxtblk" Text="Loading..." Width="100" Height="30"
+                   TextAlignment="Center"  VerticalAlignment="Bottom" Margin="0 0 0 20" Padding="0 6 0 0"
+                   Visibility="{Binding LoadingVisibility}" 
                    >
-                <Label.Style>
-                    <Style TargetType="Label">
+                <TextBlock.Style>
+                    <Style TargetType="TextBlock">
+                        <Setter Property="Foreground" Value="White"/>
+                        
                         <Setter Property="Background">
                             <Setter.Value>
                                 <SolidColorBrush Color="Black" Opacity="0.2"/>
                             </Setter.Value>
                         </Setter>
                     </Style>
-                </Label.Style>
-            </Label>
+                </TextBlock.Style>
+            </TextBlock>
         </Grid>
     </Border>
 </UserControl>

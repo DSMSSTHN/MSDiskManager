@@ -244,7 +244,31 @@ namespace MSDiskManager.Controls
             diag.ShowDialog();
 
         }
-
+        private void AddTagsRecursiveClicked(object sender, RoutedEventArgs e)
+        {
+            var mi = sender as MenuItem;
+            var entity = mi.DataContext as BaseEntityViewModel;
+            var diag = new SelectTagsWindow(entity.Tags.Select(t => t.Id).Cast<long>().ToList(),
+                async(tag) =>
+                {
+                    if(entity is FileViewModel)
+                    {
+                        if (!entity.Tags.Contains(tag)) { entity.Tags.Add(tag); await new FileRepository().AddTag(entity.Id, tag.Id); }
+                    } else
+                    {
+                        if (!entity.Tags.Contains(tag))
+                        {
+                            entity.Tags.Add(tag);
+                        }
+                        LoadingTxtblk.Text = "Adding tags";
+                        Model.LoadingVisibility = Visibility.Visible;
+                            await new DirectoryRepository().AddTagRecursive(entity.Id, tag.Id);
+                        Model.LoadingVisibility = Visibility.Collapsed;
+                        LoadingTxtblk.Text = "Loading...";
+                    }
+                },true);
+            diag.Show();
+        }
         private void Grid_MouseEnter(object sender, MouseEventArgs e)
         {
             Model.VerticalScrollVisibility = ScrollBarVisibility.Disabled;

@@ -115,7 +115,7 @@ namespace MSDiskManager.ViewModels
         {
             if (Id == null) return null;
             var id = (long)Id;
-            BaseEntity be = (this is FileViewModel) ? (await new FileRepository().GetFile(id)) : (await new DirectoryRepository().GetDirectoryFull(id));
+            BaseEntity be = (this is FileViewModel) ? (await new FileRepository().GetFile(id)) : (await new DirectoryRepository().GetDirectory(id));
             if (be == null) return null;
             this.Name = be.Name;
             this.Path = be.Path;

@@ -270,6 +270,41 @@ namespace MSDiskManagerData.Data.Repositories
                 return (false, e.Message, null);
             }
         }
+        public async Task<bool> AddTagRecursive(long? id, long? tagId, bool first = true)
+        {
+            if (id == null || tagId == null || id < 0 || tagId < 0) return false;
+            try
+            {
+                var nnid = (long)id;
+                var nntid = (long)tagId;
+                var ctx = await context();
+                var fids = await ctx.Files.Include(f => f.FileTags).IgnoreAutoIncludes().Where(f => f.ParentId == id && !f.FileTags.Any(ft => ft.TagId == nntid)).Select(f => f.Id).ToListAsync();
+                var dids = await ctx.Directories.Include(d => d.DirectoryTags).IgnoreAutoIncludes().Where(d => d.ParentId == id).Select(d => d.Id).ToListAsync();
+                if (dids != null && dids.Count > 0)
+                {
+                    var dtags = dids.Select(did => new DirectoryTag { DirectoryId = (long)did, TagId = (long)tagId }).ToList();
+                    await ctx.DirectoryTags.AddRangeAsync(dtags);
+                    foreach(var d in dids)
+                    {
+                        await AddTagRecursive(d, tagId,false);
+                    }
+                }
+                if(first)await ctx.DirectoryTags.AddAsync(new DirectoryTag { DirectoryId = (long)id, TagId = (long)tagId });
+                if(fids != null && fids.Count > 0)
+                {
+                    var ftags = fids.Select(fid => new FileTag { FileId = (long)fid, TagId = (long)tagId }).ToList();
+                    await ctx.FileTags.AddRangeAsync(ftags);
+                }
+                await ctx.SaveChangesAsync();
+                repotFinished();
+                return true;
+            }
+            catch(Exception e)
+            {
+                repotFinished();
+                return false;
+            }
+        }
         public async Task<bool> AddTag(long? id, long? tagId)
         {
             if (id == null || id < 0 || tagId == null || tagId < 0) return false;
@@ -515,14 +550,14 @@ namespace MSDiskManagerData.Data.Repositories
                 return (false, e.Message, null);
             }
         }
-
+        
         public async Task<DirectoryEntity> GetDirectory(long id)
 
         {
             try
             {
                 var ctx = await context();
-                var result = await ctx.Directories.FirstOrDefaultAsync(d => d.Id == id);
+                var result = await ctx.Directories.AsNoTracking().Include(d => d.DirectoryTags).ThenInclude(dt => dt.Tag).IgnoreAutoIncludes().FirstOrDefaultAsync(d => d.Id == id);
                 repotFinished();
                 return result;
             }
@@ -537,7 +572,7 @@ namespace MSDiskManagerData.Data.Repositories
             try
             {
                 var ctx = await context();
-                var result = await ctx.Directories.AsNoTracking().Include(d => d.Files).IgnoreAutoIncludes().Include(d => d.Children).IgnoreAutoIncludes().FirstOrDefaultAsync(d => d.Id == id);
+                var result = await ctx.Directories.AsNoTracking().Include(d => d.DirectoryTags).ThenInclude(dt => dt.Tag).IgnoreAutoIncludes().Include(d => d.Files).IgnoreAutoIncludes().Include(d => d.Children).IgnoreAutoIncludes().FirstOrDefaultAsync(d => d.Id == id);
                 repotFinished();
                 return result;
             }
