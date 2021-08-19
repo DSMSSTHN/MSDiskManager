@@ -17,7 +17,7 @@ namespace MSDiskManager.ViewModels
         private ObservableCollection<Tag> tags = new ObservableCollection<Tag>();
         private bool isHidden;
 
-        public string Name { get => name; set { name = value; NotifyPropertyChanged("Name"); } }
+        public string Name { get => name; set { name = value.Replace("\\", "").Replace("/", "").Replace(";", "").Trim() ; NotifyPropertyChanged("Name"); } }
         public string Description { get => description; set { description = value; NotifyPropertyChanged("Description"); } }
         public ObservableCollection<Tag> Tags { get => tags; set { tags = value; NotifyPropertyChanged("Tags"); } }
 

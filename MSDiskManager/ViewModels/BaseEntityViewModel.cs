@@ -53,7 +53,7 @@ namespace MSDiskManager.ViewModels
         private bool isSelected = false;
         private int numberOfItemsRec = 0;
         private ObservableCollection<Tag> tags = new ObservableCollection<Tag>();
-        private Brush background = Application.Current.Resources["primaryLight"] as SolidColorBrush ?? new SolidColorBrush(Colors.DarkGray);
+        private Brush background = new SolidColorBrush(Colors.Transparent);
         private ImageSource? image;
         private bool isRenaming = false;
         private string errorMessage = "";
@@ -65,7 +65,7 @@ namespace MSDiskManager.ViewModels
         public string Name { get => name; set { name = value; if (Globals.IsNullOrEmpty(originalName)) originalName = value; NotifyPropertyChanged("Name"); } }
         public string OnDeskName
         {
-            get => onDeskName; set { onDeskName = value; NotifyPropertyChanged("onDeskName"); }
+            get => onDeskName; set { onDeskName = value.Replace("\\", "").Replace("/", "").Replace(";", "").Trim(); NotifyPropertyChanged("onDeskName"); }
         }
         public int NumberOfItems { get => numberOfItemsRec; set { numberOfItemsRec = value; NotifyPropertyChanged("NumberOfItems"); } }
 
@@ -73,7 +73,7 @@ namespace MSDiskManager.ViewModels
         public string Description { get => description; set { description = value; NotifyPropertyChanged("Description"); } }
         public ObservableCollection<Tag> Tags { get => tags; set { tags = value; NotifyPropertyChanged("Tags"); } }
         public string OriginalPath { get => originalPath; set => originalPath = value; }
-        public String Path { get => path; set { path = value; NotifyPropertyChanged("Path"); } }
+        public String Path { get => path; set { path = value.Trim(); NotifyPropertyChanged("Path"); } }
         public long? ParentId { get => parentId; set { parentId = value; NotifyPropertyChanged("ParentId"); } }
         public DirectoryViewModel? Parent
         {

@@ -79,8 +79,8 @@ namespace MSDiskManager.Dialogs
                     try
                     {
 
-                        if (i is FileViewModel) { File.Delete(i.FullPath); await fRep.DeletePerPath(i.Path); }
-                        else { Directory.Delete(i.FullPath, true); await dRep.DeletePerPath(i.Path); ; }
+                        if (i is FileViewModel) { File.Delete(@i.FullPath); await fRep.DeletePerPath(i.Path); }
+                        else { Directory.Delete(@i.FullPath, true); await dRep.DeletePerPath(i.Path); ; }
                         Items.Remove(i);
                     }
                     catch (Exception ex)

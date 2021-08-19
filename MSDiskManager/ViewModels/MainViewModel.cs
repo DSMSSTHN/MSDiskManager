@@ -2,14 +2,17 @@
 using MSDiskManager.Dialogs;
 using MSDiskManager.Helpers;
 using MSDiskManager.Pages.Main;
+using MSDiskManagerData.Data;
 using MSDiskManagerData.Data.Entities;
 using MSDiskManagerData.Data.Repositories;
+using NodaTime;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
@@ -18,6 +21,7 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using System.Windows.Media;
 
 namespace MSDiskManager.ViewModels
 {
@@ -80,7 +84,7 @@ namespace MSDiskManager.ViewModels
         public bool CurrentFolderRecursive { get => currentFolderRecursive; set { currentFolderRecursive = value; NotifyPropertyChanged("CurrentFolderRecursive"); _ = filterData(); } }
         public bool AllFolders { get => allFolders; set { allFolders = value; NotifyPropertyChanged("AllFolders"); _ = filterData(); } }
         public bool ShowHidden { get => showHidden; set { showHidden = value; NotifyPropertyChanged("ShowHidden"); _ = filterData(); } }
-        public string OnDeskSize => Parent?.OnDeskSize ?? "";
+        public string OnDeskSize { get => onDeskSize1; set { onDeskSize1 = value; NotifyPropertyChanged("OnDeskSize"); } }
         public int NumberOfItems
         {
             get => numberOfItems;
@@ -102,6 +106,7 @@ namespace MSDiskManager.ViewModels
                 }
                 CanGoBack = value != null && CurrentFolderOnly;
                 NotifyPropertyChanged("Parent");
+                _ = Task.Run(() => new DirectoryInfo((value == null ? (MSDM_DBContext.DriverName[0] + ":\\") : value.FullPath)).GetDirSize((s) => onDeskSize = s.ByteSizeToSizeString()));
                 _ = filterData();
             }
         }
@@ -214,7 +219,9 @@ namespace MSDiskManager.ViewModels
             if (selected.Count == 0) return;
             isCopying = true;
             isMoving = false;
+            itemsToCopyMove.ToList().ForEach(i => i.Background = new SolidColorBrush(Colors.Transparent));
             itemsToCopyMove = selected.ToHashSet();
+            itemsToCopyMove.ToList().ForEach(i => i.Background = (Application.Current.Resources["primary"] as SolidColorBrush)!);
             if (selected.Count > 0) CanPaste = true;
 
         }
@@ -225,7 +232,9 @@ namespace MSDiskManager.ViewModels
             if (selected.Count == 0) return;
             isCopying = false;
             isMoving = true;
+            itemsToCopyMove.ToList().ForEach(i => i.Background = new SolidColorBrush(Colors.Transparent));
             itemsToCopyMove = selected.ToHashSet();
+            itemsToCopyMove.ToList().ForEach(i => i.Background = (Application.Current.Resources["primary"] as SolidColorBrush)!);
             if (selected.Count > 0) CanPaste = true;
 
         }
@@ -264,7 +273,9 @@ namespace MSDiskManager.ViewModels
                 //    IsHidden = d.IsHidden,
                 //    OnDeskName = d.OnDeskName
                 //});
-                ds.Add(d.FullPath.GetFullDirectory(Parent).directory);
+                var newd = d.FullPath.GetFullDirectory(Parent).directory;
+                newd.Tags = d.Tags;
+                ds.Add(newd);
             }
             foreach (var f in files)
             {
@@ -281,7 +292,9 @@ namespace MSDiskManager.ViewModels
                 //    Extension = f.Extension,
                 //    FileType = f.FileType,
                 //});
-                fs.Add(f.FullPath.GetFile(Parent).file);
+                var newf = f.FullPath.GetFile(Parent).file;
+                newf.Tags = f.Tags;
+                fs.Add(newf);
             }
             var diag = new CopyMoveProcessDialog(ds, fs, isMoving);
             diag.ShowDialog();
@@ -291,9 +304,11 @@ namespace MSDiskManager.ViewModels
                 await new FileRepository().DeleteInvalidReference(fids);
                 await new DirectoryRepository().DeleteInvalidReference(dids);
             }
+            var moved = itemsToCopyMove.ToList();
             itemsToCopyMove.Clear();
             CanPaste = false;
             await filterData();
+            Items.Where(i =>moved.Any(m => i.Name == m.Name && i.Description == m.Description && i.OnDeskName.Contains(m.OnDeskName))).ToList().ForEach(i => i.IsSelected = true) ;
 
         }
         private void cancelAll()
@@ -390,6 +405,7 @@ namespace MSDiskManager.ViewModels
         private bool canPaste = false;
         private ScrollBarVisibility verticalScrollVisibility = ScrollBarVisibility.Auto;
         private string onDeskSize = "";
+        private string onDeskSize1 = "";
 
         public void BeginRenaming(BaseEntityViewModel? entity)
         {
@@ -496,7 +512,7 @@ namespace MSDiskManager.ViewModels
                         if (token.IsCancellationRequested) return;
                         var d = dir.ToDirectoryViewModel();
                         Items.Add(d);
-                        _ = Task.Run(async () => { await getItemsCount(d, token); d.LoadOnDeskSize(); }) ;
+                        _ = Task.Run(async () => { await getItemsCount(d, token); d.LoadOnDeskSize(); });
                     }
                 } while (directories != null && directories.Count > 0);
 

@@ -60,7 +60,9 @@ namespace MSDiskManager.Dialogs
             {
                 LoadingLabel.Visibility = Visibility.Visible;
                 var rep = new DirectoryRepository();
+                
                 var path = ((parentDirectory?.FullPath ?? (MSDM_DBContext.DriverName[0]+ ":")) + "\\" + Model.Name);
+                path = path.Trim();
                 var strategy = MSDM_IO.ExistsStrategy.None;
                 if (Directory.Exists(path))
                 {

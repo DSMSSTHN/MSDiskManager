@@ -18,7 +18,7 @@ namespace MSDiskManagerData.Data.Entities
         public long? Id { get; set; }
         public long? DriverId { get; set; }
         public string Name { get; set; } = "New Directory";
-        public string OnDeskName { get => onDeskName; set => onDeskName = value.Replace("\\","").Replace("/",""); }
+        public string OnDeskName { get => onDeskName; set => onDeskName = value.Replace("\\","").Replace("/","").Trim(); }
         public string Description { get; set; } = "";
         public Instant AddingDate { get; set; }
         public long? ParentId { get; set; }
@@ -38,7 +38,7 @@ namespace MSDiskManagerData.Data.Entities
                     if (v[0] == '\\') v = v.Length > 1 ? v.Substring(1, v.Length) : "";
                     if (v[v.Length - 1] == '\\') v = v.Length > 1 ? v.Substring(0, v.Length - 1) : "";
                 }
-                path = v;
+                path = v.Trim();
             }
         }
         public String OldPath { get; set; } = "";

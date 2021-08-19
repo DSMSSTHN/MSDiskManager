@@ -59,7 +59,7 @@ namespace MSDiskManager.Controls
         {
             try
             {
-                var pi = new ProcessStartInfo { UseShellExecute = true, FileName = file.FullPath, Verb = "Open" };
+                var pi = new ProcessStartInfo { UseShellExecute = true, FileName = @file.FullPath, Verb = "Open" };
                 System.Diagnostics.Process.Start(pi);
             }
             catch (Exception e)
@@ -213,7 +213,7 @@ namespace MSDiskManager.Controls
         {
             var mi = sender as MenuItem;
             var entity = mi.DataContext as BaseEntityViewModel;
-            string args = "/select, \"" + entity.FullPath + "\"";
+            string args = "/select, \"" + @entity.FullPath + "\"";
 
             System.Diagnostics.Process.Start("explorer.exe", args);
         }
@@ -316,6 +316,7 @@ namespace MSDiskManager.Controls
             Model.VerticalScrollVisibility = ScrollBarVisibility.Auto;
             var grid = sender as Grid;
             var entity = grid.DataContext as BaseEntityViewModel;
+            if (entity == null) return;
             var content = entity.TooltipContent;
             if (entity is DirectoryViewModel)
             {
@@ -332,6 +333,7 @@ namespace MSDiskManager.Controls
                         break;
                     case FileType.Image:
                         grid.ToolTip = null;
+                        file.FreeResources();
                         break;
                     case FileType.Music:
                         file.StopPlaying();

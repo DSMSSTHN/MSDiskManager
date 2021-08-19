@@ -28,7 +28,7 @@ namespace MSDiskManager.Dialogs
         public Prop<int> Progress { get; } = new Prop<int>(0);
         public Prop<int> Maximum { get; } = new Prop<int>(0);
         public Prop<Visibility> Started { get; } = new Prop<Visibility>(Visibility.Hidden);
-        public List<BaseEntityViewModel> Entities { get; }
+        public HashSet<BaseEntityViewModel> Entities { get; }
         public List<BaseEntityViewModel> Successful { get; } = new List<BaseEntityViewModel>();
         public string Message { get; }
         public DeleteEntityDialog(BaseEntityViewModel entity)
@@ -42,7 +42,7 @@ namespace MSDiskManager.Dialogs
         }
         public DeleteEntityDialog(List<BaseEntityViewModel> entities)
         {
-            this.Entities = entities;
+            this.Entities = entities.ToHashSet();
             Maximum.Value = entities.Count;
             
             this.Message = $"do you wish to remove the {entities.Count} items with all items within them";
@@ -67,18 +67,31 @@ namespace MSDiskManager.Dialogs
                 Successful.Add(Entity);
             } else
             {
-                foreach (var entity in Entities)
+                var es = Entities.ToList();
+                foreach (var entity in es.ToList())
                 {
                     Name.Value = entity.Name;
                     FullPath.Value = entity.FullPath;
                     var handeled = false;
                     while (!handeled)
                     {
-                    var res = await deleteEntityReference(entity);
-                        if (!res.success)
+                        bool success = false;
+                        string msg = "";
+                        for (int i = 0; i < 10; i++)
+                        {
+                            var res = await deleteEntityReference(entity);
+                            if (res.success)
+                            {
+                                success = true;
+                                break;
+                            }
+                            msg = res.message ?? "";
+                            await Task.Delay(50);
+                        }
+                        if (!success)
                         {
                             var button = MessageBoxButton.YesNoCancel;
-                            var result = MessageBox.Show($"item {entity.Name} in [{entity.FullPath}] could not be deleted \n{res.message}.\nDo you wish to retry?", "Error while deleting", button);
+                            var result = MessageBox.Show($"item {entity.Name} in [{entity.FullPath}] could not be deleted \n{msg}.\nDo you wish to retry?", "Error while deleting", button);
                             if (result == MessageBoxResult.Cancel)
                             {
                                 this.DialogResult = true;
@@ -131,11 +144,24 @@ namespace MSDiskManager.Dialogs
                     var handeled = false;
                     while (!handeled)
                     {
-                        var res = await fullDeleteEntity(entity);
-                        if (!res.success)
+                        
+                        bool success = false;
+                        string msg = "";
+                        for (int i = 0; i < 10; i++)
+                        {
+                            var res = await fullDeleteEntity(entity);
+                            if (res.success)
+                            {
+                                success = true;
+                                break;
+                            }
+                            msg = res.message;
+                            await Task.Delay(50);
+                        }
+                        if (!success)
                         {
                             var button = MessageBoxButton.YesNoCancel;
-                            var result = MessageBox.Show($"item {entity.Name} in [{entity.FullPath}] could not be deleted \n{res.message}.\nDo you wish to retry?", "Error while deleting", button);
+                            var result = MessageBox.Show($"item {entity.Name} in [{entity.FullPath}] could not be deleted \n{msg}.\nDo you wish to retry?", "Error while deleting", button);
                             if (result == MessageBoxResult.Cancel)
                             {
                                 if(this.DialogResult == null)

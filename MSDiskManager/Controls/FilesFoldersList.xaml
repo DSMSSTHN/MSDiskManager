@@ -47,7 +47,7 @@
                         </Border>
                         <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
                             <TextBlock VerticalAlignment="Center" Foreground="{StaticResource textColor2}"   Text="{Binding NumberOfItems,StringFormat=' {0} items'}" d:Text="155 items" Margin="0 0 50 0"/>
-                            <TextBlock VerticalAlignment="Center" Foreground="{StaticResource textColor2}"   Text="{Binding OnDeskSize,StringFormat=' {0} items'}" d:Text="155 items" Margin="0 0 50 0"/>
+                            <TextBlock VerticalAlignment="Center" Foreground="{StaticResource textColor2}"   Text="{Binding OnDeskSize}" d:Text="155 items" Margin="0 0 50 0"/>
                         </StackPanel>
                         <Button HorizontalAlignment="Right" Width="40" Height="40" Background="{StaticResource addColor}" Click="CreateDirectory">
                             <Image Source="/images/add.png"/>
@@ -57,7 +57,6 @@
                 <ListView Grid.Row="1" Background="Transparent"
                           Name="ItemsListView"
                       ScrollViewer.VerticalScrollBarVisibility="{Binding VerticalScrollVisibility}"
-                          
                       HorizontalContentAlignment="Stretch"
                       ItemsSource="{Binding Items}" d:ItemsSource="{x:Static local:MockData.Items}">
                     <ListView.Resources>
@@ -72,7 +71,7 @@
                     </ListView.ItemsPanel>
                     <ListView.ItemTemplate>
                         <DataTemplate>
-                            <Grid  Background="Transparent" AllowDrop="True" Drop="DropOnElement" 
+                            <Grid  Background="{Binding Background}" AllowDrop="True" Drop="DropOnElement" 
                                    GotFocus="Grid_GotFocus"
                               DragDrop.PreviewDragEnter="DragEnterElement" DragDrop.PreviewDragLeave="DragLeaveElement">
                                 <Grid.ContextMenu>

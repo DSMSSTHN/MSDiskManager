@@ -166,6 +166,7 @@ namespace MSDiskManager.Helpers
                 OriginalPath = entity.FullPath,
                 Tags = entity.DirectoryTags?.Select(t => t.Tag)?.ToObservableCollection() ?? new ObservableCollection<Tag>(),
                 ParentId = entity.ParentId,
+                
             };
             result.Children = entity.Children?.Select(c => c.ToDirectoryViewModel(result))?.ToList() ?? new List<DirectoryViewModel>();
             return result;

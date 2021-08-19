@@ -40,7 +40,7 @@ namespace MSDM_IO
                         addedLetters = name.addedLetters;
                         break;
                     case ExistsStrategy.Replace:
-                        try { File.Delete(newPath); } catch(Exception e) { return (false, e.Message); }
+                        try { File.Delete(np); } catch(Exception e) { return (false, e.Message); }
                         break;
                     case ExistsStrategy.Skip:
                         return (true, "");
@@ -48,7 +48,7 @@ namespace MSDM_IO
             }
             try
             {
-                await CopyToAsync(oldPath, newPath, progress: progress, cancels: cancels);
+                await CopyToAsync(@oldPath, @np, progress: progress, cancels: cancels);
                 return (true,addedLetters);
             }
             catch (Exception e)
@@ -85,7 +85,7 @@ namespace MSDM_IO
             }
             try
             {
-                Directory.CreateDirectory(p);
+                Directory.CreateDirectory(@p);
                 return (true, added);
             }
             catch (Exception e)
@@ -97,7 +97,7 @@ namespace MSDM_IO
         {
             var p = path;
             var added = "";
-            while (Directory.Exists(p))
+            while (Directory.Exists(@p))
             {
                 var c = randomLetter;
                 p += c;
@@ -107,14 +107,14 @@ namespace MSDM_IO
         }
         private static (string newPath, string addedLetters) makeNewFileName(string path)
         {
-            var slash = path.LastIndexOf("\\") + 1;
-            var dot = path.LastIndexOf(".", slash);
+            var slash = path.LastIndexOf('\\') + 1;
+            var dot = path.LastIndexOf('.');
             var s = path;
             var ext = "";
-            if(dot > 0)
+            if(dot > slash)
             {
                 s = path.Substring(0, dot);
-                ext = path.Substring(dot + 1);
+                ext = path.Substring(dot);
             }
             var addedChars = "";
             while(File.Exists(s + ext))
@@ -130,8 +130,8 @@ namespace MSDM_IO
         {
             try
             {
-                using (var source = new FileStream(oldPath, FileMode.Open, FileAccess.Read))
-                using (var target = new FileStream(newPath, FileMode.Create, FileAccess.Write))
+                using (var source = new FileStream(@oldPath, FileMode.Open, FileAccess.Read))
+                using (var target = new FileStream(@newPath, FileMode.Create, FileAccess.Write))
                 {
                     var buffer = new byte[bufferSize];
                     var total = 0L;

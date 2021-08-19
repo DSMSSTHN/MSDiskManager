@@ -246,12 +246,12 @@ namespace MSDiskManager.ViewModels
                     }
                     else
                     {
-                        var result = MSDMIO.CreateDirectory(d.FullPath, dirStrategy);
+                        var result = MSDMIO.CreateDirectory(@d.FullPath, dirStrategy);
                         if (d.IgnoreAdd) ignoreAdd.Add(d);
                         else ds.Add(de);
                         break;
                     }
-                } while (!valid && Directory.Exists(d.FullPath));
+                } while (!valid && Directory.Exists(@d.FullPath));
 
             }
             if (ds.Count == 0)
@@ -300,7 +300,7 @@ namespace MSDiskManager.ViewModels
             }
             catch (Exception e)
             {
-                MessageBox.Show(e.Message);
+                MessageBox.Show(e?.InnerException?.Message ?? e.Message);
 
                 return new List<DirectoryViewModel>();
             }
@@ -375,18 +375,12 @@ namespace MSDiskManager.ViewModels
                             if (!valid) canReplace = false;
                             else await new FileRepository().DeletePerPath(fe.Path);
                         }
+                        valid = iores.success;
                         if (valid && iores.additional != null && iores.additional.Length > 0)
                         {
                             f.OnDeskName += iores.additional;
-                            if (f.Extension == null || f.Extension.Length == 0)
-                            {
-                                f.Path += iores.additional;
-                            }
-                            else
-                            {
-                                f.Path = f.Path.Replace("." + f.Extension, iores.additional + "." + f.Extension);
+                            fe = f.FileEntity;
 
-                            }
                         }
                         if (f.IgnoreAdd) ignoreAdd.Add(f);
                         else fs.Add(fe);
@@ -403,6 +397,12 @@ namespace MSDiskManager.ViewModels
                                 PRSC = fullSize > 0 ? ((finishedSize + skippedSize) / fullSize).ToString() : "0";
                             }, fileStrategy, cancels.Token);
                         valid = iores.success;
+                        if(valid && iores.additional != null && iores.additional.Length > 0)
+                        {
+                            f.OnDeskName += iores.additional;
+                            fe = f.FileEntity;
+
+                        }
                         if (f.IgnoreAdd) ignoreAdd.Add(f);
                         else fs.Add(fe);
                         FinishedCount = finishedCount + 1;
@@ -448,13 +448,20 @@ namespace MSDiskManager.ViewModels
                     {
                         foreach (var f in result)
                         {
-                            try
+                            var deleted = false;
+                            while (!deleted)
                             {
-                                File.Delete(f.OldPath);
-                            }
-                            catch (Exception e)
-                            {
-                                MessageBox.Show($"Couldn't delete file:[{f.OldPath}].\nError:[{e.Message}]");
+                                try
+                                {
+                                    File.Delete(f.OldPath);
+                                    deleted = true;
+                                }
+                                catch (Exception e)
+                                {
+
+                                    var mbr = MessageBox.Show($"Couldn't delete file:[{f.OldPath}].",$"Error:[{e.Message}].\nDo you want to retry?",MessageBoxButton.YesNo);
+                                    if (mbr == MessageBoxResult.No) break;
+                                }
                             }
                         }
                     }
@@ -471,7 +478,7 @@ namespace MSDiskManager.ViewModels
             }
             catch (Exception e)
             {
-                MessageBox.Show(e.Message);
+                MessageBox.Show(e?.InnerException?.Message ?? e.Message);
                 return false;
             }
         }

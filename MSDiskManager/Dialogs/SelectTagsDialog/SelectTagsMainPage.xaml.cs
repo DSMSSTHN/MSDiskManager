@@ -49,6 +49,8 @@ namespace MSDiskManager.Dialogs.SelectTagsDialog
             this.selectTagFunction(tag);
             this.selectedTagIds.Add((long)tag.Id);
             this.Tags.Remove(tag);
+            this.FilterTextBox.Focus();
+            this.FilterTextBox.SelectAll();
         }
 
         private async Task filterTags(string filter = "")
