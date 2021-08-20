@@ -11,16 +11,17 @@
             <Setter Property="MinWidth" Value="5"/>
             <Setter Property="Background" Value="Black"/>
         </Style>
-        <SolidColorBrush x:Key="primary" Color="#212121"/>
-        <SolidColorBrush x:Key="primarySemiDark" Color="#111111"/>
-        <SolidColorBrush x:Key="primaryLight" Color="#484848"/>
+        <SolidColorBrush x:Key="primary" Color="#363A41"/>
+        <SolidColorBrush x:Key="primarySemiDark" Color="#0B0C0D"/>
+        <SolidColorBrush x:Key="primaryLight" Color="#626974"/>
         <SolidColorBrush x:Key="primaryDark" Color="#000000"/>
         <SolidColorBrush x:Key="textColor" Color="#ffffff"/>
         <SolidColorBrush x:Key="textColor2" Color="#999999"/>
-        <SolidColorBrush x:Key="warnColor" Color="#D32F2F"/>
+        <SolidColorBrush x:Key="darkText" Color="#0B0C0D"/>
+        <SolidColorBrush x:Key="warnColor" Color="#C53E3E"/>
         <SolidColorBrush x:Key="darkRed" Color="#B71C1C"/>
-        <SolidColorBrush x:Key="lightBlue900" Color="#01579b"/>
-        <SolidColorBrush x:Key="addColor" Color="#66BB6A"/>
+        <SolidColorBrush x:Key="lightBlue900" Color="#0079BF"/>
+        <SolidColorBrush x:Key="addColor" Color="#6DECA9"/>
         <helpers:BaseEntityNumberOfItemsConverter x:Key="BaseEntityNumberOfItemsConverter"/>
         <helpers:BooleanOpposetConverter x:Key="BooleanOpposetConverter"/>
         <helpers:BooleanOppositConverter x:Key="BooleanOppositConverter"/>
@@ -43,7 +44,8 @@
             <Setter Property="Background" Value="{StaticResource primary}"/>
         </Style>
         <Style TargetType="TextBlock">
-            <Setter Property="Foreground" Value="{StaticResource textColor}"/>
+            <Setter Property="FontSize" Value="15"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
         </Style>
         <Style TargetType="Page">
             <Setter Property="Background" Value="{StaticResource primary}"/>

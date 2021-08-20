@@ -13,10 +13,18 @@
         BorderBrush="Transparent"
         WindowStartupLocation="CenterScreen"
         BorderThickness="0" 
-        Title="CreateDirectoryDialog" Height="450" Width="1200">
-    <Border CornerRadius="5"
-            Padding="50 100"
-            Background="{StaticResource primary}" BorderBrush="{StaticResource primaryLight}" BorderThickness="3">
+        Title="CreateDirectoryDialog" Height="200" Width="1000">
+    <Window.Resources>
+
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="../Styles/TextStyles.xaml"/>
+                <ResourceDictionary Source="../Styles/ButtonStyles.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </Window.Resources>
+    <Border CornerRadius="1" TextBlock.Foreground="{StaticResource textColor}"
+            Background="{StaticResource primary}" BorderBrush="{StaticResource primaryLight}" BorderThickness="1">
         <Grid Loaded="Grid_Loaded">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition/>
@@ -58,25 +66,22 @@
 
             </Grid>
             <Grid Grid.Row="1" Grid.ColumnSpan="2">
-                <Border CornerRadius="0"
+                <Border CornerRadius="0" Margin="0 10 0 0"
                     Background="{StaticResource warnColor}" >
                     <TextBlock Text="Connection Invalid"  VerticalAlignment="Center" HorizontalAlignment="Center" FontWeight="Bold" FontSize="20"/>
                 </Border>
-                <Border CornerRadius="0"
+                <Border Margin="0 10 0 0" CornerRadius="0"
                     Background="{StaticResource addColor}" Visibility="{Binding ConnectionValid, Converter={StaticResource BooleanVisibility_CollapseConverter}}">
                     <TextBlock Text="Connection Valid"  VerticalAlignment="Center" HorizontalAlignment="Center" FontWeight="Bold" FontSize="20"/>
                 </Border>
-                <Border CornerRadius="0"
+                <Border Margin="0 10 0 0" CornerRadius="0"
                     Background="{StaticResource primarySemiDark}" Visibility="{Binding IsChecking, Converter={StaticResource BooleanVisibility_CollapseConverter}}">
                     <TextBlock Text="Checking"  VerticalAlignment="Center" HorizontalAlignment="Center" FontWeight="Bold" FontSize="20"/>
                 </Border>
             </Grid>
-            <Border Grid.Row="2" Grid.Column="0" Padding="5">
-                <Button x:Name="CancelButton" Click="CancelClicked" Background="{StaticResource darkRed}">Cancel</Button>
-            </Border>
-            <Border Grid.Row="2" Grid.Column="1" Padding="5">
-                <Button Click="ProceedClicked   " IsEnabled="{Binding ConnectionValid}" Background="{StaticResource lightBlue900}">Proceed</Button>
-            </Border>
+            <Button Grid.Row="2" Grid.Column="0" x:Name="CancelButton" Click="CancelClicked" Style="{StaticResource SharpRedButton}">Cancel</Button>
+
+            <Button Grid.Row="2" Grid.Column="1" Click="ProceedClicked" IsEnabled="{Binding ConnectionValid}" Background="{StaticResource lightBlue900}">Proceed</Button>
         </Grid>
     </Border>
 </Window>

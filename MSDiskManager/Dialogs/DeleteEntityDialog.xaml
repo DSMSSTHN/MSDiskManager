@@ -12,7 +12,7 @@
         BorderBrush="Transparent"
         WindowStartupLocation="CenterScreen"
         BorderThickness="0"
-         Height="130" Width="500">
+         Height="130" Width="700">
     <Border CornerRadius="5" Background="{StaticResource primaryLight}" BorderBrush="{StaticResource primary}" BorderThickness="5">
         <Grid Loaded="Grid_Loaded">
             <Grid.RowDefinitions>
@@ -20,8 +20,8 @@
                 <RowDefinition Height="auto"/>
             </Grid.RowDefinitions>
             <StackPanel Grid.Row="0" >
-                <TextBlock TextAlignment="Center" FontWeight="Bold" Text="{Binding Name.Value}" d:Text="SomeItem"/>
-                <TextBlock TextAlignment="Center" FontWeight="Thin" Text="{Binding FullPath.Value}" d:Text="d:\"/>
+                <TextBlock Foreground="{StaticResource textColor}" TextAlignment="Center" FontWeight="Bold" Text="{Binding Name.Value}" d:Text="SomeItem"/>
+                <TextBlock Foreground="{StaticResource textColor}" TextAlignment="Center" FontWeight="Thin" Text="{Binding FullPath.Value}" d:Text="d:\"/>
                 <TextBlock  Foreground="{StaticResource textColor}" TextWrapping="WrapWithOverflow" VerticalAlignment="Center" HorizontalAlignment="Center" 
                        Text="{Binding Message}" d:Text="do you wish to remove this directory with all items within"/>
                 <StackPanel Visibility="{Binding Started.Value}" d:Visibility="Collapsed" Orientation="Horizontal" HorizontalAlignment="Center" Margin="0 20 0 0">

@@ -25,7 +25,7 @@
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="auto"/>
                 </Grid.ColumnDefinitions>
-                <Menu Background="{StaticResource primarySemiDark}" Padding="0  10 0 0">
+                <Menu Foreground="{StaticResource textColor}" Background="{StaticResource primarySemiDark}" Padding="0  10 0 0">
                     <MenuItem Header="Settings">
                         <MenuItem Click="NewConnectionClicked" Header="Edit Connection"/>
                     </MenuItem>

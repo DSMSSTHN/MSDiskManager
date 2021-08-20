@@ -67,10 +67,13 @@ namespace MSDiskManager.Pages
         }
 
 
-        private void AddDriveClicked(object sender, RoutedEventArgs e)
+        private async void AddDriveClicked(object sender, RoutedEventArgs e)
         {
             if (!connectionValid) return;
-
+            var diag = new Drivesettings();
+            diag.ShowDialog();
+            await Task.Delay(500);
+            _ = loadDrives();
 
         }
         private void DriveSelected(object sender, RoutedEventArgs e)

@@ -13,7 +13,17 @@
         WindowStartupLocation="CenterScreen"
         BorderThickness="0"
          Height="130" Width="500">
-    <Border CornerRadius="5" Background="{StaticResource primaryLight}" BorderBrush="{StaticResource primary}" BorderThickness="5">
+    <Window.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="../Styles/ButtonStyles.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </Window.Resources>
+    <Border CornerRadius="1" Background="{StaticResource primary}"
+            TextBlock.Foreground="{StaticResource textColor}"
+            
+            BorderBrush="{StaticResource primary}" BorderThickness="1">
         <Grid Loaded="Grid_Loaded">
             <Grid.RowDefinitions>
                 <RowDefinition/>
@@ -27,19 +37,18 @@
                 <ColumnDefinition/>
             </Grid.ColumnDefinitions>
             <TextBlock x:Name="ContentTxtBx" Grid.ColumnSpan="4" d:Text="File asd sads a Already Exists. what do you want to do?" TextAlignment="Center" Padding="5"/>
-            <CheckBox Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="2" HorizontalAlignment="Center"  IsChecked="False" Content="Do this for all items" Checked="CheckBox_Checked" />
-            <Border Grid.Row="2" Grid.Column="0" Padding="5">
-                <Button Click="CancelClicked" Background="{StaticResource warnColor}" >Cancel</Button>
-            </Border>
-            <Border Grid.Row="2" Grid.Column="1" Padding="5">
-                <Button Click="SkipClicked" Background="{StaticResource lightBlue900}">Skip</Button>
-            </Border>
-            <Border Grid.Row="2" Grid.Column="2" Padding="5">
-                <Button x:Name="ReplaceButton" Click="RelaceClicked" Background="{StaticResource addColor}">Replace</Button>
-            </Border>
-            <Border Grid.Row="2" Grid.Column="3" Padding="5">
-                <Button Click="RenameClicked" Background="{StaticResource primarySemiDark}">Rename</Button>
-            </Border>
+            <CheckBox Margin="0 0 0 20" Foreground="{StaticResource textColor}" Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="2" HorizontalAlignment="Center"  IsChecked="False" Content="Do this for all items" Checked="CheckBox_Checked" />
+            
+                <Button Grid.Row="2" Grid.Column="0" Click="CancelClicked" Style="{StaticResource SharpRedButton}" >Cancel</Button>
+
+            <Button Grid.Row="2" Grid.Column="1"  Click="SkipClicked" Style="{StaticResource SharpBlueButton}">Skip</Button>
+
+
+            <Button Grid.Row="2" Grid.Column="2" x:Name="ReplaceButton" Click="RelaceClicked" Style="{StaticResource SharpGreenButton}">Replace</Button>
+
+
+            <Button Grid.Row="2" Grid.Column="3" Click="RenameClicked" Style="{StaticResource SharpGrayButton}">Rename</Button>
+            
         </Grid>
     </Border>
 </Window>

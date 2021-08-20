@@ -15,6 +15,13 @@
         WindowStartupLocation="CenterScreen"
         BorderThickness="0" 
         Title="CreateDirectoryDialog" Height="450" Width="1200">
+    <Window.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="../Styles/ButtonStyles.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </Window.Resources>
     <Border CornerRadius="5" Background="{StaticResource primary}" BorderBrush="{StaticResource primaryLight}" BorderThickness="3">
         <Grid Loaded="Grid_Loaded">
             <Grid.RowDefinitions>
@@ -22,7 +29,9 @@
                 <RowDefinition Height="*"/>
                 <RowDefinition Height="auto"/>
             </Grid.RowDefinitions>
-            <TextBlock Text="These Items already exist in distanation choose what action to do" TextAlignment="Center" Margin="0 10 0 0"/>
+            <TextBlock 
+                Foreground="{StaticResource textColor}"
+                Text="These Items already exist in distanation choose what action to do" TextAlignment="Center" Margin="0 10 0 0"/>
             <DataGrid x:Name="ExistsDG" Grid.Row="1" d:ItemsSource="{x:Static local2:MockData.Items}"
                       MaxWidth="{Binding RelativeSource={RelativeSource AncestorType=Grid},Path=ActualWidth}"
                       IsReadOnly="True"
@@ -30,6 +39,7 @@
                 <DataGrid.ColumnHeaderStyle>
                     <Style TargetType="DataGridColumnHeader">
                         <Setter Property="Background" Value="{StaticResource primary}"/>
+                        <Setter Property="Foreground" Value="{StaticResource textColor}"/>
                     </Style>
                 </DataGrid.ColumnHeaderStyle>
                 <DataGrid.RowStyle>
@@ -71,16 +81,16 @@
                     <ColumnDefinition/>
                 </Grid.ColumnDefinitions>
                 <Border>
-                    <Button Click="RenameSelectedClicked" Background="{StaticResource lightBlue900}">Rename Selected</Button>
+                    <Button Click="RenameSelectedClicked" Style="{StaticResource SharpBlueButton}">Rename Selected</Button>
                 </Border>
                 <Border Grid.Column="1">
-                    <Button Click="ReplaceSelectedClicked" Background="{StaticResource addColor}">Replace Selected</Button>
+                    <Button Click="ReplaceSelectedClicked" Style="{StaticResource SharpGreenButton}">Replace Selected</Button>
                 </Border>
                 <Border Grid.Column="2">
-                    <Button Click="SkipSelectedClicked" Background="{StaticResource primaryLight}">Skip Selected</Button>
+                    <Button Click="SkipSelectedClicked" Style="{StaticResource SharpGrayButton}">Skip Selected</Button>
                 </Border>
                 <Border Grid.Column="3">
-                    <Button Click="CancelOperationClicked" Background="{StaticResource warnColor}">Cancel Operation</Button>
+                    <Button Click="CancelOperationClicked" Style="{StaticResource SharpRedButton}">Cancel Operation</Button>
                 </Border>
             </Grid>
         </Grid>

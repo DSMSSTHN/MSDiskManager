@@ -13,9 +13,11 @@
         mc:Ignorable="d"
         Title="CopyMoveDialog" Height="450" Width="800">
     <Window.Resources>
-        <Style TargetType="DataGridCell">
-            <Setter Property="TextBlock.TextAlignment" Value="Center"/>
-        </Style>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="../Styles/ButtonStyles.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
     </Window.Resources>
     <Border Background="{StaticResource primary}" CornerRadius="5"  BorderBrush="{StaticResource primaryLight}" BorderThickness="3">
 
@@ -26,13 +28,18 @@
                 <RowDefinition Height="*"/>
                 <RowDefinition Height="auto"/>
             </Grid.RowDefinitions>
-            <Label VerticalContentAlignment="Center" HorizontalContentAlignment="Center" d:Content="There are 2 Directories and 100 Files to Move. choose Destination" Content="{Binding HeaderContent}"/>
-            <Button Click="CloseButtonClicked" Width="30" Height="30" HorizontalAlignment="Right" VerticalAlignment="Top">
+            <Label VerticalContentAlignment="Center"
+                   Foreground="{StaticResource textColor}"
+                   HorizontalContentAlignment="Center" d:Content="There are 2 Directories and 100 Files to Move. choose Destination" Content="{Binding HeaderContent}"/>
+            <Button  Click="CloseButtonClicked" Width="30" Height="30" HorizontalAlignment="Right" VerticalAlignment="Top">
                 <Image Source="/images/clear.png"/>
             </Button>
             <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Center">
-                <Label Content="{Binding MCString,StringFormat=' {0} to:'}" d:Content="Move To:"/>
-                <Label Content="{Binding Parent.Name}" d:Content="DirectoryName0" Background="{StaticResource primaryLight}"/>
+                <Label Foreground="{StaticResource textColor}"
+                    Content="{Binding MCString,StringFormat=' {0} to:'}" d:Content="Move To:"/>
+                <Label
+                    Foreground="{StaticResource textColor}"
+                    Content="{Binding Parent.Name}" d:Content="DirectoryName0" Background="{StaticResource primaryLight}"/>
             </StackPanel>
             <Grid Grid.Row="2">
                 <Grid.RowDefinitions>
@@ -51,6 +58,7 @@
                     <DataGrid.ColumnHeaderStyle>
                         <Style TargetType="DataGridColumnHeader">
                             <Setter Property="Background"    Value="{StaticResource primary}"/>
+                            <Setter Property="Foreground" Value="{StaticResource textColor}"/>
                             <Setter Property="HorizontalContentAlignment" Value="Center"/>
                         </Style>
                     </DataGrid.ColumnHeaderStyle>
@@ -105,8 +113,10 @@
                     <ColumnDefinition/>
                     <ColumnDefinition/>
                 </Grid.ColumnDefinitions>
-                <Button Click="CancelClicked" Content="Cancel" Margin="3 2 3 0" Background="{StaticResource warnColor}"/>
-                <Button Click="Proceed" Grid.Column="1" Margin="3 1 2 0" Background="{StaticResource addColor}" Content="Proceed"/>
+                <Button Click="CancelClicked" Content="Cancel" Margin="3 2 3 0" 
+                        Style="{StaticResource SharpRedButton}"/>
+                <Button Click="Proceed" Grid.Column="1" Margin="3 1 2 0"
+                        Style="{StaticResource SharpGreenButton}" Content="Proceed"/>
             </Grid>
         </Grid>
     </Border>

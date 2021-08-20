@@ -13,9 +13,18 @@
         BorderBrush="Transparent"
         WindowStartupLocation="CenterScreen"
         BorderThickness="0" 
-        Title="CreateDirectoryDialog" Height="100" Width="400">
-    <Border CornerRadius="5" Background="{StaticResource primary}" BorderBrush="{StaticResource primaryLight}" BorderThickness="3">
-        <Grid Loaded="Grid_Loaded">
+        Title="CreateDirectoryDialog" Height="200" Width="400">
+    <Window.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="../Styles/TextStyles.xaml"/>
+                <ResourceDictionary Source="../Styles/ButtonStyles.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </Window.Resources>
+    <Border CornerRadius="1" Background="{StaticResource primary}" BorderBrush="{StaticResource primaryLight}" 
+            BorderThickness="1">
+        <Grid Loaded="Grid_Loaded" TextBlock.Foreground="{StaticResource textColor}">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition/>
                 <ColumnDefinition/>
@@ -24,24 +33,29 @@
                 <RowDefinition />
                 <RowDefinition />
                 <RowDefinition />
+                <RowDefinition />
             </Grid.RowDefinitions>
             <TextBlock Text="Choose Driver:" TextAlignment="Center" VerticalAlignment="Center"/>
-            <TextBlock x:Name="InfoTxtBlk" Grid.Row="1" Grid.ColumnSpan="2"  TextAlignment="Center" VerticalAlignment="Center"/>
-            <ComboBox Name="DriverComboBox" SelectionChanged="DriverComboBox_Selected" Grid.Row="0" Grid.Column="1" ItemsSource="{Binding Drives}">
+            <TextBlock x:Name="NameTextBlock" Text="Name" Grid.Row="1"  TextAlignment="Center" VerticalAlignment="Center"/>
+            <TextBox Style="{StaticResource SharpTextBox}" x:Name="NameTextBox" Grid.Row="1" Grid.Column="1" />
+            <ComboBox Name="DriverComboBox" BorderThickness="0" 
+                      Foreground="{StaticResource darkText}"
+                      SelectionChanged="DriverComboBox_Selected" Grid.Row="0" Grid.Column="1" >
                 <ComboBox.Resources>
-                    <Style TargetType="ComboBoxItem">
-                        <Setter Property="IsSelected" Value="{Binding IsSelected}"/>
+                    <Style TargetType="Border">
+                        <Setter Property="CornerRadius" Value="0"/>
                     </Style>
                 </ComboBox.Resources>
                 <ComboBox.ItemTemplate>
                     <DataTemplate>
-                        <TextBlock Text="{Binding DriverLetter}"/>
+                        <TextBlock Foreground="{StaticResource textColor}" Text="{Binding .}"/>
                     </DataTemplate>
                 </ComboBox.ItemTemplate>
             </ComboBox>
-            <Border Padding="5" Grid.Row="2" Grid.ColumnSpan="2">
-                <Button Click="ChooseClicked" IsEnabled="False" x:Name="ChooseButton" Background="{StaticResource lightBlue900}">Choose</Button>
-            </Border>
+            <Button Grid.Row="2" Grid.ColumnSpan="2" Click="ChooseClicked" IsEnabled="True" x:Name="ChooseButton"
+                        Style="{StaticResource SharpBlueButton}">Choose</Button>
+            <Button Grid.Row="3" Grid.ColumnSpan="2" Click="CancelClicked" IsEnabled="True" x:Name="CancelButton"
+                        Style="{StaticResource SharpRedButton}">Cancel</Button>
         </Grid>
     </Border>
 </Window>

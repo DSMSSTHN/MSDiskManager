@@ -165,7 +165,7 @@
                                                                         </Setter>
                                                                     </Style>
                                                                 </Border.Style>
-                                                                <TextBlock  Text="{Binding Name}" FontSize="6"/>
+                                                                <TextBlock  Text="{Binding Name}" FontSize="6" Foreground="{StaticResource textColor}"/>
                                                             </Border>
                                                         </DataTemplate>
                                                     </ListView.ItemTemplate>

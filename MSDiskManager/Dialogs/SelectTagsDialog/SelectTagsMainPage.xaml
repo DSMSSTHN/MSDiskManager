@@ -12,6 +12,12 @@
       d:DesignHeight="600" d:DesignWidth="800"
       Title="SelectTagsMainPage">
     <Page.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="../../Styles/ButtonStyles.xaml"/>
+                <ResourceDictionary Source="../../Styles/TextStyles.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
     </Page.Resources>
     <Grid >
         <Grid.RowDefinitions>
@@ -27,12 +33,14 @@
                 <TextBlock Grid.Column="0" Background="{StaticResource primaryDark}" Foreground="{StaticResource textColor}"
                        TextAlignment="Center" FontWeight="Bold" Padding="6"
                        FontSize="14"
-                       Text="Filter"/>
-                <Border Grid.Column="1"  Background="Green" Padding="10 0">
-                    <Button Content="  +  " FontSize="20" VerticalContentAlignment="Top" Click="AddNewTag" />
-                </Border>
+                       Text="             Filter"/>
+                <Button Grid.Column="1" Style="{StaticResource SharpGreenButton}" 
+                        VerticalContentAlignment="Top" Click="AddNewTag" Padding="20 0">
+                    <TextBlock Text="+" FontSize="20" />
+                </Button>
             </Grid>
-            <TextBox  d:Text="DLS:AJKDLKSA" 
+            <TextBox  d:Text="DLS:AJKDLKSA"  Style="{StaticResource SharpTextBox}" 
+                      FontSize="15" Height="30" VerticalContentAlignment="Center"
                       TextAlignment="Center"
                       FontWeight="Medium"
                       Text="{Binding Filter.Value,Mode=TwoWay,UpdateSourceTrigger=PropertyChanged}" Name="FilterTextBox" />
@@ -43,7 +51,14 @@
                   d:ItemsSource="{x:Static local:MockData.Tags}">
             <ListView.Template>
                 <ControlTemplate>
-                    <Border  Background="{StaticResource primary}">
+                    <Border  >
+                        <Border.Background>
+                            <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                                <GradientStop Color="#121212" Offset="0"/>
+                                <GradientStop Color="#222222" Offset="0.2"/>
+                                <GradientStop Color="#333333" Offset="1"/>
+                            </LinearGradientBrush>
+                        </Border.Background>
                         <ScrollViewer>
                             <!-- this is needed -->
                             <!--<ScrollViewer.Resources>
@@ -60,7 +75,9 @@
                                     <RowDefinition Height="40"/>
                                 </Grid.RowDefinitions>
                                 <ItemsPresenter />
-                                <Button Visibility="{Binding LoadMoreVisibility.Value}" Grid.Row="1" Click="LoadMore">...Load More...</Button>
+                                <Button Visibility="{Binding LoadMoreVisibility.Value}"
+                                        Foreground="{StaticResource textColor}"
+                                        Grid.Row="1" Click="LoadMore">...Load More...</Button>
                             </Grid>
 
                         </ScrollViewer>
@@ -74,6 +91,8 @@
                             Margin="20 2"
                             >
                         <Button 
+                            Foreground="{StaticResource textColor}"
+                            MinHeight="40"
                                 Click="TagClicked"
                                 CommandParameter="{Binding }"
                                 Content="{Binding Name}" FontWeight="SemiBold"/>

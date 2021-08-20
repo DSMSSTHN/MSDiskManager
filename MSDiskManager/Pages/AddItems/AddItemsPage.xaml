@@ -21,6 +21,9 @@
             <ResourceDictionary.MergedDictionaries>
                 <ResourceDictionary Source="../PagesRDict.xaml"/>
                 <ResourceDictionary Source="./AddItemsRDict.xaml"/>
+                <ResourceDictionary Source="../../Styles/ButtonStyles.xaml"/>
+                <ResourceDictionary Source="../../Styles/TextStyles.xaml"/>
+                <ResourceDictionary Source="../../Styles/DataGridStyles.xaml"/>
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
     </Page.Resources>
@@ -47,18 +50,22 @@
                     <Button Background="{StaticResource primary}" Margin="3" Name="BackButton" Click="GoBack">
                         <Image Source="/images/up.png"/>
                     </Button>
-                    <Label Grid.Column="1" Name="DirectoriesLabel" Grid.Row="1" Background="White"  VerticalContentAlignment="Center" HorizontalContentAlignment="Center"  >
-                        <TextBlock FontWeight="ExtraBold" Foreground="Black" Text="Directories"/>
+                    <Label Background="{StaticResource lightBlue900}"
+                           Grid.Column="1" Name="DirectoriesLabel" Grid.Row="1" 
+                           VerticalContentAlignment="Center" HorizontalContentAlignment="Center"  >
+                        <TextBlock FontWeight="ExtraBold" Foreground="{StaticResource darkText}" Text="Directories"/>
                     </Label>
                 </Grid>
                 <StackPanel Grid.Row="2"    >
                     <Label Content="Filter:" Background="{StaticResource primaryLight}" Foreground="{StaticResource textColor}" VerticalContentAlignment="Center" HorizontalContentAlignment="Center"/>
                     <Border   BorderBrush="{StaticResource primaryDark}" BorderThickness="2" Focusable="True">
-                        <TextBox x:Name="FilterTBX" Text="{Binding Filter,Mode=TwoWay,UpdateSourceTrigger=PropertyChanged}" Background="White" Foreground="Black"/>
+                        <TextBox Height="30"
+                            Style="{StaticResource SharpTextBox}"
+                            x:Name="FilterTBX" Text="{Binding Filter,Mode=TwoWay,UpdateSourceTrigger=PropertyChanged}" Background="White" Foreground="Black"/>
                     </Border>
                 </StackPanel>
             </Grid>
-            <DataGrid 
+            <DataGrid  Foreground="{StaticResource textColor}"
                 PreviewKeyDown="AddDG_PreviewKeyDown"
                 Style="{DynamicResource AddItemsDG}" x:Name="AddDG" Grid.Row="2" ItemsSource="{Binding Items}" 
                       MaxWidth="{Binding ElementName=AddBaseGrid,Path=ActualWidth}"
@@ -73,66 +80,91 @@
                     </Style>
                 </DataGrid.RowStyle>
                 <DataGrid.Columns>
-                    <DataGridTemplateColumn  Header="Name">
+                    <DataGridTemplateColumn  Header="Name" Width="300">
                         <DataGridTemplateColumn.CellTemplate>
                             <DataTemplate>
-                                <StackPanel 
+                                <Grid 
+                                    Width="{Binding RelativeSource={RelativeSource AncestorType=DataGridRowHeader}}"
                                     Background="Transparent"
-                                    DragDrop.PreviewDragEnter="HandleDragEnter" DragDrop.PreviewDragLeave="HandleDragLeave" Drop="StackPanel_Drop" Orientation="Horizontal">
-                                    <StackPanel.ContextMenu>
+                                    DragDrop.PreviewDragEnter="HandleDragEnter" 
+                                    DragDrop.PreviewDragLeave="HandleDragLeave" Drop="StackPanel_Drop">
+                                    <Grid.ContextMenu>
                                         <ContextMenu>
                                             <MenuItem Header="Edit" Click="EditClickeds"/>
                                             <MenuItem Header="Delete" Click="DeleteClickeds" />
                                         </ContextMenu>
-                                    </StackPanel.ContextMenu>
+                                    </Grid.ContextMenu>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="auto"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
                                     <Button Click="openDirectory" CommandParameter="{Binding Path=.}" 
                                             PreviewMouseWheel="Button_PreviewMouseWheel"
                                             MouseEnter="Button_MouseEnter" MouseLeave="Button_MouseLeave">
                                         <Image Width="40" Height="40" Source="{Binding Image}"/>
                                     </Button>
-                                    <TextBox Text="{Binding Name,Mode=TwoWay,UpdateSourceTrigger=PropertyChanged}" VerticalAlignment="Center" 
+                                    <TextBlock Grid.Column="1"
+                                        Foreground="{StaticResource textColor}" FontSize="20"
+                                        FontFamily="Nirmala UI"
+                                        Text="{Binding Name,Mode=TwoWay,UpdateSourceTrigger=PropertyChanged}" 
+                                             VerticalAlignment="Center" 
                                              PreviewKeyDown="NamePKeyDown"
-                                             GotFocus="NameGotFocus" LostFocus="NameLostFocus"/>
-                                </StackPanel>
+                                             GotFocus="NameGotFocus" LostFocus="NameLostFocus" FontWeight="SemiBold" TextWrapping="Wrap" TextTrimming="CharacterEllipsis" FontStretch="Normal" TextAlignment="Left" HorizontalAlignment="Center"/>
+                                </Grid>
                             </DataTemplate>
                         </DataGridTemplateColumn.CellTemplate>
                     </DataGridTemplateColumn>
-                    <DataGridTemplateColumn Header="Description">
+                    <DataGridTemplateColumn Header="Description" Width="200">
                         <DataGridTemplateColumn.CellTemplate>
                             <DataTemplate>
-                                <TextBox HorizontalAlignment="Center" Text="{Binding Description,Mode=TwoWay,UpdateSourceTrigger=PropertyChanged}" VerticalAlignment="Center"/>
+                                <TextBox HorizontalAlignment="Center"
+                                         TextWrapping="Wrap"
+                                         Text="{Binding Description,Mode=TwoWay,UpdateSourceTrigger=PropertyChanged}"
+                                         VerticalAlignment="Center"/>
 
                             </DataTemplate>
                         </DataGridTemplateColumn.CellTemplate>
                     </DataGridTemplateColumn>
-                    <DataGridTemplateColumn Header="Tags" Width="auto"
-                                             
+                    <DataGridTemplateColumn Header="Tags" Width="500"
                                             >
                         <DataGridTemplateColumn.CellTemplate>
                             <DataTemplate>
                                 <Grid Background="Transparent"
-                                    MaxWidth="{Binding RelativeSource={RelativeSource AncestorType=DataGrid},Path=ActualWidth,Converter={StaticResource DoubleDividerConverter},ConverterParameter='4'}">
+                                      Width="{Binding RelativeSource={RelativeSource AncestorType=DataGridRowHeader},Path=ActualWidth}">
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="auto"/>
                                         <ColumnDefinition Width="*"/>
                                     </Grid.ColumnDefinitions>
-                                    <Button Height="40" Width="40" Content="  +  " Margin="0 0 3 0" Background="{StaticResource addColor}" Click="AddTags" CommandParameter="{Binding RelativeSource={RelativeSource AncestorType=DataGridRow},Path=DataContext}"/>
-                                    <ListView ItemsPanel="{StaticResource horizontalStackPanel}"
+                                    <Button  Width="40" 
+                                            HorizontalAlignment="Left"
+                                            Margin="0 0 3 0" Style="{StaticResource SharpGreenButton}"
+                                            Click="AddTags" 
+                                            CommandParameter="{Binding RelativeSource={RelativeSource AncestorType=DataGridRow},Path=DataContext}">
+                                        <TextBlock Text="+" FontSize="30"/>
+                                    </Button>
+                                    <ListView HorizontalAlignment="Left" 
                                         Grid.Column="1" ItemsSource="{Binding Tags}" ScrollViewer.CanContentScroll="True" ScrollViewer.HorizontalScrollBarVisibility="Visible"
-                                              MaxWidth="{Binding RelativeSource={RelativeSource AncestorType=DataGrid},Path=ActualWidth,Converter={StaticResource DoubleDividerConverter},ConverterParameter='4'}"
                                               d:ItemsSource="{x:Static local:MockData.Tags}" 
                                               Style="{StaticResource HorizontalSmallTransparantLV}"
                                               BorderBrush="Transparent" BorderThickness="0" ScrollViewer.VerticalScrollBarVisibility="Disabled"
                                               >
-                                        <ListView.Resources>
-                                            
-                                        </ListView.Resources>
+                                        <ListView.ItemsPanel>
+                                            <ItemsPanelTemplate>
+                                                <WrapPanel Width="{Binding RelativeSource={RelativeSource AncestorType=ListView},Path=ActualWidth}"
+                                                           
+                                                           Orientation="Horizontal"/>
+                                            </ItemsPanelTemplate>
+                                        </ListView.ItemsPanel>
                                         <ListView.ItemTemplate>
                                             <DataTemplate>
                                                 <Border Background="{Binding Color,Converter={StaticResource IntToBrushConverter}}">
-                                                    <StackPanel>
-                                                        <TextBlock  Text="{Binding Name}"/>
-                                                        <Button Click="DeleteTag" CommandParameter="{Binding RelativeSource={RelativeSource AncestorType=DataGridRow},Path=DataContext}">X</Button>
+                                                    <StackPanel Orientation="Horizontal">
+                                                        <TextBlock 
+                                                            Padding="20 5 5 5"
+                                                            Foreground="{StaticResource textColor}"  Text="{Binding Name}"/>
+                                                        <Button Margin="0 0 5 0"
+                                                            Foreground="{StaticResource warnColor}"
+                                                            Click="DeleteTag" CommandParameter="{Binding RelativeSource={RelativeSource AncestorType=DataGridRow},Path=DataContext}">X</Button>
                                                     </StackPanel>
                                                 </Border>
                                             </DataTemplate>
