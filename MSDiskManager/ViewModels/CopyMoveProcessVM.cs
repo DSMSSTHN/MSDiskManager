@@ -183,7 +183,7 @@ namespace MSDiskManager.ViewModels
         {
             if (Globals.IsNullOrEmpty(dirs)) return null;
             if (cancels?.IsCancellationRequested ?? true) return null;
-            var ds = new List<DirectoryEntity>();
+            var ds = new List<MSDirecotry>();
             var dRip = new DirectoryRepository();
             var ignoreAdd = new List<DirectoryViewModel>();
             foreach (var d in dirs)
@@ -308,7 +308,7 @@ namespace MSDiskManager.ViewModels
         private async Task<bool> addFiles(List<FileViewModel> files)
         {
             var p = pauses;
-            var fs = new List<FileEntity>();
+            var fs = new List<MSFile>();
             var ignoreAdd = new List<FileViewModel>();
             var token = p.Token;
             if (Globals.IsNullOrEmpty(files))

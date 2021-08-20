@@ -17,9 +17,9 @@ namespace MSDiskManagerData.Data.Repositories
         {
             await token.WaitWhilePausedAsync();
             var limit = 90;
-#if DEBUG
-            limit = 10;
-#endif
+//#if DEBUG
+//            limit = 10;
+//#endif
             if (Interlocked.Increment(ref MSDM_DBContext.ActiveConnections) > limit)
             {
                 MSDM_DBContext.PauseSource.IsPaused = true;
@@ -41,9 +41,9 @@ namespace MSDiskManagerData.Data.Repositories
         protected void repotFinished()
         {
             var limit = 80;
-#if DEBUG
-            limit = 8;
-#endif
+//#if DEBUG
+//            limit = 8;
+//#endif
             if (Interlocked.Decrement(ref MSDM_DBContext.ActiveConnections) < limit)
             {
                 if (token.IsPaused)

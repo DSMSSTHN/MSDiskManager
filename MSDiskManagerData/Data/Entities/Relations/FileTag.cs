@@ -10,7 +10,7 @@ namespace MSDiskManagerData.Data.Entities.Relations
     {
         public long FileId { get; set; }
         public long TagId { get; set; }
-        public virtual FileEntity File { get; set; }
+        public virtual MSFile File { get; set; }
         public virtual Tag Tag { get; set; }
     }
 }

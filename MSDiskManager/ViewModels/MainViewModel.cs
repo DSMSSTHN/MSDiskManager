@@ -492,7 +492,7 @@ namespace MSDiskManager.ViewModels
             {
 
                 var df = DirectoryFilter;
-                List<DirectoryEntity> directories;
+                List<MSDirecotry> directories;
                 int p = 0;
                 int l = 30;
                 do
@@ -526,7 +526,7 @@ namespace MSDiskManager.ViewModels
             }
             if (token.IsCancellationRequested) return;
             var ff = FileFilter;
-            List<FileEntity> files;
+            List<MSFile> files;
             int page = 0;
             int limit = 30;
             do

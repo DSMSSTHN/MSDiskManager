@@ -10,19 +10,19 @@ using System.Threading.Tasks;
 
 namespace MSDiskManagerData.Data.Entities
 {
-    public class DirectoryEntity : BaseEntity
+    public class MSDirecotry : BaseEntity
     {
         private string path = "";
         private string onDeskName = "New_File";
 
         public long? Id { get; set; }
-        public long? DriverId { get; set; }
+        public string? DriveId { get; set; }
         public string Name { get; set; } = "New Directory";
         public string OnDeskName { get => onDeskName; set => onDeskName = value.Replace("\\","").Replace("/","").Trim(); }
         public string Description { get; set; } = "";
         public Instant AddingDate { get; set; }
         public long? ParentId { get; set; }
-        public DirectoryEntity? Parent { get; set; }
+        public MSDirecotry? Parent { get; set; }
         public List<long> AncestorIds { get; set; } = new List<long>();
         public String Path
         {
@@ -52,8 +52,8 @@ namespace MSDiskManagerData.Data.Entities
         public int NumberOfItemsRec => NumberOfFilesRec + NumberOfDirectoriesRec;
         public virtual List<DirectoryTag> DirectoryTags { get; set; } = new List<DirectoryTag>();
         public bool IsHidden { get; set; }
-        public virtual List<FileEntity> Files { get; set; } = new List<FileEntity>();
-        public virtual List<DirectoryEntity> Children { get; set; } = new List<DirectoryEntity>();
+        public virtual List<MSFile> Files { get; set; } = new List<MSFile>();
+        public virtual List<MSDirecotry> Children { get; set; } = new List<MSDirecotry>();
         public string FullPath { get => MSDM_DBContext.DriverName[0] + ":\\" + Path; }
 
         public IconType IconType => IconType.Directory;

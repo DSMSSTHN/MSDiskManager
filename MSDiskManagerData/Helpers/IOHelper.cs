@@ -17,11 +17,11 @@ namespace MSDiskManagerData.Helpers
         {
             if (Globals.IsNullOrEmpty(entity.FullPath)) throw new ArgumentException("No distanation was given");
 
-            if (entity is FileEntity)
+            if (entity is MSFile)
             {
                 if (Globals.IsNullOrEmpty(entity.OldPath)) throw new ArgumentException("No source was given");
                 if (!File.Exists(entity.OldPath)) throw new IOException("No file was found at source");
-                var file = entity as FileEntity;
+                var file = entity as MSFile;
                 if (!file.Path.Contains(file.OnDeskName))
                 {
                     var slash = file.Path.LastIndexOf('\\') + 1;
@@ -45,7 +45,7 @@ namespace MSDiskManagerData.Helpers
             }
             else
             {
-                var directory = entity as DirectoryEntity;
+                var directory = entity as MSDirecotry;
                 if (!directory.Path.Contains(directory.OnDeskName))
                 {
                     var p = directory.Path;

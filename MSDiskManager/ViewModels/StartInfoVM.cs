@@ -17,8 +17,9 @@ namespace MSDiskManager.ViewModels
 {
     public class StartInfoVM : INotifyPropertyChanged
     {
-        
+
         private bool connectionValid = false;
+        private bool isChecking = false;
         private CancellationTokenSource cancels;
         private string hostName = "";
         private string port = "";
@@ -26,11 +27,28 @@ namespace MSDiskManager.ViewModels
         private string password = "";
         private string databaseName = "";
 
-        public bool ConnectionValid { get => connectionValid; set { connectionValid = value; NotifyPropertyChanged("ConnectionValid");} }
+        public bool ConnectionValid
+        {
+            get => connectionValid; set
+            {
+
+                connectionValid = value; NotifyPropertyChanged("ConnectionValid");
+            }
+        }
+        public bool IsChecking
+        {
+            get => isChecking; set
+            {
+
+                isChecking = value; NotifyPropertyChanged("IsChecking");
+            }
+        }
         public Visibility ConnectionErrorVisibility { get; set; } = Visibility.Visible;
         public Visibility ConnectionVisibility { get; set; } = Visibility.Collapsed;
-        public string HostName { get => hostName; set { hostName = value; NotifyPropertyChanged("ConnectionValid"); checkConnection(); }
-}
+        public string HostName
+        {
+            get => hostName; set { hostName = value; NotifyPropertyChanged("ConnectionValid"); checkConnection(); }
+        }
         public string Port { get => port; set { port = value; NotifyPropertyChanged("ConnectionValid"); checkConnection(); } }
         public string UserName { get => userName; set { userName = value; NotifyPropertyChanged("ConnectionValid"); checkConnection(); } }
         public string Password { get => password; set { password = value; NotifyPropertyChanged("ConnectionValid"); checkConnection(); } }
@@ -43,42 +61,52 @@ namespace MSDiskManager.ViewModels
 
         private void checkConnection()
         {
-            if (Globals.IsNoneNullOrEmpty(hostName, port, userName, password, databaseName))
+            IsChecking = true;
+            Task.Run(async () =>
             {
-                try
+
+                if (Globals.IsNoneNullOrEmpty(hostName, port, userName, password, databaseName))
                 {
-                    MSDM_DBContext.SetConnectionString(ConnectionString.Replace(databaseName,"postgres"));
-                    var state = MSDM_DBContext.ConnectionState;
-                    Console.WriteLine(state.ToString());
-                    ConnectionValid = state == System.Data.ConnectionState.Open;
+                    cancels?.Cancel();
+                    cancels = new CancellationTokenSource();
+                    var token = cancels.Token;
+                    if (token.IsCancellationRequested) return;
+                    try
+                    {
+                        MSDM_DBContext.SetConnectionString(ConnectionString.Replace(databaseName, "postgres"));
+                        var state = MSDM_DBContext.ConnectionState;
+                        if (state != System.Data.ConnectionState.Open && !connectionValid) return;
+                        if (token.IsCancellationRequested) return;
+                        Application.Current.Dispatcher.Invoke(() => { ConnectionValid = state == System.Data.ConnectionState.Open; });
+                    }
+                    catch (Exception)
+                    {
+                        Application.Current.Dispatcher.Invoke(() => { ConnectionValid = false; });
+                    }
                 }
-                catch (Exception)
+                else
                 {
                     ConnectionValid = false;
                 }
-            }
-            if (connectionValid)
-            {
-                ConnectionErrorVisibility = Visibility.Collapsed; ConnectionVisibility = Visibility.Visible;
-            } else
-            {
-                ConnectionErrorVisibility = Visibility.Visible; ConnectionVisibility = Visibility.Collapsed;
-            }
+                Application.Current.Dispatcher.Invoke(() => { IsChecking = false; });
+            });
+
+
         }
 
         public StartInfoVM()
         {
-            
+
         }
 
-        
+
         public event PropertyChangedEventHandler? PropertyChanged;
         protected void NotifyPropertyChanged([CallerMemberName] string? name = null)
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
         }
     }
-    public class MSDriversInfo : INotifyPropertyChanged
+    public class MSDrivesInfo : INotifyPropertyChanged
     {
         private string driverLetter;
         private string deviceId;

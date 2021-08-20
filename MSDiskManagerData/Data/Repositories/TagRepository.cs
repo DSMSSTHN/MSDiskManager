@@ -160,9 +160,9 @@ namespace MSDiskManagerData.Data.Repositories
                 return false;
             }
         }
-        public async Task<List<FileEntity>> GetFiles(long id)
+        public async Task<List<MSFile>> GetFiles(long id)
         {
-            if (id < 0) return new List<FileEntity>();
+            if (id < 0) return new List<MSFile>();
             try
             {
                 var ctx = await context();
@@ -176,9 +176,9 @@ namespace MSDiskManagerData.Data.Repositories
                 throw;
             }
         }
-        public async Task<List<DirectoryEntity>> GetDirectories(long id)
+        public async Task<List<MSDirecotry>> GetDirectories(long id)
         {
-            if (id < 0) return new List<DirectoryEntity>();
+            if (id < 0) return new List<MSDirecotry>();
             try
             {
                 var ctx = await context();

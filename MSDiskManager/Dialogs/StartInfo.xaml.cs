@@ -47,13 +47,12 @@ namespace MSDiskManager.Dialogs
             InitializeComponent();
         }
 
-        private async void CancelClicked(object sender, RoutedEventArgs e)
+        private  void CancelClicked(object sender, RoutedEventArgs e)
         {
-            await (Application.Current.MainWindow as MainWindow)?.AppSettings?.ConnectToDriver();
             this.Close();
         }
 
-        private async void ProceedClicked(object sender, RoutedEventArgs e)
+        private void ProceedClicked(object sender, RoutedEventArgs e)
         {
             
             if (!Model.ConnectionValid) return;
@@ -71,24 +70,13 @@ namespace MSDiskManager.Dialogs
             this.appSettings.Port = Model.Port;
             this.appSettings.UserName = Model.UserName;
             this.appSettings.Password = Model.Password;
-            if (!wasNull)
-            {
-                MSDM_DBContext.SetConnectionString(this.appSettings.ConnectionString);
-                this.appSettings.Drivers = await new DriverRepository().GetAll();
-            }
-           
-           
            
             try
             {
-                if ((this.appSettings.Drivers?.Count ?? 0) == 0)
-                {
-                    var diag = new DriverSettings(this.appSettings);
-                    diag.ShowDialog();
-                }
+                
                 this.appSettings.Save();
-                await this.appSettings.ConnectToDriver();
-                (Application.Current.MainWindow as MainWindow).AppSettings = appSettings;
+                this.appSettings.ConnectToDriver();
+                (Application.Current.MainWindow as MainWindow).Settings = appSettings;
                 var db = new MSDM_DBContext();
                 db.Database.EnsureCreated();
                 if(this.DialogResult == null)

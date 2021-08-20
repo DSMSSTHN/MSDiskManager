@@ -14,7 +14,9 @@
         WindowStartupLocation="CenterScreen"
         BorderThickness="0" 
         Title="CreateDirectoryDialog" Height="450" Width="1200">
-    <Border CornerRadius="5" Background="{StaticResource primary}" BorderBrush="{StaticResource primaryLight}" BorderThickness="3">
+    <Border CornerRadius="5"
+            Padding="50 100"
+            Background="{StaticResource primary}" BorderBrush="{StaticResource primaryLight}" BorderThickness="3">
         <Grid Loaded="Grid_Loaded">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition/>
@@ -24,35 +26,55 @@
                 <RowDefinition Height="auto" />
                 <RowDefinition />
                 <RowDefinition />
-                <RowDefinition />
-                <RowDefinition />
-                <RowDefinition />
-                <RowDefinition />
-                <RowDefinition />
             </Grid.RowDefinitions>
-            <TextBlock Grid.Row="1" Text="Database Host:" TextAlignment="Center" VerticalAlignment="Center"/>
-            <TextBlock Grid.Row="2" Text="Database Port:" TextAlignment="Center" VerticalAlignment="Center"/>
-            <TextBlock Grid.Row="3" Text="Database UserName:" TextAlignment="Center" VerticalAlignment="Center"/>
-            <TextBlock Grid.Row="4" Text="Database Password:" TextAlignment="Center" VerticalAlignment="Center"/>
-            <TextBlock Grid.Row="5" Text="Database Name:" TextAlignment="Center" VerticalAlignment="Center"/>
-            
-            <TextBox Name="HostNameTxtBx" Grid.Row="1" Grid.Column="1" Text="{Binding HostName,Mode=TwoWay,UpdateSourceTrigger=PropertyChanged}"/>
-            <TextBox Name="PortTextBx" Grid.Row="2" Grid.Column="1" Text="{Binding Port,Mode=TwoWay,UpdateSourceTrigger=PropertyChanged}"/>
-            <TextBox Name="UserNameTextBx" Grid.Row="3" Grid.Column="1" Text="{Binding UserName,Mode=TwoWay,UpdateSourceTrigger=PropertyChanged}"/>
-            <TextBox Name="PasswordTextBx" Grid.Row="4" Grid.Column="1" Text="{Binding Password,Mode=TwoWay,UpdateSourceTrigger=PropertyChanged}"/>
-            <TextBox Name="DBNameTextBx" Grid.Row="5" Grid.Column="1" Text="{Binding DatabaseName,Mode=TwoWay,UpdateSourceTrigger=PropertyChanged}"/>
-            <Grid Grid.Row="6" Grid.ColumnSpan="2">
-                <Border Background="{StaticResource warnColor}" Visibility="{Binding ConnectionErrorVisibility}">
+            <Grid TextBlock.FontSize="20" Grid.ColumnSpan="2">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition/>
+                    <ColumnDefinition/>
+                    <ColumnDefinition/>
+                    <ColumnDefinition/>
+                    <ColumnDefinition/>
+                </Grid.ColumnDefinitions>
+                <StackPanel Margin="20 3">
+                    <TextBlock Text="Host:" TextAlignment="Center" VerticalAlignment="Center"/>
+                    <TextBox Name="HostNameTxtBx"  Text="{Binding HostName,Mode=TwoWay,UpdateSourceTrigger=PropertyChanged}"/>
+                </StackPanel>
+                <StackPanel Margin="20 3" Grid.Column="1">
+                    <TextBlock Text="Port:" TextAlignment="Center" VerticalAlignment="Center"/>
+                    <TextBox Name="PortTextBx"  Text="{Binding Port,Mode=TwoWay,UpdateSourceTrigger=PropertyChanged}"/>
+                </StackPanel>
+                <StackPanel Margin="20 3" Grid.Column="2">
+                    <TextBlock Text="UserName:" TextAlignment="Center" VerticalAlignment="Center"/>
+                    <TextBox Name="UserNameTextBx" Text="{Binding UserName,Mode=TwoWay,UpdateSourceTrigger=PropertyChanged}"/>
+                </StackPanel>
+                <StackPanel Margin="20 3" Grid.Column="3">
+                    <TextBlock Text="Password" TextAlignment="Center" VerticalAlignment="Center"/>
+                    <TextBox Name="PasswordTextBx" Text="{Binding Password,Mode=TwoWay,UpdateSourceTrigger=PropertyChanged}"/>
+                </StackPanel >
+                <StackPanel Margin="20 3" Grid.Column="4">
+                    <TextBlock Text="Database" TextAlignment="Center" VerticalAlignment="Center"/>
+                    <TextBox Name="DBNameTextBx"  Text="{Binding DatabaseName,Mode=TwoWay,UpdateSourceTrigger=PropertyChanged}"/>
+                </StackPanel>
+
+            </Grid>
+            <Grid Grid.Row="1" Grid.ColumnSpan="2">
+                <Border CornerRadius="0"
+                    Background="{StaticResource warnColor}" >
                     <TextBlock Text="Connection Invalid"  VerticalAlignment="Center" HorizontalAlignment="Center" FontWeight="Bold" FontSize="20"/>
                 </Border>
-                <Border Background="{StaticResource addColor}" Visibility="{Binding ConnectionVisibility}">
+                <Border CornerRadius="0"
+                    Background="{StaticResource addColor}" Visibility="{Binding ConnectionValid, Converter={StaticResource BooleanVisibility_CollapseConverter}}">
                     <TextBlock Text="Connection Valid"  VerticalAlignment="Center" HorizontalAlignment="Center" FontWeight="Bold" FontSize="20"/>
                 </Border>
+                <Border CornerRadius="0"
+                    Background="{StaticResource primarySemiDark}" Visibility="{Binding IsChecking, Converter={StaticResource BooleanVisibility_CollapseConverter}}">
+                    <TextBlock Text="Checking"  VerticalAlignment="Center" HorizontalAlignment="Center" FontWeight="Bold" FontSize="20"/>
+                </Border>
             </Grid>
-            <Border Grid.Row="7" Grid.Column="0" Padding="5">
+            <Border Grid.Row="2" Grid.Column="0" Padding="5">
                 <Button x:Name="CancelButton" Click="CancelClicked" Background="{StaticResource darkRed}">Cancel</Button>
             </Border>
-            <Border Grid.Row="7" Grid.Column="1" Padding="5">
+            <Border Grid.Row="2" Grid.Column="1" Padding="5">
                 <Button Click="ProceedClicked   " IsEnabled="{Binding ConnectionValid}" Background="{StaticResource lightBlue900}">Proceed</Button>
             </Border>
         </Grid>

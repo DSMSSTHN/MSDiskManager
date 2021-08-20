@@ -8,16 +8,16 @@ using System.Threading.Tasks;
 
 namespace MSDiskManagerData.Data.Repositories
 {
-    public class DriverRepository: BaseRepository
+    public class DriveRepository: BaseRepository
     {
 
 
-        public async Task<MSDriver> GetDriver(long id)
+        public async Task<MSDrive> GetDriver(string id)
         {
             try
             {
                 var ctx = await context();
-                var result = await ctx.MSDrivers.FirstOrDefaultAsync(d => d.Id == id);
+                var result = await ctx.MSDrives.FirstOrDefaultAsync(d => d.Id == id);
                 repotFinished();
                 return result;
             }
@@ -28,12 +28,12 @@ namespace MSDiskManagerData.Data.Repositories
                 throw;
             }
         }
-        public async Task<List<MSDriver>> GetAll()
+        public async Task<List<MSDrive>> GetAll()
         {
             try
             {
                 var ctx = await context();
-                var result = await ctx.MSDrivers.ToListAsync();
+                var result = await ctx.MSDrives.ToListAsync();
                 repotFinished();
                 return result;
             }
@@ -44,28 +44,12 @@ namespace MSDiskManagerData.Data.Repositories
                 throw;
             }
         }
-        public async Task<MSDriver> GetDriver(string uuid)
+        public async Task<MSDrive> AddDriver(MSDrive driver)
         {
             try
             {
                 var ctx = await context();
-                var result = await  ctx.MSDrivers.FirstOrDefaultAsync(d => d.DriverUUID == uuid);
-                repotFinished();
-                return result;
-            }
-            catch (Exception)
-            {
-                repotFinished();
-
-                throw;
-            }
-        }
-        public async Task<MSDriver> AddDriver(MSDriver driver)
-        {
-            try
-            {
-                var ctx = await context();
-                await ctx.MSDrivers.AddAsync(driver);
+                await ctx.MSDrives.AddAsync(driver);
                 await ctx.SaveChangesAsync();
                 repotFinished();
                 return driver;
@@ -77,17 +61,15 @@ namespace MSDiskManagerData.Data.Repositories
                 throw;
             }
         }
-        public async Task<MSDriver> ChangeLetter(long id, string newLetter)
+        public async Task<List<MSDrive>> LoadDrives(List<string> ids = null)
         {
+            if (ids == null || ids.Count == 0) return await GetAll();
             try
             {
                 var ctx = await context();
-                var driver = await GetDriver(id);
-                driver.DriverLetter = newLetter;
-                ctx.Update(driver);
-                await ctx.SaveChangesAsync();
+                var result = await ctx.MSDrives.Where(d => ids.Contains(d.Id)).ToListAsync();
                 repotFinished();
-                return driver;
+                return result;
             }
             catch (Exception)
             {
@@ -96,5 +78,24 @@ namespace MSDiskManagerData.Data.Repositories
                 throw;
             }
         }
+        //public async Task<List<(string id,bool exists)>> FilterIds(List<string> ids)
+        //{
+        //    try
+        //    {
+        //        var ctx = await context();
+        //        var present = await ctx.MSDrives.Where(d => ids.Contains(d.Id)).Select(d => d.Id).ToListAsync();
+        //        List<(string id, bool exists)> result = ids.Select(id => 
+        //        { return new { id = id, exists = present.Contains(id) }; });
+
+        //        repotFinished();
+        //        return result;
+        //    }
+        //    catch (Exception)
+        //    {
+        //        repotFinished();
+
+        //        throw;
+        //    }
+        //}
     }
 }

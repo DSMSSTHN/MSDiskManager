@@ -19,20 +19,21 @@ namespace MSDiskManagerData.Data
     {
         internal static int ActiveConnections = 0;
         internal static PauseTokenSource PauseSource = new PauseTokenSource();
-        public static string DriverName => CurrentDriver.DriverLetter;
-        public DbSet<FileEntity> Files { get; set; }
+        public static string DriverName => CurrentDriver.Letter;
+        public DbSet<MSFile> Files { get; set; }
         public DbSet<IgnoredFile> ignoredFiles { get; set; }
-        public DbSet<DirectoryEntity> Directories { get; set; }
+        public DbSet<MSDirecotry> Directories { get; set; }
         public DbSet<Tag> Tags { get; set; }
         public DbSet<FileTag> FileTags { get; set; }
         public DbSet<DirectoryTag> DirectoryTags { get; set; }
         public DbSet<ImageThumbnail> Thumbnails { get; set; }
-        public DbSet<MSDriver> MSDrivers { get; set; }
+        public DbSet<MSDrive> MSDrives { get; set; }
+        public static bool IsConnectionValid = false;
         private static bool IsTest { get; set; }
-        private static MSDriver CurrentDriver { get; set; }
-        internal static long? currentDriverId => CurrentDriver.Id;
+        private static MSDrive CurrentDriver { get; set; }
+        internal static string? currentDriveId => CurrentDriver.Id;
         
-        public static void SetDriver(MSDriver driver) => CurrentDriver = driver;
+        public static void SetDrive(MSDrive driver) => CurrentDriver = driver;
      
        
         public static void SetConnectionString(string str)
@@ -52,9 +53,9 @@ namespace MSDiskManagerData.Data
         {
             get
             {
-#if DEBUG
-                return ConnectionState.Open;
-#endif
+//#if DEBUG
+//                return ConnectionState.Open;
+//#endif
                 ConnectionState state = ConnectionState.Broken;
                 if (Globals.IsNullOrEmpty(connectionString)) return state;
                 NpgsqlConnection conn = new NpgsqlConnection(connectionString);
@@ -62,10 +63,12 @@ namespace MSDiskManagerData.Data
                 {
                     conn.Open();
                     state = conn.State;
+                    IsConnectionValid = state == ConnectionState.Open;
                     conn.Close();
                 }
                 catch (Exception e)
                 {
+                    IsConnectionValid = false;
                     state = ConnectionState.Broken;
                 }
                 return state;
@@ -73,11 +76,11 @@ namespace MSDiskManagerData.Data
         }
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
-#if DEBUG
-            optionsBuilder.UseSqlite(@"Data Source=.\msdmtest.db", x => x.UseNodaTime());
-#else
+//#if DEBUG
+//            optionsBuilder.UseSqlite(@"Data Source=.\msdmtest.db", x => x.UseNodaTime());
+//#else
             optionsBuilder.UseNpgsql(connectionString, o => o.UseNodaTime());
-#endif
+//#endif
 
             optionsBuilder.UseSnakeCaseNamingConvention();
             base.OnConfiguring(optionsBuilder);
@@ -87,47 +90,48 @@ namespace MSDiskManagerData.Data
         {
 
             base.OnModelCreating(modelBuilder);
-            modelBuilder.Entity<MSDriver>(entity =>
+            modelBuilder.Entity<MSDrive>(entity =>
             {
                 entity.HasKey(e => e.Id);
                 entity.Property(e => e.Id).ValueGeneratedOnAdd();
-
+                entity.Ignore(e => e.Letter);
+                entity.Ignore(e => e.IsLocked);
             });
-            modelBuilder.Entity<FileEntity>(entity =>
+            modelBuilder.Entity<MSFile>(entity =>
              {
                  entity.HasKey(e => e.Id);
                  entity.Property(e => e.Id).ValueGeneratedOnAdd();
                  entity.HasOne(e => e.Parent).WithMany(e => e.Files).HasForeignKey(e => e.ParentId).OnDelete(DeleteBehavior.Cascade).IsRequired(false);
-                 entity.HasOne<MSDriver>().WithMany(e => e.Files).HasForeignKey(e => e.DriverId).OnDelete(DeleteBehavior.Cascade).IsRequired(true);
+                 entity.HasOne<MSDrive>().WithMany(e => e.Files).HasForeignKey(e => e.DriveId).OnDelete(DeleteBehavior.Cascade).IsRequired(true);
                  entity.HasMany(e => e.FileTags).WithOne(e => e.File).HasForeignKey(e => e.FileId).OnDelete(DeleteBehavior.Cascade).IsRequired(true);
-                 entity.HasIndex(e => new { e.DriverId, e.Path }).IsUnique(true);
+                 entity.HasIndex(e => new { e.DriveId, e.Path }).IsUnique(true);
                  entity.HasIndex(e => e.Name).IsUnique(false);
                  entity.Property(e => e.Extension).HasColumnName("ext");
                  entity.HasOne(e => e.Thumbnail).WithOne(e => e.File).HasForeignKey<ImageThumbnail>(e => e.FileId).OnDelete(DeleteBehavior.Cascade).IsRequired(true);
                  entity.Ignore(e => e.OldPath);
-#if DEBUG
-                 entity.Property(e => e.AncestorIds).HasConversion(lst => JsonConvert.SerializeObject(lst), str => JsonConvert.DeserializeObject<List<long>>(str));
-#endif
+//#if DEBUG
+//                 entity.Property(e => e.AncestorIds).HasConversion(lst => JsonConvert.SerializeObject(lst), str => JsonConvert.DeserializeObject<List<long>>(str));
+//#endif
              });
-            modelBuilder.Entity<DirectoryEntity>(entity =>
+            modelBuilder.Entity<MSDirecotry>(entity =>
             {
                 entity.HasKey(e => e.Id);
                 entity.Property(e => e.Id).ValueGeneratedOnAdd();
                 entity.HasOne(e => e.Parent).WithMany(e => e.Children).HasForeignKey(e => e.ParentId).IsRequired(false).OnDelete(DeleteBehavior.Cascade);
-                entity.HasOne<MSDriver>().WithMany(e => e.Directories).HasForeignKey(e => e.DriverId).OnDelete(DeleteBehavior.Cascade).IsRequired(true);
+                entity.HasOne<MSDrive>().WithMany(e => e.Directories).HasForeignKey(e => e.DriveId).OnDelete(DeleteBehavior.Cascade).IsRequired(true);
                 entity.HasMany(e => e.DirectoryTags).WithOne(e => e.Directory).HasForeignKey(e => e.DirectoryId).OnDelete(DeleteBehavior.Cascade).IsRequired(true);
                 entity.HasIndex(e => e.Name).IsUnique(false);
                 entity.Ignore(e => e.OldPath);
-                entity.HasIndex(e => new { e.DriverId, e.Path }).IsUnique(true);
+                entity.HasIndex(e => new { e.DriveId, e.Path }).IsUnique(true);
                 entity.Ignore(e => e.NumberOfFiles);
                 entity.Ignore(e => e.NumberOfFilesRec);
                 entity.Ignore(e => e.NumberOfDirectories);
                 entity.Ignore(e => e.NumberOfDirectoriesRec);
                 entity.Ignore(e => e.NumberOfItems);
                 entity.Ignore(e => e.NumberOfItemsRec);
-#if DEBUG
-                entity.Property(e => e.AncestorIds).HasConversion(lst => JsonConvert.SerializeObject(lst), str => JsonConvert.DeserializeObject<List<long>>(str));
-#endif
+//#if DEBUG
+//                entity.Property(e => e.AncestorIds).HasConversion(lst => JsonConvert.SerializeObject(lst), str => JsonConvert.DeserializeObject<List<long>>(str));
+//#endif
             });
             modelBuilder.Entity<Tag>(entity =>
             {
@@ -150,9 +154,9 @@ namespace MSDiskManagerData.Data
                 entity.HasKey(e => e.Id);
             });
 
-#if DEBUG
+//#if DEBUG
             
-#endif
+//#endif
         }
     }
 }

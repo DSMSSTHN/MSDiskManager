@@ -69,12 +69,12 @@ namespace MSDiskManager.ViewModels
             children.ForEach(c => c.ResetResources());
         }
 
-        public DirectoryEntity DirectoryEntity
+        public MSDirecotry DirectoryEntity
         {
             get
             {
                 Path = Parent != null ? (Parent.Path + '\\' + OnDeskName) : OnDeskName;
-                var result = new DirectoryEntity
+                var result = new MSDirecotry
                 {
                     Name = Name,
                     Description = Description,

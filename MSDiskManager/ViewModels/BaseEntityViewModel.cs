@@ -126,14 +126,14 @@ namespace MSDiskManager.ViewModels
             this.Description = be.Description;
             this.Tags.Clear();
 
-            if (be is FileEntity)
+            if (be is MSFile)
             {
-                (this as FileViewModel)!.Extension = (be as FileEntity)!.Extension;
-                this.Tags.AddMany((be as FileEntity)!.FileTags.Select(ft => ft.Tag).ToList());
+                (this as FileViewModel)!.Extension = (be as MSFile)!.Extension;
+                this.Tags.AddMany((be as MSFile)!.FileTags.Select(ft => ft.Tag).ToList());
             }
             else
             {
-                this.Tags.AddMany((be as DirectoryEntity)!.DirectoryTags.Select(ft => ft.Tag).ToList());
+                this.Tags.AddMany((be as MSDirecotry)!.DirectoryTags.Select(ft => ft.Tag).ToList());
             }
             this.ParentId = be.ParentId;
             this.IsHidden = be.IsHidden;

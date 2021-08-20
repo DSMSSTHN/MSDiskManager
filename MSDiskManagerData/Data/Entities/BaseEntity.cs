@@ -18,7 +18,7 @@ namespace MSDiskManagerData.Data.Entities
         public Instant AddingDate { get; set; }
         public Instant MovingDate { get; set; }
         public long? ParentId { get; set; }
-        public DirectoryEntity? Parent { get; set; }
+        public MSDirecotry? Parent { get; set; }
         public bool IsHidden { get; set; }
         public string OnDeskName { get; set; }
         public string Description { get; set; }

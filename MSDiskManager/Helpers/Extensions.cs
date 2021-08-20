@@ -63,35 +63,40 @@ namespace MSDiskManager.Helpers
         {
             long size = 0;
             // Add file sizes.
-            FileInfo[] fis = d.GetFiles();
-            foreach (FileInfo fi in fis)
+            try
             {
-                size += fi.Length;
+                FileInfo[] fis = d.GetFiles();
+                foreach (FileInfo fi in fis)
+                {
+                    size += fi.Length;
+                }
+
+                if (reportSize != null) reportSize(size);
+                // Add subdirectory sizes.
+                DirectoryInfo[] dis = d.GetDirectories();
+                foreach (DirectoryInfo di in dis)
+                {
+                    size += di.GetDirSize(reportSize);
+                }
             }
-            if (reportSize != null) reportSize(size);
-            // Add subdirectory sizes.
-            DirectoryInfo[] dis = d.GetDirectories();
-            foreach (DirectoryInfo di in dis)
-            {
-                size += di.GetDirSize(reportSize);
-            }
+            catch (UnauthorizedAccessException) { }
             return size;
 
         }
-        public static string GetUUIDFilePath(this DriveInfo d, string DBName)
-        {
-#if DEBUG
-            return d.Name + DBName + ".msdmtest";
-#endif
-            return d.Name + DBName + ".msdm";
-        }
-        public static string GetUUIDFilePath(this MSDriver d, string DBName)
-        {
-#if DEBUG
-            return d.DriverLetter[0] + ":\\" + DBName + ".msdmtest";
-#endif
-            return d.DriverLetter[0] + ":\\" + DBName + ".msdm";
-        }
+        //        public static string GetUUIDFilePath(this DriveInfo d, string DBName)
+        //        {
+        //#if DEBUG
+        //            return d.Name + DBName + ".msdmtest";
+        //#endif
+        //            return d.Name + DBName + ".msdm";
+        //        }
+        //        public static string GetUUIDFilePath(this MSDriver d, string DBName)
+        //        {
+        //#if DEBUG
+        //            return d.DriverLetter[0] + ":\\" + DBName + ".msdmtest";
+        //#endif
+        //            return d.DriverLetter[0] + ":\\" + DBName + ".msdm";
+        //        }
         public static string GetApplicationDataFile(this Application app)
         {
             try
@@ -147,7 +152,7 @@ namespace MSDiskManager.Helpers
             }
             col.Add(item);
         }
-        public static DirectoryViewModel ToDirectoryViewModel(this DirectoryEntity entity, DirectoryViewModel? parent = null)
+        public static DirectoryViewModel ToDirectoryViewModel(this MSDirecotry entity, DirectoryViewModel? parent = null)
         {
             var result = new DirectoryViewModel
             {
@@ -166,13 +171,13 @@ namespace MSDiskManager.Helpers
                 OriginalPath = entity.FullPath,
                 Tags = entity.DirectoryTags?.Select(t => t.Tag)?.ToObservableCollection() ?? new ObservableCollection<Tag>(),
                 ParentId = entity.ParentId,
-                
+
             };
             result.Children = entity.Children?.Select(c => c.ToDirectoryViewModel(result))?.ToList() ?? new List<DirectoryViewModel>();
             return result;
         }
 
-        public static FileViewModel ToFileViewModel(this FileEntity entity)
+        public static FileViewModel ToFileViewModel(this MSFile entity)
         {
             return new FileViewModel
             {

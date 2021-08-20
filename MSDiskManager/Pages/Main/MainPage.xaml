@@ -14,8 +14,6 @@
       Loaded="Page_Loaded"
       Title="MainPage">
     <Page.Resources>
-        <helpers:IntToColorConverter x:Key="IntToColorConverter"/>
-        <helpers:IntToBrushConverter x:Key="IntToBrushConverter"/>
     </Page.Resources>
     <DockPanel>
         

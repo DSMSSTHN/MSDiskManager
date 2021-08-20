@@ -11,13 +11,13 @@ using System.Threading.Tasks;
 
 namespace MSDiskManagerData.Data.Entities
 {
-    public class FileEntity : BaseEntity
+    public class MSFile : BaseEntity
     {
         private string path = "";
         private string onDeskName = "New_File";
 
         public long? Id { get; set; }
-        public long? DriverId { get; set; }
+        public string? DriveId { get; set; }
         public string Name { get; set; } = "New File";
         public string OnDeskName { get => onDeskName; set => onDeskName = value.Trim().Replace("\\", "").Replace("/", ""); }
         public string Description { get; set; } = "";
@@ -42,7 +42,7 @@ namespace MSDiskManagerData.Data.Entities
         public String OldPath { get; set; } = "";
         public FileType FileType { get; set; } = FileType.Unknown;
         public long? ParentId { get; set; }
-        public DirectoryEntity? Parent { get; set; }
+        public MSDirecotry? Parent { get; set; }
         public List<long> AncestorIds { get; set; } = new List<long>();
         public Instant AddingDate { get; set; }
         public Instant MovingDate { get; set; }

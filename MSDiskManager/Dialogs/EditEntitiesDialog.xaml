@@ -22,7 +22,6 @@
             <Setter Property="Foreground" Value="{StaticResource textColor}"/>
             <Setter Property="Background" Value="{StaticResource primary}"/>
         </Style>
-        <helpers:IntToBrushConverter x:Key="IntToBrushConverter"/>
     </Window.Resources>
     <Border CornerRadius="5" Background="{StaticResource primary}" BorderBrush="{StaticResource primaryLight}" BorderThickness="3">
         <Grid Loaded="Grid_Loaded">

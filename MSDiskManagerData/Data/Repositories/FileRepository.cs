@@ -22,7 +22,7 @@ namespace MSDiskManagerData.Data.Repositories
         {
             IsTest = isTest;
         }
-        public  async Task<List<FileEntity>> AddToDbOnly(List<FileEntity> files)
+        public  async Task<List<MSFile>> AddToDbOnly(List<MSFile> files)
         {
             var limit = 1000;
             if(files.Count < limit)
@@ -30,16 +30,16 @@ namespace MSDiskManagerData.Data.Repositories
                 return await _addToDbOnly(files);
             }
             var times = files.Count / limit;
-            List<FileEntity> success = new List<FileEntity>();
+            List<MSFile> success = new List<MSFile>();
             for (int i = 0; i < times; i++)
             {
                 success.AddRange(await _addToDbOnly(files.Skip(i * limit).Take(limit).ToList()));
             }
             return success;
         }
-        private async Task<List<FileEntity>> _addToDbOnly(ICollection<FileEntity> files)
+        private async Task<List<MSFile>> _addToDbOnly(ICollection<MSFile> files)
         {
-            List<FileEntity> exists = new List<FileEntity>();
+            List<MSFile> exists = new List<MSFile>();
             try
             {
                 var ctx = await context();
@@ -62,9 +62,9 @@ namespace MSDiskManagerData.Data.Repositories
             sucess.AddRange(exists);
             return sucess;
         }
-        public async Task<FileEntity> AddToDbOnly(FileEntity file)
+        public async Task<MSFile> AddToDbOnly(MSFile file)
         {
-            if (MSDM_DBContext.currentDriverId == null) throw new Exception("No Driver Is Selected Yey!!");
+            if (MSDM_DBContext.currentDriveId == null) throw new Exception("No Driver Is Selected Yey!!");
             try
             {
                 var ctx = await context();
@@ -80,7 +80,7 @@ namespace MSDiskManagerData.Data.Repositories
             }
             file.AddingDate = new NodaTime.Instant();
             file.MovingDate = new NodaTime.Instant();
-            file.DriverId = MSDM_DBContext.currentDriverId;
+            file.DriveId = MSDM_DBContext.currentDriveId;
             try
             {
                 var ctx = await context();
@@ -133,7 +133,7 @@ namespace MSDiskManagerData.Data.Repositories
                 throw;
             }
         }
-        private async Task saveThumbnails(List<FileEntity> files)
+        private async Task saveThumbnails(List<MSFile> files)
         {
             if (Globals.IsNullOrEmpty(files)) return;
             List<ImageThumbnail> thumbs = new List<ImageThumbnail>();
@@ -202,15 +202,15 @@ namespace MSDiskManagerData.Data.Repositories
             }
         }
         //failureFunction 0 retry 1 skip 2 break;
-        public async Task<List<FileEntity>> AddFiles(List<FileEntity> files,
+        public async Task<List<MSFile>> AddFiles(List<MSFile> files,
             CancellationToken? cancels = null)
         {
-            if (MSDM_DBContext.currentDriverId == null) throw new Exception("No Driver Was Configured yet");
+            if (MSDM_DBContext.currentDriveId == null) throw new Exception("No Driver Was Configured yet");
             if (cancels?.IsCancellationRequested ?? false) return null;
             if (Globals.IsNullOrEmpty(files)) throw new ArgumentException("File Or Old Path were null");
             var fs = files.Where(f => f != null && f.Path != null && f.OldPath != null).ToList();
-            var succeed = new List<FileEntity>();
-            var images = new List<FileEntity>();
+            var succeed = new List<MSFile>();
+            var images = new List<MSFile>();
             List<long> pids = new List<long>();
             List<List<long>> paids = new List<List<long>>();
             try
@@ -253,7 +253,7 @@ namespace MSDiskManagerData.Data.Repositories
                     try
                     {
                         if (cancels?.IsCancellationRequested ?? false) return null;
-                        f.DriverId = MSDM_DBContext.currentDriverId;
+                        f.DriveId = MSDM_DBContext.currentDriveId;
                         if (f.FileType == FileType.Image) images.Add(f);
                         succeed.Add(f);
                         break;
@@ -322,7 +322,7 @@ namespace MSDiskManagerData.Data.Repositories
                 return (false, e.Message);
             }
         }
-        public async Task<(Boolean success, string message, FileEntity file)> ChangeType(long id, FileType type)
+        public async Task<(Boolean success, string message, MSFile file)> ChangeType(long id, FileType type)
         {
             if (id < 0) return (false, "Not Valid Id", null);
             try
@@ -342,7 +342,7 @@ namespace MSDiskManagerData.Data.Repositories
                 return (false, e.Message, null);
             }
         }
-        public async Task<(Boolean success, string message, FileEntity file)> ChangeDescription(long id, string description)
+        public async Task<(Boolean success, string message, MSFile file)> ChangeDescription(long id, string description)
         {
             if (id < 0) return (false, "Not Valid Id", null);
             try
@@ -478,7 +478,7 @@ namespace MSDiskManagerData.Data.Repositories
         }
 
 
-        public async Task<(Boolean success, string message, FileEntity file)> ChangeIsHidden(long id, bool isHidden)
+        public async Task<(Boolean success, string message, MSFile file)> ChangeIsHidden(long id, bool isHidden)
         {
             if (id < 0) return (false, "Not Valid Id", null);
             try
@@ -518,7 +518,7 @@ namespace MSDiskManagerData.Data.Repositories
                 return false;
             }
         }
-        public async Task<(Boolean success, string message, FileEntity file)> DeleteFile(long id)
+        public async Task<(Boolean success, string message, MSFile file)> DeleteFile(long id)
         {
             if (id < 0) return (false, "Not Valid Id", null);
             try
@@ -539,7 +539,7 @@ namespace MSDiskManagerData.Data.Repositories
                 return (false, e.Message, null);
             }
         }
-        public async Task<(Boolean success, string message, FileEntity file)> DeleteReferenceOnly(long id)
+        public async Task<(Boolean success, string message, MSFile file)> DeleteReferenceOnly(long id)
         {
             if (id < 0) return (false, "Not Valid Id", null);
             try
@@ -559,7 +559,7 @@ namespace MSDiskManagerData.Data.Repositories
                 return (false, e.Message, null);
             }
         }
-        public async Task<(Boolean success, string message, List<FileEntity> file)> DeleteInvalidReference(ICollection<long> ids)
+        public async Task<(Boolean success, string message, List<MSFile> file)> DeleteInvalidReference(ICollection<long> ids)
         {
             if (ids == null || ids.IsEmpty()) return (false, "Not Valid Id", null);
             try
@@ -581,7 +581,7 @@ namespace MSDiskManagerData.Data.Repositories
                 return (false, e.Message, null);
             }
         }
-        public async Task<(Boolean success, string message, List<FileEntity> file)> DeleteReferenceOnly(ICollection<long> ids)
+        public async Task<(Boolean success, string message, List<MSFile> file)> DeleteReferenceOnly(ICollection<long> ids)
         {
             if (ids == null || ids.IsEmpty()) return (false, "Not Valid Id", null);
             try
@@ -603,7 +603,7 @@ namespace MSDiskManagerData.Data.Repositories
             }
         }
 
-        public async Task<FileEntity> GetFile(long id)
+        public async Task<MSFile> GetFile(long id)
         {
             try
             {
@@ -618,14 +618,14 @@ namespace MSDiskManagerData.Data.Repositories
                 throw;
             }
         }
-        public async Task<List<FileEntity>> FilterFiles(FileFilter filter, long? driverId = null)
+        public async Task<List<MSFile>> FilterFiles(FileFilter filter, string? driverId = null)
         {
-            var d = driverId ?? MSDM_DBContext.currentDriverId;
+            var d = driverId ?? MSDM_DBContext.currentDriveId;
             if (d == null) throw new Exception("No Driver is configured yet");
             try
             {
                 var ctx = await context();
-                var que = ctx.Files.AsNoTracking().Include(f => f.FileTags).ThenInclude(ft => ft.Tag).IgnoreAutoIncludes().Where(f => f.DriverId == d).QFileFilter(ctx, filter);
+                var que = ctx.Files.AsNoTracking().Include(f => f.FileTags).ThenInclude(ft => ft.Tag).IgnoreAutoIncludes().Where(f => f.DriveId == d).QFileFilter(ctx, filter);
                 var str = que.ToQueryString();
                 repotFinished();
                 var result = await que.ToListAsync();
@@ -647,7 +647,7 @@ namespace MSDiskManagerData.Data.Repositories
 
     public static class FileQueryExtensions
     {
-        public static IQueryable<FileEntity> QName(this IQueryable<FileEntity> que, string name, bool includeFileName, bool IncludeDescription)
+        public static IQueryable<MSFile> QName(this IQueryable<MSFile> que, string name, bool includeFileName, bool IncludeDescription)
         {
             if (Globals.IsNullOrEmpty(name)) return que;
             var ns = name.Trim().ToLower().Split(" ").Where(n => n.IsNotEmpty());
@@ -672,12 +672,12 @@ namespace MSDiskManagerData.Data.Repositories
             }
             return q;
         }
-        public static IQueryable<FileEntity> QTags(this IQueryable<FileEntity> que, MSDM_DBContext context, List<long> tagIds)
+        public static IQueryable<MSFile> QTags(this IQueryable<MSFile> que, MSDM_DBContext context, List<long> tagIds)
         {
             if (Globals.IsNullOrEmpty(tagIds)) return que;
             return que.Join((context).FileTags.Where(ft => tagIds.Contains(ft.TagId)), f => f.Id, ft => ft.FileId, (f, ft) => f);
         }
-        public static IQueryable<FileEntity> QTags(this IQueryable<FileEntity> que, MSDM_DBContext context, string name)
+        public static IQueryable<MSFile> QTags(this IQueryable<MSFile> que, MSDM_DBContext context, string name)
         {
             if (Globals.IsNullOrEmpty(name)) return que;
             var ns = name.Trim().ToLower().Split(" ").Where(n => n.IsNotEmpty());
@@ -688,33 +688,33 @@ namespace MSDiskManagerData.Data.Repositories
             }
             return que.Join(que2.Distinct().SelectMany(t => t.FileTags), f => f.Id, ft => ft.FileId, (f, ft) => f);
         }
-        public static IQueryable<FileEntity> QTags(this IQueryable<FileEntity> que, MSDM_DBContext context, List<long> tagIds, string name)
+        public static IQueryable<MSFile> QTags(this IQueryable<MSFile> que, MSDM_DBContext context, List<long> tagIds, string name)
         {
             if (Globals.IsNotNullNorEmpty(tagIds)) return que.QTags(context, tagIds);
             return que.QTags(context, name);
         }
-        public static IQueryable<FileEntity> QDirectory(this IQueryable<FileEntity> que, long? directoryId)
+        public static IQueryable<MSFile> QDirectory(this IQueryable<MSFile> que, long? directoryId)
         {
             if (directoryId == null || directoryId < -1) return que;
             if (directoryId == -1) return que.Where(e => e.ParentId == null);
             return que.Where(e => e.ParentId == directoryId);
         }
-        public static IQueryable<FileEntity> QAncestors(this IQueryable<FileEntity> que, List<long> ancestorIds)
+        public static IQueryable<MSFile> QAncestors(this IQueryable<MSFile> que, List<long> ancestorIds)
         {
             if (Globals.IsNullOrEmpty(ancestorIds)) return que;
             return que.Where(e => ancestorIds.Any(aid => e.AncestorIds.Contains(aid)));
         }
-        public static IQueryable<FileEntity> QHidden(this IQueryable<FileEntity> que, bool withHidden = false)
+        public static IQueryable<MSFile> QHidden(this IQueryable<MSFile> que, bool withHidden = false)
         {
             if (withHidden) return que;
             return que.Where(f => !f.IsHidden);
         }
-        public static IQueryable<FileEntity> QTypes(this IQueryable<FileEntity> que, List<FileType> types)
+        public static IQueryable<MSFile> QTypes(this IQueryable<MSFile> que, List<FileType> types)
         {
             if (Globals.IsNullOrEmpty(types)) return que;
             return que.Where(e => types.Contains(e.FileType));
         }
-        public static IQueryable<FileEntity> QOrder(this IQueryable<FileEntity> que, FileOrder order)
+        public static IQueryable<MSFile> QOrder(this IQueryable<MSFile> que, FileOrder order)
         {
             switch (order)
             {
@@ -737,18 +737,18 @@ namespace MSDiskManagerData.Data.Repositories
             }
             return que.OrderBy(q => q.Name);
         }
-        public static IQueryable<FileEntity> QExclude(this IQueryable<FileEntity> que, List<long> idsToExclude)
+        public static IQueryable<MSFile> QExclude(this IQueryable<MSFile> que, List<long> idsToExclude)
         {
             if (Globals.IsNullOrEmpty(idsToExclude)) return que;
             return que.Where(e => !idsToExclude.Contains((long)e.Id));
         }
-        public static IQueryable<FileEntity> QPageLimit(this IQueryable<FileEntity> que, int page, int limit)
+        public static IQueryable<MSFile> QPageLimit(this IQueryable<MSFile> que, int page, int limit)
         {
             if (limit <= 0) return que;
             var p = page < 0 ? 0 : page;
             return que.Skip(p * limit).Take(limit);
         }
-        public static IQueryable<FileEntity> QFileFilter(this IQueryable<FileEntity> que, MSDM_DBContext context, FileFilter filter)
+        public static IQueryable<MSFile> QFileFilter(this IQueryable<MSFile> que, MSDM_DBContext context, FileFilter filter)
         {
             if (filter == null) return que;
             var q = que.QName(filter.Name, filter.IncludeFileNameInSearch, filter.IncludeDescriptionInSearch);

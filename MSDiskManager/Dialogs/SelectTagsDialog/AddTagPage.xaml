@@ -8,31 +8,38 @@
       xmlns:helpers="clr-namespace:MSDiskManager.Helpers"
       mc:Ignorable="d" 
       ShowsNavigationUI="False"
-      d:DesignHeight="225" d:DesignWidth="400"
+      d:DesignHeight="600" d:DesignWidth="800"
       Title="AddTagPage">
     <Page.Resources>
-        <helpers:IntToColorConverter x:Key="IntToColorConverter"/>
-        <helpers:IntToBrushConverter x:Key="IntToBrushConverter"/>
     </Page.Resources>
-    <Grid Loaded="Grid_Loaded">
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="100"/>
-            <ColumnDefinition Width="*"/>
-        </Grid.ColumnDefinitions>
+    <Grid Loaded="Grid_Loaded" >
         <Grid.RowDefinitions>
-            <RowDefinition Height="*"/>
-            <RowDefinition Height="*"/>
             <RowDefinition Height="auto"/>
+            <RowDefinition Height="30"/>
             <RowDefinition Height="auto"/>
+            <RowDefinition/>
+            <RowDefinition Height="40"/>
         </Grid.RowDefinitions>
-        <TextBlock VerticalAlignment="Center" HorizontalAlignment="Center" Grid.Row="0" Grid.Column="0" Text="Name:"/>
-        <TextBox x:Name="NameTBX" TextAlignment="Center" VerticalContentAlignment="Center" Grid.Row="0" Grid.Column="1" Text="{Binding Name, Mode=TwoWay}"/>
-        <TextBlock VerticalAlignment="Center" HorizontalAlignment="Center" Grid.Row="1" Grid.Column="0" Text="Color:"/>
-        <ListView x:Name="ColorsListView" Grid.Row="1" Grid.Column="1" ItemsSource="{Binding AllColors}"
-                  
+
+        <TextBlock VerticalAlignment="Center" FontWeight="SemiBold" FontSize="20" HorizontalAlignment="Center" Grid.Row="0"  Text="Name:"/>
+        <TextBox x:Name="NameTBX" FontWeight="SemiBold" FontSize="20" TextAlignment="Center" VerticalContentAlignment="Center" Grid.Row="1" Text="{Binding Name, Mode=TwoWay}"/>
+        <TextBlock VerticalAlignment="Center" FontWeight="SemiBold" FontSize="20" HorizontalAlignment="Center" Grid.Row="2" Text="Color:"/>
+        <ListView x:Name="ColorsListView" Grid.Row="3" ItemsSource="{Binding AllColors}" BorderThickness="0"
                   Background="{Binding Color,Converter={StaticResource IntToBrushConverter}}"
+                  d:ItemsSource="{x:Static mock:MockData.AllColors}"
+                  d:Background="#c62828"
+                  VerticalContentAlignment="Center" HorizontalContentAlignment="Center"
                   
-                  d:ItemsSource="{x:Static mock:MockData.AllColors}">
+                  >
+            <ListView.Style>
+                <Style TargetType="ListView">
+                    <Style.Resources>
+                        <Style TargetType="Border">
+                            <Setter Property="CornerRadius" Value="0"/>
+                        </Style>
+                    </Style.Resources>
+                </Style>
+            </ListView.Style>
             <ListView.ItemsPanel>
                 <ItemsPanelTemplate>
                     <WrapPanel Orientation="Horizontal" 
@@ -44,25 +51,25 @@
             </ListView.ItemsPanel>
             <ListView.ItemTemplate>
                 <DataTemplate>
-                    <Border Background="{Binding Path=.,Converter={StaticResource IntToBrushConverter}}">
-                        <Button MinWidth="25" MinHeight="25" Click="Button_Click" CommandParameter="{Binding Path=.}">
-                            
+                    <Border Background="{Binding Path=.,Converter={StaticResource IntToBrushConverter}}" Margin="5">
+                        <Button MinWidth="100" MinHeight="100" Click="Button_Click" CommandParameter="{Binding Path=.}">
+
                         </Button>
                     </Border>
                 </DataTemplate>
             </ListView.ItemTemplate>
         </ListView>
-        
-        <Grid Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="2" >
+
+        <Grid Grid.Row="4"  Background="{StaticResource primary}">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition/>
                 <ColumnDefinition/>
             </Grid.ColumnDefinitions>
-            <Border Margin="3 3" Background="{StaticResource warnColor}" Padding="20" Grid.Column="0">
-                <Button Content="Cancel" Click="CancelClicked"/>
+            <Border CornerRadius="1" Margin="1 1 1 0" Background="{StaticResource warnColor}"  Grid.Column="0">
+                <Button Content="Cancel" Click="CancelClicked" FontWeight="SemiBold" FontSize="20"/>
             </Border>
-            <Border Margin="3 3" Background="{StaticResource addColor}" Padding="20" Grid.Column="1">
-                <Button Content="Add" Click="AddClicked"/>
+            <Border CornerRadius="1" Margin="1 1 1 0" Background="{StaticResource addColor}" Grid.Column="1">
+                <Button Content="Add" Click="AddClicked" FontWeight="SemiBold" FontSize="20"/>
             </Border>
         </Grid>
     </Grid>

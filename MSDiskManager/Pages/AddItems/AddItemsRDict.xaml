@@ -1,13 +1,6 @@
 ﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                     xmlns:helpers="clr-namespace:MSDiskManager.Helpers"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
-    <helpers:TypeToIconSourceConverter x:Key="TypeToIconSourceConverter"/>
-    <helpers:DoubleDividerConverter x:Key="DoubleDividerConverter"/>
-    <helpers:EntityListToStringConverter x:Key="EntityListToStringConverter"/>
-    <helpers:BooleanOpposetConverter x:Key="BooleanOpposetConverter"/>
-    <helpers:BooleanVisibility_CollapseConverter x:Key="BooleanVisibility_CollapseConverter"/>
-    <helpers:BooleanScrollVisibilityConverter x:Key="BooleanScrollVisibilityConverter"/>
-    <helpers:IntToBrushConverter x:Key="IntToBrushConverter"/>
 
     <Style TargetType="TextBox">
         <Setter Property="Background" Value="Transparent"/>

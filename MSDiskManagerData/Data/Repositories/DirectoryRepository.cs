@@ -19,7 +19,7 @@ namespace MSDiskManagerData.Data.Repositories
         {
             IsTest = isTest;
         }
-        public async Task<DirectoryEntity> CreateDirectory(long? parentId, string name, string description = "", DirectoryExistsStrategy directoryExistsStrategy = DirectoryExistsStrategy.Rename, bool dontAddToDB = false)
+        public async Task<MSDirecotry> CreateDirectory(long? parentId, string name, string description = "", DirectoryExistsStrategy directoryExistsStrategy = DirectoryExistsStrategy.Rename, bool dontAddToDB = false)
         {
             if (name == null || name.IsEmpty()) return null;
             var parent = parentId == null ? null : await GetDirectory((long)parentId);
@@ -27,15 +27,15 @@ namespace MSDiskManagerData.Data.Repositories
             if (parent != null) path = parent.Path + '\\' + name;
             else path = name;
 
-            var dir = new DirectoryEntity { Name = name, ParentId = parentId, Path = path, OnDeskName = name, Description = description };
+            var dir = new MSDirecotry { Name = name, ParentId = parentId, Path = path, OnDeskName = name, Description = description };
             return await CreateDirectory(dir, directoryExistsStrategy, dontAddToDB);
         }
-        public async Task<DirectoryEntity> AddToDbOnly(DirectoryEntity directory)
+        public async Task<MSDirecotry> AddToDbOnly(MSDirecotry directory)
         {
-            if (MSDM_DBContext.currentDriverId == null) throw new Exception("No Driver was configured yet");
+            if (MSDM_DBContext.currentDriveId == null) throw new Exception("No Driver was configured yet");
             directory.AddingDate = new NodaTime.Instant();
             directory.MovingDate = new NodaTime.Instant();
-            directory.DriverId = MSDM_DBContext.currentDriverId;
+            directory.DriveId = MSDM_DBContext.currentDriveId;
             try
             {
                 var ctx = await context();
@@ -97,7 +97,7 @@ namespace MSDiskManagerData.Data.Repositories
 
             return directory;
         }
-        public async Task<DirectoryEntity> Update(DirectoryEntity directory)
+        public async Task<MSDirecotry> Update(MSDirecotry directory)
         {
             try
             {
@@ -121,11 +121,11 @@ namespace MSDiskManagerData.Data.Repositories
         /// <param name=""></param>
         /// <param name="dontAddToDB"></param>
         /// <returns></returns>
-        public async Task<List<DirectoryEntity>> CreateDirectories(List<DirectoryEntity> directories,
+        public async Task<List<MSDirecotry>> CreateDirectories(List<MSDirecotry> directories,
             DirectoryExistsStrategy directoryExistsStrategy = DirectoryExistsStrategy.Rename
             , bool dontAddToDB = false, CancellationToken? cancels = null)
         {
-            if (MSDM_DBContext.currentDriverId == null) throw new Exception("No Driver was configured yet");
+            if (MSDM_DBContext.currentDriveId == null) throw new Exception("No Driver was configured yet");
             if (cancels?.IsCancellationRequested ?? false) return null;
             if (Globals.IsNullOrEmpty(directories)) throw new Exception("No data was given");
             var waiting = directories.ToList();
@@ -159,7 +159,7 @@ namespace MSDiskManagerData.Data.Repositories
                 {
                     d.AncestorIds = new List<long>();
                 }
-                d.DriverId = MSDM_DBContext.currentDriverId;
+                d.DriveId = MSDM_DBContext.currentDriveId;
             }
             try
             {
@@ -176,12 +176,12 @@ namespace MSDiskManagerData.Data.Repositories
 
 
 
-        public async Task<DirectoryEntity> CreateDirectory(DirectoryEntity directory, DirectoryExistsStrategy directoryExistsStrategy = DirectoryExistsStrategy.Rename, bool dontAddToDB = false)
+        public async Task<MSDirecotry> CreateDirectory(MSDirecotry directory, DirectoryExistsStrategy directoryExistsStrategy = DirectoryExistsStrategy.Rename, bool dontAddToDB = false)
         {
-            if (MSDM_DBContext.currentDriverId == null) throw new Exception("No Driver was configured yet");
+            if (MSDM_DBContext.currentDriveId == null) throw new Exception("No Driver was configured yet");
             if (directory == null || directory.Path == null || Globals.IsNullOrEmpty(directory.Name)) throw new ArgumentException("Directory Or Path or name were null");
             if (Globals.IsNullOrEmpty(directory.OnDeskName)) directory.OnDeskName = directory.Name;
-            directory.DriverId = MSDM_DBContext.currentDriverId;
+            directory.DriveId = MSDM_DBContext.currentDriveId;
             if (dontAddToDB) return directory;
             return await AddToDbOnly(directory);
         }
@@ -208,7 +208,7 @@ namespace MSDiskManagerData.Data.Repositories
             }
         }
 
-        public async Task<(Boolean success, string message, DirectoryEntity directory)> ChangeDescription(long id, string description)
+        public async Task<(Boolean success, string message, MSDirecotry directory)> ChangeDescription(long id, string description)
         {
             if (id < 0) return (false, "Not Valid Id", null);
             try
@@ -250,7 +250,7 @@ namespace MSDiskManagerData.Data.Repositories
                 return result;
             }
         }
-        public async Task<(Boolean success, string message, DirectoryEntity directory)> ChangeIsHidden(long id, bool isHidden)
+        public async Task<(Boolean success, string message, MSDirecotry directory)> ChangeIsHidden(long id, bool isHidden)
         {
             if (id < 0) return (false, "Not Valid Id", null);
             try
@@ -425,13 +425,13 @@ namespace MSDiskManagerData.Data.Repositories
             try
             {
                 var ctx = await context();
-                var dirs = await ctx.Directories.Where(d => d.AncestorIds.Contains(ancestorId)).Select(d => new DirectoryEntity { Id = d.Id, Path = d.Path }).ToListAsync();
+                var dirs = await ctx.Directories.Where(d => d.AncestorIds.Contains(ancestorId)).Select(d => new MSDirecotry { Id = d.Id, Path = d.Path }).ToListAsync();
                 foreach (var d in dirs)
                 {
                     ctx.Directories.Attach(d);
                     d.Path = d.Path.Replace(oldAncestorPath, newAncestorPath);
                 }
-                var files = await ctx.Files.Where(d => d.AncestorIds.Contains(ancestorId)).Select(d => new FileEntity { Id = d.Id, Path = d.Path }).ToListAsync();
+                var files = await ctx.Files.Where(d => d.AncestorIds.Contains(ancestorId)).Select(d => new MSFile { Id = d.Id, Path = d.Path }).ToListAsync();
                 foreach (var f in files)
                 {
 
@@ -466,7 +466,7 @@ namespace MSDiskManagerData.Data.Repositories
                 return false;
             }
         }
-        public async Task<(Boolean success, string message, DirectoryEntity directory)> DeleteDirectory(long id)
+        public async Task<(Boolean success, string message, MSDirecotry directory)> DeleteDirectory(long id)
         {
             if (id < 0) return (false, "Not Valid Id", null);
             try
@@ -487,7 +487,7 @@ namespace MSDiskManagerData.Data.Repositories
                 return (false, e.Message, null);
             }
         }
-        public async Task<(Boolean success, string message, DirectoryEntity directory)> DeleteReferenceOnly(long id)
+        public async Task<(Boolean success, string message, MSDirecotry directory)> DeleteReferenceOnly(long id)
         {
             if (id < 0) return (false, "Not Valid Id", null);
             try
@@ -507,7 +507,7 @@ namespace MSDiskManagerData.Data.Repositories
                 return (false, e.Message, null);
             }
         }
-        public async Task<(Boolean success, string message, List<DirectoryEntity> file)> DeleteInvalidReference(ICollection<long> ids)
+        public async Task<(Boolean success, string message, List<MSDirecotry> file)> DeleteInvalidReference(ICollection<long> ids)
         {
             if (ids == null || ids.IsEmpty()) return (false, "Not Valid Id", null);
             try
@@ -529,7 +529,7 @@ namespace MSDiskManagerData.Data.Repositories
                 return (false, e.Message, null);
             }
         }
-        public async Task<(Boolean success, string message, List<DirectoryEntity> directories)> DeleteReferenceOnly(ICollection<long> ids)
+        public async Task<(Boolean success, string message, List<MSDirecotry> directories)> DeleteReferenceOnly(ICollection<long> ids)
         {
             if (ids == null || ids.IsEmpty()) return (false, "Not Valid Id", null);
             try
@@ -551,7 +551,7 @@ namespace MSDiskManagerData.Data.Repositories
             }
         }
         
-        public async Task<DirectoryEntity> GetDirectory(long id)
+        public async Task<MSDirecotry> GetDirectory(long id)
 
         {
             try
@@ -567,7 +567,7 @@ namespace MSDiskManagerData.Data.Repositories
                 throw;
             }
         }
-        public async Task<DirectoryEntity> GetDirectoryFull(long id)
+        public async Task<MSDirecotry> GetDirectoryFull(long id)
         {
             try
             {
@@ -582,14 +582,14 @@ namespace MSDiskManagerData.Data.Repositories
                 throw;
             }
         }
-        public async Task<List<DirectoryEntity>> FilterDirectories(DirectoryFilter filter, long? driverId = null)
+        public async Task<List<MSDirecotry>> FilterDirectories(DirectoryFilter filter, string? driverId = null)
         {
-            var did = driverId ?? MSDM_DBContext.currentDriverId;
+            var did = driverId ?? MSDM_DBContext.currentDriveId;
             if (did == null) throw new Exception("No Driver was configured yet");
             try
             {
                 var ctx = await context();
-                var que = ctx.Directories.AsNoTracking().Include(d => d.DirectoryTags).ThenInclude(ft => ft.Tag).IgnoreAutoIncludes().Where(d => d.DriverId == did).QDirectoryFilter(ctx, filter);
+                var que = ctx.Directories.AsNoTracking().Include(d => d.DirectoryTags).ThenInclude(ft => ft.Tag).IgnoreAutoIncludes().Where(d => d.DriveId == did).QDirectoryFilter(ctx, filter);
                 var str = que.ToQueryString();
                 var result = await que.ToListAsync();
 
@@ -601,7 +601,7 @@ namespace MSDiskManagerData.Data.Repositories
 
                 repotFinished();
                 var str2 = e.Message;
-                return new List<DirectoryEntity>();
+                return new List<MSDirecotry>();
             }
         }
 
@@ -623,7 +623,7 @@ namespace MSDiskManagerData.Data.Repositories
                 return 0;
             }
         }
-        public async Task<List<FileEntity>> GetFiles(long? id)
+        public async Task<List<MSFile>> GetFiles(long? id)
         {
             try
             {
@@ -640,7 +640,7 @@ namespace MSDiskManagerData.Data.Repositories
             }
 
         }
-        public async Task<List<DirectoryEntity>> GetChildren(long? id)
+        public async Task<List<MSDirecotry>> GetChildren(long? id)
         {
             try
             {
@@ -657,12 +657,12 @@ namespace MSDiskManagerData.Data.Repositories
             }
 
         }
-        public async Task<List<FileEntity>> GetDescendantFiles(long id)
+        public async Task<List<MSFile>> GetDescendantFiles(long id)
         {
             try
             {
                 var ctx = await context();
-                if (id < 0) return new List<FileEntity>();
+                if (id < 0) return new List<MSFile>();
                 var result = await ctx.Files.Where(f => f.ParentId == id || f.AncestorIds.Contains(id)).ToListAsync();
                 repotFinished();
                 return result;
@@ -673,12 +673,12 @@ namespace MSDiskManagerData.Data.Repositories
                 throw;
             }
         }
-        public async Task<List<DirectoryEntity>> GetDescendantDirectories(long id)
+        public async Task<List<MSDirecotry>> GetDescendantDirectories(long id)
         {
             try
             {
                 var ctx = await context();
-                if (id < 0) return new List<DirectoryEntity>();
+                if (id < 0) return new List<MSDirecotry>();
                 var result = await ctx.Directories.Where(f => f.ParentId == id || f.AncestorIds.Contains(id)).ToListAsync();
                 repotFinished();
                 return result;
@@ -693,7 +693,7 @@ namespace MSDiskManagerData.Data.Repositories
 
     public static class DirectoryQueryExtensions
     {
-        public static IQueryable<DirectoryEntity> QName(this IQueryable<DirectoryEntity> que, string name, bool includeDirectoryName, bool IncludeDescription)
+        public static IQueryable<MSDirecotry> QName(this IQueryable<MSDirecotry> que, string name, bool includeDirectoryName, bool IncludeDescription)
         {
             if (Globals.IsNullOrEmpty(name)) return que;
             var ns = name.Trim().ToLower().Split(" ").Where(n => n.IsNotEmpty()).ToList();
@@ -718,12 +718,12 @@ namespace MSDiskManagerData.Data.Repositories
             }
             return q;
         }
-        public static IQueryable<DirectoryEntity> QTags(this IQueryable<DirectoryEntity> que, MSDM_DBContext context, List<long> tagIds)
+        public static IQueryable<MSDirecotry> QTags(this IQueryable<MSDirecotry> que, MSDM_DBContext context, List<long> tagIds)
         {
             if (Globals.IsNullOrEmpty(tagIds)) return que;
             return que.Join(context.DirectoryTags.Where(ft => tagIds.Contains(ft.TagId)), d => d.Id, ft => ft.DirectoryId, (f, ft) => f);
         }
-        public static IQueryable<DirectoryEntity> QTags(this IQueryable<DirectoryEntity> que, MSDM_DBContext context, string name)
+        public static IQueryable<MSDirecotry> QTags(this IQueryable<MSDirecotry> que, MSDM_DBContext context, string name)
         {
             if (Globals.IsNullOrEmpty(name)) return que;
             var ns = name.Trim().ToLower().Split(" ").Where(n => n.IsNotEmpty());
@@ -734,29 +734,29 @@ namespace MSDiskManagerData.Data.Repositories
             }
             return que.Join(que2.Distinct().SelectMany(t => t.DirectoryTags), d => d.Id, ft => ft.DirectoryId, (f, ft) => f);
         }
-        public static IQueryable<DirectoryEntity> QTags(this IQueryable<DirectoryEntity> que, MSDM_DBContext context, List<long> tagIds, string name)
+        public static IQueryable<MSDirecotry> QTags(this IQueryable<MSDirecotry> que, MSDM_DBContext context, List<long> tagIds, string name)
         {
             if (Globals.IsNotNullNorEmpty(tagIds)) return que.QTags(context, tagIds);
             return que.QTags(context, name);
         }
-        public static IQueryable<DirectoryEntity> QDirectory(this IQueryable<DirectoryEntity> que, long? directoryId)
+        public static IQueryable<MSDirecotry> QDirectory(this IQueryable<MSDirecotry> que, long? directoryId)
         {
             if (directoryId == null || directoryId < -1) return que;
             if (directoryId == -1) return que.Where(e => e.ParentId == null);
             return que.Where(e => e.ParentId == directoryId);
         }
-        public static IQueryable<DirectoryEntity> QAncestors(this IQueryable<DirectoryEntity> que, List<long> ancestorIds)
+        public static IQueryable<MSDirecotry> QAncestors(this IQueryable<MSDirecotry> que, List<long> ancestorIds)
         {
             if (Globals.IsNullOrEmpty(ancestorIds)) return que;
             return que.Where(e => ancestorIds.Any(aid => e.AncestorIds.Contains(aid)));
         }
-        public static IQueryable<DirectoryEntity> QHidden(this IQueryable<DirectoryEntity> que, bool withHidden = false)
+        public static IQueryable<MSDirecotry> QHidden(this IQueryable<MSDirecotry> que, bool withHidden = false)
         {
             if (withHidden) return que;
             return que.Where(d => !d.IsHidden);
         }
 
-        public static IQueryable<DirectoryEntity> QOrder(this IQueryable<DirectoryEntity> que, DirectoryOrder order)
+        public static IQueryable<MSDirecotry> QOrder(this IQueryable<MSDirecotry> que, DirectoryOrder order)
         {
             switch (order)
             {
@@ -775,18 +775,18 @@ namespace MSDiskManagerData.Data.Repositories
             }
             return que.OrderBy(q => q.Name);
         }
-        public static IQueryable<DirectoryEntity> QExclude(this IQueryable<DirectoryEntity> que, List<long> idsToExclude)
+        public static IQueryable<MSDirecotry> QExclude(this IQueryable<MSDirecotry> que, List<long> idsToExclude)
         {
             if (Globals.IsNullOrEmpty(idsToExclude)) return que;
             return que.Where(e => !idsToExclude.Contains((long)e.Id));
         }
-        public static IQueryable<DirectoryEntity> QPageLimit(this IQueryable<DirectoryEntity> que, int page, int limit)
+        public static IQueryable<MSDirecotry> QPageLimit(this IQueryable<MSDirecotry> que, int page, int limit)
         {
             if (limit <= 0) return que;
             var p = page < 0 ? 0 : page;
             return que.Skip(p * limit).Take(limit);
         }
-        public static IQueryable<DirectoryEntity> QDirectoryFilter(this IQueryable<DirectoryEntity> que, MSDM_DBContext context, DirectoryFilter filter)
+        public static IQueryable<MSDirecotry> QDirectoryFilter(this IQueryable<MSDirecotry> que, MSDM_DBContext context, DirectoryFilter filter)
         {
             if (filter == null) return que;
             var q = que.QName(filter.Name, filter.IncludeDirectoryNameInSearch, filter.IncludeDescriptionInSearch);

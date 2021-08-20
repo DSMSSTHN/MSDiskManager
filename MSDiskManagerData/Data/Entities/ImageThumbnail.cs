@@ -10,7 +10,7 @@ namespace MSDiskManagerData.Data.Entities
     {
         public long Id { get; set; }
         public long FileId { get; set; }
-        public virtual FileEntity  File { get; set; }
+        public virtual MSFile  File { get; set; }
         public byte[] Thumbnail { get; set; }
     }
 }

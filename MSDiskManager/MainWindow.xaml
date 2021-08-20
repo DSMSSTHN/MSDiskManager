@@ -27,9 +27,7 @@
                 </Grid.ColumnDefinitions>
                 <Menu Background="{StaticResource primarySemiDark}" Padding="0  10 0 0">
                     <MenuItem Header="Settings">
-                        <MenuItem Click="NewConnectionClicked" Header="New Connection"/>
-                        <MenuItem Click="EditCurrentConnectionClicked" Header="Edit Current Connection"/>
-                        <MenuItem Click="ChooseDriveClicked" Header="Choose Drive"/>
+                        <MenuItem Click="NewConnectionClicked" Header="Edit Connection"/>
                     </MenuItem>
                     <MenuItem Header="about"/>
                 </Menu>
@@ -42,7 +40,9 @@
                     </Button>
                 </StackPanel>
             </Grid>
-            <Frame x:Name="MainWindowFrame" NavigationUIVisibility="Hidden" Grid.Row="1" />
+            <Frame x:Name="MainWindowFrame" 
+                   Source="Pages/SelectDrivePage.xaml"
+                   NavigationUIVisibility="Hidden" Grid.Row="1" />
         </Grid>
     </Border>
 </Window>

@@ -10,7 +10,7 @@ namespace MSDiskManagerData.Data.Entities.Relations
     {
         public long DirectoryId { get; set; }
         public long TagId { get; set; }
-        public virtual DirectoryEntity Directory { get; set; }
+        public virtual MSDirecotry Directory { get; set; }
         public virtual Tag Tag { get; set; }
     }
 }

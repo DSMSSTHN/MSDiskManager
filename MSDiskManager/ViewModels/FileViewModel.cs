@@ -122,12 +122,12 @@ namespace MSDiskManager.ViewModels
             imgCancel = new CancellationTokenSource();
         }
 
-        public FileEntity FileEntity
+        public MSFile FileEntity
         {
             get
             {
                 Path = (Parent != null ? Parent.Path + '\\' + OnDeskName : OnDeskName) + "." + extension;
-                return new FileEntity
+                return new MSFile
                 {
                     Name = Name,
                     Description = Description,

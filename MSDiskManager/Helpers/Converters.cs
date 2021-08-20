@@ -51,7 +51,7 @@ namespace MSDiskManager.Helpers
     {
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            return (value is DirectoryEntity || value is DirectoryViewModel) ? Visibility.Visible : Visibility.Collapsed;
+            return (value is MSDirecotry || value is DirectoryViewModel) ? Visibility.Visible : Visibility.Collapsed;
 
         }
 
@@ -64,7 +64,7 @@ namespace MSDiskManager.Helpers
     {
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            if (value is DirectoryEntity) return $"{(value as DirectoryEntity).NumberOfItemsRec} items";
+            if (value is MSDirecotry) return $"{(value as MSDirecotry).NumberOfItemsRec} items";
             if (value is DirectoryViewModel) return $"{(value as DirectoryViewModel).NumberOfItems} items";
             return "";
         }
@@ -372,23 +372,43 @@ namespace MSDiskManager.Helpers
             switch (i)
             {
                 case 1:
-                    return "#B71C1C";
+                    return "#c62828";
                 case 2:
-                    return "#880E4F";
+                    return "#ad1457";
                 case 3:
-                    return "#900";
+                    return "#6a1b9a";
                 case 4:
-                    return "#900";
+                    return "#4527a0";
                 case 5:
-                    return "#263238";
+                    return "#283593";
                 case 6:
-                    return "#0D47A1";
+                    return "#1565c0";
                 case 7:
-                    return "#006064";
+                    return "#0277bd";
                 case 8:
-                    return "#004D40";
+                    return "#00838f";
                 case 9:
-                    return "#1B5E20";
+                    return "#00695c";
+                case 10:
+                    return "#2e7d32";
+                case 11:
+                    return "#33691e";
+                case 12:
+                    return "#827717";
+                case 13:
+                    return "#bc5100";
+                case 14:
+                    return "#c43e00";
+                case 15:
+                    return "#b53d00";
+                case 16:
+                    return "#9f0000";
+                case 17:
+                    return "#4e342e";
+                case 18:
+                    return "#424242";
+                case 19:
+                    return "#37474f";
                 default:
                     return "#212121";
             }
@@ -399,23 +419,44 @@ namespace MSDiskManager.Helpers
             var i = value.ToString();
             switch (i)
             {
-                case "#B71C1C":
+                case "#c62828":
                     return 1;
-                case "#880E4F":
+                case "#ad1457":
                     return 2;
-                case "#900":
+                case "#6a1b9a":
                     return 3;
-                //return 4;
-                case "#263238":
+                case "#4527a0":
+                    return 4;
+                case "#283593":
                     return 5;
-                case "#0D47A1":
+                case "#1565c0":
                     return 6;
-                case "#006064":
+                case "#0277bd":
                     return 7;
-                case "#004D40":
+                case "#00838f":
                     return 8;
-                case "#1B5E20":
+                case "#00695c":
                     return 9;
+                case "#2e7d32":
+                    return 10;
+                case "#33691e":
+                    return 11;
+                case "#827717":
+                    return 12;
+                case "#bc5100":
+                    return 13;
+                case "#c43e00":
+                    return 14;
+                case "#b53d00":
+                    return 15;
+                case "#9f0000":
+                    return 16;
+                case "#4e342e":
+                    return 17;
+                case "#424242":
+                    return 18;
+                case "#37474f":
+                    return 19;
                 default:
                     return 0;
             }
