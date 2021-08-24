@@ -22,7 +22,7 @@
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
     </Window.Resources>
-    <Border CornerRadius="5" Background="{StaticResource primary}" BorderBrush="{StaticResource primaryLight}" BorderThickness="3">
+    <Border CornerRadius="5" Background="{StaticResource Primary}" BorderBrush="{StaticResource PrimaryLight}" BorderThickness="3">
         <Grid Loaded="Grid_Loaded">
             <Grid.RowDefinitions>
                 <RowDefinition Height="auto"/>
@@ -30,7 +30,7 @@
                 <RowDefinition Height="auto"/>
             </Grid.RowDefinitions>
             <TextBlock 
-                Foreground="{StaticResource textColor}"
+                Foreground="{StaticResource BrightText}"
                 Text="These Items already exist in distanation choose what action to do" TextAlignment="Center" Margin="0 10 0 0"/>
             <DataGrid x:Name="ExistsDG" Grid.Row="1" d:ItemsSource="{x:Static local2:MockData.Items}"
                       MaxWidth="{Binding RelativeSource={RelativeSource AncestorType=Grid},Path=ActualWidth}"
@@ -38,8 +38,8 @@
                       ItemsSource="{Binding Items}" AutoGenerateColumns="False" CanUserAddRows="False">
                 <DataGrid.ColumnHeaderStyle>
                     <Style TargetType="DataGridColumnHeader">
-                        <Setter Property="Background" Value="{StaticResource primary}"/>
-                        <Setter Property="Foreground" Value="{StaticResource textColor}"/>
+                        <Setter Property="Background" Value="{StaticResource Primary}"/>
+                        <Setter Property="Foreground" Value="{StaticResource BrightText}"/>
                     </Style>
                 </DataGrid.ColumnHeaderStyle>
                 <DataGrid.RowStyle>

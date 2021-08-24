@@ -34,7 +34,7 @@ namespace MSDiskManager.ViewModels
         }
         public bool NameChanged => Name != originalName;
         protected object? content;
-        private Brush originalBrush => Application.Current.Resources["primary"] as SolidColorBrush ?? new SolidColorBrush(Colors.DarkGray);
+        private Brush originalBrush => Application.Current.Resources["Primary"] as SolidColorBrush ?? new SolidColorBrush(Colors.DarkGray);
         private Brush ignoredBrush => new SolidColorBrush(Colors.Black);
 
         private long? _id;
@@ -99,7 +99,9 @@ namespace MSDiskManager.ViewModels
                 NotifyPropertyChanged("IgnoreAdd");
             }
         }
-        public bool IsSelected { get => isSelected; set { isSelected = value; NotifyPropertyChanged("IsSelected"); } }
+        public bool IsSelected { get => isSelected; set { isSelected = value; NotifyPropertyChanged("IsSelected");
+                Background = !value ? Brushes.Transparent : Brushes.Black;
+            } }
         public bool IsRenaming { get => isRenaming; set { isRenaming = value; NotifyPropertyChanged("IsRenaming"); } }
         public string FullPath { get => MSDM_DBContext.DriverName[0] + ":\\" + Path; }
 

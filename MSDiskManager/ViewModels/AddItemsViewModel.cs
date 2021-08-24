@@ -2,6 +2,7 @@
 using MSDiskManager.Helpers;
 using MSDiskManagerData.Data.Entities;
 using MSDiskManagerData.Helpers;
+using Nito.AsyncEx;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -15,6 +16,7 @@ using System.Windows.Input;
 
 namespace MSDiskManager.ViewModels
 {
+   
     public class AddItemsViewModel : INotifyPropertyChanged
     {
         private readonly static List<string> typeNames = Enum.GetValues(typeof(FileType)).Cast<FileType>().Select(ft => ft.ToString().ToLower()).ToList();
@@ -22,7 +24,10 @@ namespace MSDiskManager.ViewModels
         private bool filesOnly = false;
         private DirectoryViewModel parent;
         private bool canScroll;
-
+        private CancellationTokenSource cancels;
+        public List<FileViewModel> Files { get; set; } = new List<FileViewModel>();
+        public List<DirectoryViewModel> Dirs { get; set; } = new List<DirectoryViewModel>();
+        public DirectoryViewModel CurrentDirectory { get; set; }
         public DirectoryViewModel Distanation { get => parent; set => parent = value; }
 
         private List<BaseEntityViewModel> removedItems { get; set; } = new List<BaseEntityViewModel>();
@@ -44,12 +49,11 @@ namespace MSDiskManager.ViewModels
         private HashSet<Key> pressedKeys = new HashSet<Key>();
         public void KeyDown(Key key)
         {
-            pressedKeys.Add(key);
-            if (key == Key.A && (pressedKeys.Contains(Key.LeftCtrl) || pressedKeys.Contains(Key.RightCtrl))) Items.ToList().ForEach(i =>
-            { if (!i.IsSelected) i.IsSelected = true; });
+            //if (key == Key.A && (Keyboard.IsKeyDown(Key.LeftCtrl) || Keyboard.IsKeyDown(Key.RightCtrl))) Items.ToList().ForEach(i =>
+            //{ if (!i.IsSelected) i.IsSelected = true; });
             //if (key == Key.F2 && lastClickedItem != null) BeginRenaming();
-            if (key == Key.Escape) SelectedItems.ForEach(i => i.IsSelected = false);
-            if (key == Key.Delete) SelectedItems.ForEach(i => HandleDelete(i));
+            if (key == Key.Escape) SelectedItems.ToList().ForEach(i => i.IsSelected = false);
+            if (key == Key.Delete) SelectedItems.ToList().ForEach(i => HandleDelete(i));
             //if (key == Key.Enter)
             //{
             //    if (isRenaming) StoppedRenaming(lastClickedItem);
@@ -73,7 +77,7 @@ namespace MSDiskManager.ViewModels
             //        }
             //    }
             //}
-           
+
             if (key == Key.F2)
             {
                 Edit(null);
@@ -84,8 +88,7 @@ namespace MSDiskManager.ViewModels
         public void SelectEntity(BaseEntityViewModel entity)
         {
             if (entity == null) return;
-            if (Interlocked.Read(ref isWorking) != 0) return;
-            if ((pressedKeys.Contains(Key.LeftShift) || pressedKeys.Contains(Key.RightShift)) && lastSelectedEntity != null && Items.Contains(lastSelectedEntity) && Items.Contains(lastSelectedEntity))
+            if ((Keyboard.IsKeyDown(Key.LeftShift) || Keyboard.IsKeyDown(Key.RightShift)) && lastSelectedEntity != null && Items.Contains(lastSelectedEntity) && Items.Contains(lastSelectedEntity))
             {
                 var index1 = Items.IndexOf(entity);
                 var index2 = Items.IndexOf(lastSelectedEntity);
@@ -98,7 +101,7 @@ namespace MSDiskManager.ViewModels
                 }
                 return;
             }
-            else if ((pressedKeys.Contains(Key.LeftCtrl) || pressedKeys.Contains(Key.RightCtrl)))
+            else if (Keyboard.IsKeyDown(Key.LeftCtrl) || Keyboard.IsKeyDown(Key.RightCtrl))
             {
                 entity.IsSelected = !entity.IsSelected;
                 if (!entity.IsSelected) return;
@@ -115,14 +118,13 @@ namespace MSDiskManager.ViewModels
             }
             lastSelectedEntity = entity;
         }
-        public List<BaseEntityViewModel> SelectedItems => Items.Where(i => i.IsSelected).ToList();
-        public void KeyUp(Key key)
-        {
-            pressedKeys.Remove(key);
-        }
+        public IEnumerable<BaseEntityViewModel> CurrentItems => (CurrentDirectory == null ?
+            Files.Cast<BaseEntityViewModel>().Union(Dirs) :
+            CurrentDirectory.Files.Cast<BaseEntityViewModel>().Union(CurrentDirectory.Children));
+        public IEnumerable<BaseEntityViewModel> SelectedItems => CurrentItems.Where(i => i.IsSelected);
         public void Edit(BaseEntityViewModel? entity)
         {
-            var selected = Items.Where(i => i.IsSelected == true).ToList();
+            var selected = SelectedItems.ToList();
             var e = entity ?? selected.FirstOrDefault();
             if (e == null) return;
             selected.Remove(e);
@@ -140,7 +142,11 @@ namespace MSDiskManager.ViewModels
 
 
             }
-            var iss = Items.RemoveWhere(i => i.IsSelected || i == entity);
+            var fs = CurrentDirectory == null ? Files : CurrentDirectory.Files;
+            var ds = CurrentDirectory == null ? Dirs : CurrentDirectory.Children;
+            var iss = fs.RemoveWhere(i => i.IsSelected || i == entity).Cast<BaseEntityViewModel>().ToList();//Items.RemoveWhere(i => i.IsSelected || i == entity);
+            iss.AddRange(ds.RemoveWhere(d => d.IsSelected || d == entity));
+            Items.RemoveWhere(i => iss.Contains(i));
             iss.ForEach(i =>
         {
             if (i.Parent != null)
@@ -195,10 +201,30 @@ namespace MSDiskManager.ViewModels
         {
             Items.InsertSorted(entity, (i) => ((i is DirectoryViewModel) ? "0" : "1") + i.Name);
         }
-        public void AddEntities<T>(ICollection<T> entities)
+        public async Task AddEntities<T>(IEnumerable<T> entities, bool sort, PauseTokenSource pauses)
             where T : BaseEntityViewModel, new()
         {
-            Items.InsertSorted(entities, (i) => ((i is DirectoryViewModel) ? "0" : "1") + i.Name);
+            pauses.IsPaused = false;
+            cancels?.Cancel();
+            cancels = new CancellationTokenSource();
+            var token = cancels.Token;
+            var delay = 1;
+            if (sort) await Items.InsertSortedWithDelay(entities, (i) => ((i is DirectoryViewModel) ? "0" : "1") + i.Name, delay);
+            else
+            {
+                var num = 0;
+                foreach (var e in entities)
+                {
+                    if (token.IsCancellationRequested) return;
+                    Items.Add(e);
+                    await Task.Delay(delay);
+                    if (++num % 100 == 0)
+                    {
+                        pauses.IsPaused = true;
+                        await pauses.Token.WaitWhilePausedAsync();
+                    }
+                }
+            }
         }
         //public void Reset(List<FileViewModel> Files = null,List<DirectoryViewModel> Directories = null)
         //{
@@ -229,5 +255,9 @@ namespace MSDiskManager.ViewModels
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
         }
+
+        
     }
+
+
 }

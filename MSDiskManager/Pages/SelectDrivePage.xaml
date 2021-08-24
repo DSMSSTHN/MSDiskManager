@@ -22,7 +22,7 @@
                 <ListView x:Name="DrivesListView" BorderBrush="Transparent" BorderThickness="0">
                     <ListView.ItemTemplate>
                         <DataTemplate>
-                            <Border Background="{StaticResource textColor}"
+                            <Border Background="{StaticResource BrightText}"
                                     
                                     Width="{Binding RelativeSource={RelativeSource AncestorType=ListView},Path=ActualWidth
                                 ,Converter={StaticResource DoubleDividerConverter},ConverterParameter=1.1
@@ -31,8 +31,8 @@
                                 <Button Click="DriveSelected" CommandParameter="{Binding Path=.}" 
                                         >
                                     <StackPanel>
-                                        <TextBlock Text="{Binding Name}" Foreground="{StaticResource primary}"/>
-                                        <TextBlock Text="{Binding Letter}" Foreground="{StaticResource primary}"/>
+                                        <TextBlock Text="{Binding Name}" Foreground="{StaticResource Primary}"/>
+                                        <TextBlock Text="{Binding Letter}" Foreground="{StaticResource Primary}"/>
                                     </StackPanel>
                                 </Button>
 
@@ -46,7 +46,7 @@
                            Text="No Valid Connection" FontSize="30"/>
             </Border>
         </Grid>
-        <Border Grid.Row="2" CornerRadius="0" Background="{StaticResource addColor}">
+        <Border Grid.Row="2" CornerRadius="0" Background="{StaticResource MSGreen}">
             <Button x:Name="AddButton" Height="30" Content="AddDrive" Click="AddDriveClicked"/>
         </Border>
 

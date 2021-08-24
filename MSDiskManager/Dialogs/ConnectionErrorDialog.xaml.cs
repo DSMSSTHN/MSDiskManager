@@ -23,7 +23,7 @@ namespace MSDiskManager.Dialogs
     public partial class ConnectionErrorDialog : Window
     {
         private bool busy = false;
-        private Color bg = ((SolidColorBrush)Application.Current.Resources["primary"]).Color;
+        private Color bg = ((SolidColorBrush)Application.Current.Resources["Primary"]).Color;
         public ConnectionErrorDialog()
         {
             InitializeComponent();

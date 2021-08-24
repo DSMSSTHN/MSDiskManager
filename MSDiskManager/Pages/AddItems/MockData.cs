@@ -62,7 +62,7 @@ namespace MSDiskManager.Pages.AddItems
             get
             {
                 var lst = new List<Tag>();
-                for (int i = 0; i < 10; i++)
+                for (int i = 0; i < 2; i++)
                 {
                     lst.Add(new Tag { Color = new Random().Next(10), Name = $"Tag{i + 1}" });
                     lst.Add(new Tag { Color = new Random().Next(10), Name = $"Tag{i + 1}" });

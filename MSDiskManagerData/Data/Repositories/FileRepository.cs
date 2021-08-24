@@ -675,7 +675,12 @@ namespace MSDiskManagerData.Data.Repositories
         public static IQueryable<MSFile> QTags(this IQueryable<MSFile> que, MSDM_DBContext context, List<long> tagIds)
         {
             if (Globals.IsNullOrEmpty(tagIds)) return que;
-            return que.Join((context).FileTags.Where(ft => tagIds.Contains(ft.TagId)), f => f.Id, ft => ft.FileId, (f, ft) => f);
+            var tque = context.FileTags.Where(s => tagIds.Contains(s.TagId))
+                    .Select(q => new { gid = q.TagId, mid = q.FileId })
+                    .GroupBy(s => s.mid).Select(group => new { id = group.Key, count = group.Count() }).Where(ac => ac.count >= tagIds.Count())
+                    .Select(ac => ac.id);
+
+            return que.Where(d => tque.Contains(d.Id.Value));
         }
         public static IQueryable<MSFile> QTags(this IQueryable<MSFile> que, MSDM_DBContext context, string name)
         {

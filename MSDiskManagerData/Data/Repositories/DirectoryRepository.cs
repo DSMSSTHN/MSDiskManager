@@ -270,14 +270,14 @@ namespace MSDiskManagerData.Data.Repositories
                 return (false, e.Message, null);
             }
         }
-        public async Task<bool> AddTagRecursive(long? id, long? tagId, bool first = true)
+        public async Task<bool> AddTagRecursive(long? id, long? tagId, bool first = true, MSDM_DBContext cctx = null)
         {
             if (id == null || tagId == null || id < 0 || tagId < 0) return false;
             try
             {
                 var nnid = (long)id;
                 var nntid = (long)tagId;
-                var ctx = await context();
+                var ctx = cctx ?? await context();
                 var fids = await ctx.Files.Include(f => f.FileTags).IgnoreAutoIncludes().Where(f => f.ParentId == id && !f.FileTags.Any(ft => ft.TagId == nntid)).Select(f => f.Id).ToListAsync();
                 var dids = await ctx.Directories.Include(d => d.DirectoryTags).IgnoreAutoIncludes().Where(d => d.ParentId == id).Select(d => new { id = d.Id, dts = d.DirectoryTags}).ToListAsync();
                 if (dids != null && dids.Count > 0)
@@ -286,7 +286,7 @@ namespace MSDiskManagerData.Data.Repositories
                     await ctx.DirectoryTags.AddRangeAsync(dtags);
                     foreach(var d in dids)
                     {
-                        await AddTagRecursive(d.id, tagId,false);
+                        await AddTagRecursive(d.id, tagId,false,ctx);
                     }
                 }
                 if(first)await ctx.DirectoryTags.AddAsync(new DirectoryTag { DirectoryId = (long)id, TagId = (long)tagId });
@@ -295,11 +295,48 @@ namespace MSDiskManagerData.Data.Repositories
                     var ftags = fids.Select(fid => new FileTag { FileId = (long)fid, TagId = (long)tagId }).ToList();
                     await ctx.FileTags.AddRangeAsync(ftags);
                 }
-                await ctx.SaveChangesAsync();
+                if (first) await ctx.SaveChangesAsync();
                 repotFinished();
                 return true;
             }
             catch(Exception e)
+            {
+                repotFinished();
+                return false;
+            }
+        }
+        public async Task<bool> RemoveTagRecursive(long? id, long? tagId, bool first = true,MSDM_DBContext cctx = null)
+        {
+            if (id == null || tagId == null || id < 0 || tagId < 0) return false;
+            try
+            {
+                var nnid = (long)id;
+                var nntid = (long)tagId;
+                var ctx = cctx ?? await context();
+                var fids = await ctx.Files.Include(f => f.FileTags).IgnoreAutoIncludes().Where(f => f.ParentId == id).Select(f => f.Id).ToListAsync();
+                var dids = await ctx.Directories.Include(d => d.DirectoryTags).IgnoreAutoIncludes().Where(d => d.ParentId == id).Select(d => d.Id).ToListAsync();
+                if (dids != null && dids.Count > 0)
+                {
+                    var dtags = await ctx.DirectoryTags.Where(dt => dt.TagId == tagId && dids.Contains(dt.DirectoryId)).ToListAsync();
+                        //dids.Where(ddt => !ddt.dts.Any(dt => dt.TagId == nntid)).Select(did => new DirectoryTag { DirectoryId = (long)did.id, TagId = (long)tagId }).ToList();
+                    ctx.DirectoryTags.RemoveRange(dtags);
+                    foreach (var d in dids)
+                    {
+                        await RemoveTagRecursive(d, tagId, false,ctx);
+                    }
+                }
+                if (first) ctx.DirectoryTags.Remove(new DirectoryTag { DirectoryId = (long)id, TagId = (long)tagId });
+                if (fids != null && fids.Count > 0)
+                {
+                    var ftags = await ctx.FileTags.Where( ft => ft.TagId == tagId && fids.Contains(ft.FileId)).ToListAsync();
+                        //fids.Select(fid => new FileTag { FileId = (long)fid, TagId = (long)tagId }).ToList();
+                    ctx.FileTags.RemoveRange(ftags);
+                }
+                if(first)await ctx.SaveChangesAsync();
+                repotFinished();
+                return true;
+            }
+            catch (Exception e)
             {
                 repotFinished();
                 return false;
@@ -589,7 +626,8 @@ namespace MSDiskManagerData.Data.Repositories
             try
             {
                 var ctx = await context();
-                var que = ctx.Directories.AsNoTracking().Include(d => d.DirectoryTags).ThenInclude(ft => ft.Tag).IgnoreAutoIncludes().Where(d => d.DriveId == did).QDirectoryFilter(ctx, filter);
+                var que = ctx.Directories.AsNoTracking().Include(d => d.DirectoryTags)
+                    .ThenInclude(ft => ft.Tag).IgnoreAutoIncludes().Where(d => d.DriveId == did).QDirectoryFilter(ctx, filter);
                 var str = que.ToQueryString();
                 var result = await que.ToListAsync();
 
@@ -721,7 +759,12 @@ namespace MSDiskManagerData.Data.Repositories
         public static IQueryable<MSDirecotry> QTags(this IQueryable<MSDirecotry> que, MSDM_DBContext context, List<long> tagIds)
         {
             if (Globals.IsNullOrEmpty(tagIds)) return que;
-            return que.Join(context.DirectoryTags.Where(ft => tagIds.Contains(ft.TagId)), d => d.Id, ft => ft.DirectoryId, (f, ft) => f);
+            var tque = context.DirectoryTags.Where(s => tagIds.Contains(s.TagId))
+                    .Select(q => new { gid = q.TagId, mid = q.DirectoryId })
+                    .GroupBy(s => s.mid).Select(group => new { id = group.Key, count = group.Count() }).Where(ac => ac.count >= tagIds.Count())
+                    .Select(ac => ac.id);
+
+            return que.Where(d => tque.Contains(d.Id.Value));
         }
         public static IQueryable<MSDirecotry> QTags(this IQueryable<MSDirecotry> que, MSDM_DBContext context, string name)
         {

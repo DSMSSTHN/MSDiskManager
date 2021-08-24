@@ -63,8 +63,6 @@ namespace MSDiskManager.ViewModels
             get => skippedSize; set
             {
                 skippedSize = value;
-                var full = Interlocked.Read(ref fullSize);
-                var finshedd = Interlocked.Read(ref finishedSize);
                 Interlocked.Exchange(ref doneSize, value + finishedSize);
                 Interlocked.Exchange(ref pendingSize, (fullSize - (value + finishedSize)));
                 NotifyPropertyChanged("FinishedSize");
@@ -526,7 +524,7 @@ namespace MSDiskManager.ViewModels
                 pauses.IsPaused = false;
             }
         }
-        public async void Skip(BaseEntityViewModel item)
+        public void Skip(BaseEntityViewModel item)
         {
             var selected = CurrentFails.RemoveWhere(f => f.IsSelected);
             if (item != null && !selected.Contains(item)) { selected.Add(item); try { var i = CurrentFails.First(f => f.OriginalPath == item.OriginalPath); } catch { } }
@@ -539,10 +537,6 @@ namespace MSDiskManager.ViewModels
             if (Globals.IsNotNullNorEmpty(skipped)) failedItems.AddRange(skipped.Select(s => s));
             if (item is FileViewModel)
             {
-                //var s = item.Size;
-                //var fs = Interlocked.Read(ref fullSize);
-                //Interlocked.Exchange(ref fullSize, fs - s);
-                //FullSize = fullSize;
                 Interlocked.Exchange(ref fileErrorStrategy, 1);
             }
         }

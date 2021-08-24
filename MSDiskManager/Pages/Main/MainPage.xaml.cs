@@ -39,7 +39,7 @@ namespace MSDiskManager.Pages.Main
         {
             var bottom = new FilesFoldersList(Model, (a, b, c) => this.NavigationService.Navigate(new AddItemsPage(a, b, c)));
             BottomControl.Content = bottom;
-            this.NavigationService.FragmentNavigation += (a,e)=>{
+            this.NavigationService.Navigated += (a,e)=>{
                 object content = ((ContentControl)e.Navigator).Content;
                 if(content is MainPage)Model.Parent = Model.Parent;
             };
@@ -70,7 +70,7 @@ namespace MSDiskManager.Pages.Main
         private void Page_PreviewKeyDown(object sender, KeyEventArgs e)
         {
             pressedKeys.Add(e.Key);
-            if(e.Key == Key.F && (pressedKeys.Contains(Key.LeftCtrl) || pressedKeys.Contains(Key.RightCtrl)))
+            if(e.Key == Key.F && (Keyboard.IsKeyDown(Key.LeftCtrl) || Keyboard.IsKeyDown(Key.RightCtrl)))
             {
                 NameFilterTXTBX.Focus();
                 NameFilterTXTBX.SelectAll();

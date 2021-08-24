@@ -19,7 +19,7 @@
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
     </Window.Resources>
-    <Border Background="{StaticResource primary}" CornerRadius="5"  BorderBrush="{StaticResource primaryLight}" BorderThickness="3">
+    <Border Background="{StaticResource Primary}" CornerRadius="5"  BorderBrush="{StaticResource PrimaryLight}" BorderThickness="3">
 
         <Grid  Loaded="Grid_Loaded">
             <Grid.RowDefinitions>
@@ -29,17 +29,17 @@
                 <RowDefinition Height="auto"/>
             </Grid.RowDefinitions>
             <Label VerticalContentAlignment="Center"
-                   Foreground="{StaticResource textColor}"
+                   Foreground="{StaticResource BrightText}"
                    HorizontalContentAlignment="Center" d:Content="There are 2 Directories and 100 Files to Move. choose Destination" Content="{Binding HeaderContent}"/>
             <Button  Click="CloseButtonClicked" Width="30" Height="30" HorizontalAlignment="Right" VerticalAlignment="Top">
                 <Image Source="/images/clear.png"/>
             </Button>
             <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Center">
-                <Label Foreground="{StaticResource textColor}"
+                <Label Foreground="{StaticResource BrightText}"
                     Content="{Binding MCString,StringFormat=' {0} to:'}" d:Content="Move To:"/>
                 <Label
-                    Foreground="{StaticResource textColor}"
-                    Content="{Binding Parent.Name}" d:Content="DirectoryName0" Background="{StaticResource primaryLight}"/>
+                    Foreground="{StaticResource BrightText}"
+                    Content="{Binding Parent.Name}" d:Content="DirectoryName0" Background="{StaticResource PrimaryLight}"/>
             </StackPanel>
             <Grid Grid.Row="2">
                 <Grid.RowDefinitions>
@@ -57,8 +57,8 @@
                     </DataGrid.RowStyle>
                     <DataGrid.ColumnHeaderStyle>
                         <Style TargetType="DataGridColumnHeader">
-                            <Setter Property="Background"    Value="{StaticResource primary}"/>
-                            <Setter Property="Foreground" Value="{StaticResource textColor}"/>
+                            <Setter Property="Background"    Value="{StaticResource Primary}"/>
+                            <Setter Property="Foreground" Value="{StaticResource BrightText}"/>
                             <Setter Property="HorizontalContentAlignment" Value="Center"/>
                         </Style>
                     </DataGrid.ColumnHeaderStyle>
@@ -73,7 +73,7 @@
                             </DataGridTemplateColumn.Header>
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
-                                    <TextBlock Background="{StaticResource primary}" VerticalAlignment="Center" Text="." Foreground="Black" />
+                                    <TextBlock Background="{StaticResource Primary}" VerticalAlignment="Center" Text="." Foreground="Black" />
                                 </DataTemplate>
                             </DataGridTemplateColumn.CellTemplate>
                         </DataGridTemplateColumn>
@@ -94,7 +94,7 @@
                                         <ColumnDefinition Width="auto"/>
                                     </Grid.ColumnDefinitions>
                                     <TextBlock Text="Path" VerticalAlignment="Center" HorizontalAlignment="Center"/>
-                                    <Button Click="AddDirectory" BorderBrush="{StaticResource addColor}" BorderThickness="2" Margin="0 0.3" Width="25" HorizontalAlignment="Right" Grid.Column="1">
+                                    <Button Click="AddDirectory" BorderBrush="{StaticResource MSGreen}" BorderThickness="2" Margin="0 0.3" Width="25" HorizontalAlignment="Right" Grid.Column="1">
                                         <Image Source="/images/add.png"/>
                                     </Button>
                                 </Grid>

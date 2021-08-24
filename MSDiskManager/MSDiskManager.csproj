@@ -16,6 +16,7 @@
     <None Remove="images\directory.png" />
     <None Remove="images\documentFile.png" />
     <None Remove="images\documentImg.jpg" />
+    <None Remove="images\edit.png" />
     <None Remove="images\error.png" />
     <None Remove="images\home.png" />
     <None Remove="images\imageFile.png" />
@@ -33,6 +34,9 @@
 
   <ItemGroup>
     <Resource Include="images\blackImg.jpg">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="images\edit.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
     <Resource Include="images\error.png">

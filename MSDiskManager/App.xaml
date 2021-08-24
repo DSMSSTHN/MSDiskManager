@@ -6,22 +6,22 @@
              StartupUri="MainWindow.xaml">
     <Application.Resources>
         <Style  TargetType="ScrollBar" >
-            <Setter Property="Width" Value="5"/>
-            <Setter Property="MaxWidth" Value="5"/>
-            <Setter Property="MinWidth" Value="5"/>
+            <Setter Property="Width" Value="15"/>
+            <Setter Property="MaxWidth" Value="15"/>
+            <Setter Property="MinWidth" Value="15"/>
             <Setter Property="Background" Value="Black"/>
         </Style>
-        <SolidColorBrush x:Key="primary" Color="#363A41"/>
-        <SolidColorBrush x:Key="primarySemiDark" Color="#0B0C0D"/>
-        <SolidColorBrush x:Key="primaryLight" Color="#626974"/>
-        <SolidColorBrush x:Key="primaryDark" Color="#000000"/>
-        <SolidColorBrush x:Key="textColor" Color="#ffffff"/>
-        <SolidColorBrush x:Key="textColor2" Color="#999999"/>
-        <SolidColorBrush x:Key="darkText" Color="#0B0C0D"/>
-        <SolidColorBrush x:Key="warnColor" Color="#C53E3E"/>
+        <SolidColorBrush x:Key="Primary" Color="#363A41"/>
+        <SolidColorBrush x:Key="PrimarySemiDark" Color="#0B0C0D"/>
+        <SolidColorBrush x:Key="PrimaryLight" Color="#626974"/>
+        <SolidColorBrush x:Key="PrimaryDark" Color="#000000"/>
+        <SolidColorBrush x:Key="BrightText" Color="#ffffff"/>
+        <SolidColorBrush x:Key="BrightText2" Color="#999999"/>
+        <SolidColorBrush x:Key="DarkText" Color="#0B0C0D"/>
+        <SolidColorBrush x:Key="WarnRed" Color="#C53E3E"/>
         <SolidColorBrush x:Key="darkRed" Color="#B71C1C"/>
-        <SolidColorBrush x:Key="lightBlue900" Color="#0079BF"/>
-        <SolidColorBrush x:Key="addColor" Color="#6DECA9"/>
+        <SolidColorBrush x:Key="MSBlue" Color="#0079BF"/>
+        <SolidColorBrush x:Key="MSGreen" Color="#6DECA9"/>
         <helpers:BaseEntityNumberOfItemsConverter x:Key="BaseEntityNumberOfItemsConverter"/>
         <helpers:BooleanOpposetConverter x:Key="BooleanOpposetConverter"/>
         <helpers:BooleanOppositConverter x:Key="BooleanOppositConverter"/>
@@ -35,33 +35,14 @@
         <helpers:IntToColorConverter x:Key="IntToColorConverter"/>
         <helpers:PathExistsVisibility_CollapseConverter x:Key="PathExistsVisibility_CollapseConverter"/>
         <helpers:TypeToIconSourceConverter x:Key="TypeToIconSourceConverter"/>
-        <Style TargetType="Control" x:Key="darkBG">
-            <Setter Property="Background" Value="#212121"/>
-            <Setter Property="Foreground" Value="White"/>
-        </Style>
-        <Style TargetType="Control">
-            <Setter Property="Foreground" Value="{StaticResource textColor}"/>
-            <Setter Property="Background" Value="{StaticResource primary}"/>
-        </Style>
+        
         <Style TargetType="TextBlock">
             <Setter Property="FontSize" Value="15"/>
             <Setter Property="FontWeight" Value="SemiBold"/>
         </Style>
-        <Style TargetType="Page">
-            <Setter Property="Background" Value="{StaticResource primary}"/>
-        </Style>
-        
-        <Style TargetType="ListView">
-            <Setter Property="Background" Value="{StaticResource primary}"/>
-        </Style>
-        <Style TargetType="Grid">
-            <Setter Property="Background" Value="{StaticResource primary}"/>
-        </Style>
-        <Style TargetType="StackPanel">
-            <Setter Property="Background" Value="{StaticResource primary}"/>
-        </Style>
+
         <Style TargetType="Border">
-            <Setter Property="CornerRadius" Value="5"/>
+            <Setter Property="CornerRadius" Value="1"/>
             <Style.Resources>
                 <Style TargetType="Button">
                     <Setter Property="Background" Value="Transparent"/>
@@ -70,38 +51,23 @@
                 </Style>
                 <Style TargetType="ListView">
                     <Setter Property="Background" Value="Transparent"/>
+                    <Setter Property="BorderThickness" Value="1"/>
+                    <Setter Property="BorderBrush" Value="{StaticResource PrimaryLight}"/>
+                    <Setter Property="Padding" Value="2"/>
                 </Style>
-               
+
                 <Style TargetType="StackPanel">
                     <Setter Property="Background" Value="Transparent"/>
                 </Style>
                 <Style TargetType="Grid">
                     <Setter Property="Background" Value="Transparent"/>
                 </Style>
-                
-            </Style.Resources>
-        </Style>
-        <Style TargetType="CheckBox">
-            <Style.Resources>
-                <Style TargetType="Border"/>
-                <Style TargetType="TextBlock"/>
-                <Style TargetType="Control"/>
-                <Style TargetType="Grid"/>
-                <Style TargetType="StackPanel"/>
-            </Style.Resources>
-        </Style>
-        <Style TargetType="RadioButton">
-            <Style.Resources>
-                <Style TargetType="Border"/>
-                <Style TargetType="TextBlock"/>
-                <Style TargetType="Control"/>
-                <Style TargetType="Grid"/>
-                <Style TargetType="StackPanel"/>
+
             </Style.Resources>
         </Style>
         <Style TargetType="{x:Type Window}">
             <Setter Property="FontFamily" Value="Ubuntu" />
-            <Setter Property="Background" Value="{StaticResource primary}"/>
+            <Setter Property="Background" Value="{StaticResource Primary}"/>
         </Style>
     </Application.Resources>
 </Application>

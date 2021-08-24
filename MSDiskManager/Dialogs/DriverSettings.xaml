@@ -22,9 +22,9 @@
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
     </Window.Resources>
-    <Border CornerRadius="1" Background="{StaticResource primary}" BorderBrush="{StaticResource primaryLight}" 
+    <Border CornerRadius="1" Background="{StaticResource Primary}" BorderBrush="{StaticResource PrimaryLight}" 
             BorderThickness="1">
-        <Grid Loaded="Grid_Loaded" TextBlock.Foreground="{StaticResource textColor}">
+        <Grid Loaded="Grid_Loaded" TextBlock.Foreground="{StaticResource BrightText}">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition/>
                 <ColumnDefinition/>
@@ -39,7 +39,7 @@
             <TextBlock x:Name="NameTextBlock" Text="Name" Grid.Row="1"  TextAlignment="Center" VerticalAlignment="Center"/>
             <TextBox Style="{StaticResource SharpTextBox}" x:Name="NameTextBox" Grid.Row="1" Grid.Column="1" />
             <ComboBox Name="DriverComboBox" BorderThickness="0" 
-                      Foreground="{StaticResource darkText}"
+                      Foreground="{StaticResource DarkText}"
                       SelectionChanged="DriverComboBox_Selected" Grid.Row="0" Grid.Column="1" >
                 <ComboBox.Resources>
                     <Style TargetType="Border">
@@ -48,7 +48,7 @@
                 </ComboBox.Resources>
                 <ComboBox.ItemTemplate>
                     <DataTemplate>
-                        <TextBlock Foreground="{StaticResource textColor}" Text="{Binding .}"/>
+                        <TextBlock Foreground="{StaticResource BrightText}" Text="{Binding .}"/>
                     </DataTemplate>
                 </ComboBox.ItemTemplate>
             </ComboBox>

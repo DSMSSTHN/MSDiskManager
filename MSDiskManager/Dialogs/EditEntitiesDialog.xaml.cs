@@ -1,4 +1,5 @@
-﻿using MSDiskManager.Helpers;
+﻿using MSDiskManager.Controls;
+using MSDiskManager.Helpers;
 using MSDiskManager.ViewModels;
 using MSDiskManagerData.Data.Entities;
 using MSDiskManagerData.Data.Repositories;
@@ -73,7 +74,7 @@ namespace MSDiskManager.Dialogs
                 {
                     if (en is FileViewModel) await fRep.ChangeName((long)en.Id, Entity.Name);
                     else await dRep.ChangeName((long)en.Id, Entity.Name);
-                    
+
                 }
             }
             if (Globals.IsNotNullNorEmpty(Entity.Description) && Entity.Description != baseEntity.Description)
@@ -104,8 +105,29 @@ namespace MSDiskManager.Dialogs
 
                 foreach (var en in entities)
                 {
-                    if (en is FileViewModel) { await fRep.RemoveTags((long)en.Id, toRemove); await fRep.AddTags((long)en.Id, toAdd.Except(en.Tags.Select(t => t.Id).Cast<long>()).ToList()); }
-                    else { await dRep.RemoveTags((long)en.Id, toRemove); await dRep.AddTags((long)en.Id, toAdd.Except(en.Tags.Select(t=>t.Id).Cast<long>()).ToList()); }
+                    //if (en is FileViewModel) { await fRep.RemoveTags((long)en.Id, toRemove); await fRep.AddTags((long)en.Id, toAdd.Except(en.Tags.Select(t => t.Id).Cast<long>()).ToList()); }
+                    //else { await dRep.RemoveTags((long)en.Id, toRemove); await dRep.AddTags((long)en.Id, toAdd.Except(en.Tags.Select(t=>t.Id).Cast<long>()).ToList()); }
+                    if (en is FileViewModel)
+                    {
+                        { await fRep.RemoveTags((long)en.Id, toRemove); await fRep.AddTags((long)en.Id, toAdd.Except(en.Tags.Select(t => t.Id).Cast<long>()).ToList()); }
+                    }
+                    else
+                    {
+                        var LoadingTxtblk = ((Application.Current.MainWindow as MainWindow)?.MainWindowFrame.Content as FilesFoldersList)?.LoadingTxtblk;
+                        var Model = ((Application.Current.MainWindow as MainWindow)?.MainWindowFrame.Content as FilesFoldersList)?.Model;
+                        if (LoadingTxtblk != null) LoadingTxtblk.Text = "Adding tags";
+                        if (Model != null) Model.LoadingVisibility = Visibility.Visible;
+                        foreach (var t in toAdd)
+                        {
+                            if (!en.Tags.Any(dt => dt.Id == t)) await dRep.AddTagRecursive(en.Id, t);
+                        }
+                        foreach (var t in toRemove)
+                        {
+                            if (en.Tags.Any(dt => dt.Id == t)) await dRep.RemoveTagRecursive(en.Id, t);
+                        }
+                        if (Model != null) Model.LoadingVisibility = Visibility.Collapsed;
+                        if (LoadingTxtblk != null) LoadingTxtblk.Text = "Loading...";
+                    }
                 }
             }
 
@@ -149,8 +171,16 @@ namespace MSDiskManager.Dialogs
                 var toAdd = Entity.Tags.Where(t => !commonTags.Contains(t)).ToList();
                 foreach (var en in entities)
                 {
-                    en.Tags.AddMany(toAdd);
-                    en.Tags.RemoveWhere(t => toRemove.Contains(t));
+                    if (en is DirectoryViewModel)
+                    {
+                        (en as DirectoryViewModel).AddTagsRecursive(toAdd);
+                        (en as DirectoryViewModel).RemoveTagsRecursive(toRemove);
+                    }
+                    else
+                    {
+                        en.Tags.AddMany(toAdd.Where(e => !en.Tags.Any(t => t.Id == e.Id)));
+                        en.Tags.RemoveWhere(t => toRemove.Contains(t));
+                    }
                 }
             }
 
@@ -163,7 +193,7 @@ namespace MSDiskManager.Dialogs
         private void Grid_Loaded(object sender, RoutedEventArgs e)
         {
             this.MouseLeftButtonDown += delegate { DragMove(); };
-            this.KeyDown += (a,r)=> { if (r.Key == Key.Escape) if (this.DialogResult == null) { this.DialogResult = false;this.Close(); } };
+            this.KeyDown += (a, r) => { if (r.Key == Key.Escape) if (this.DialogResult == null) { this.DialogResult = false; this.Close(); } };
             NameTBX.Focus();
             NameTBX.SelectAll();
         }

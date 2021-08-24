@@ -14,8 +14,8 @@
         BorderThickness="0"
         ShowInTaskbar="False"
         Height="600" Width="800" Loaded="WindowLoaded">
-    <Border CornerRadius="5"  BorderBrush="{StaticResource primaryLight}" BorderThickness="3">
-        <Grid Loaded="Grid_Loaded" Background="{StaticResource primary}">
+    <Border CornerRadius="5"  BorderBrush="{StaticResource PrimaryLight}" BorderThickness="3">
+        <Grid Loaded="Grid_Loaded" Background="{StaticResource Primary}">
             <Frame NavigationUIVisibility="Hidden" Padding="25" x:Name="SelectDialogMainFrame"/>
             <Button Width="25" Height="25" VerticalAlignment="Top" HorizontalAlignment="Right" Click="CloseClicked">
                 <Image Source="/images/clear.png"/>

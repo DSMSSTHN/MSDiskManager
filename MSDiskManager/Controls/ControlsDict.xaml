@@ -8,7 +8,7 @@
         <Setter Property="BorderThickness"  Value="0"/>
         <Style.Triggers>
             <Trigger Property="IsFocused" Value="True">
-                <Setter Property="Background" Value="{StaticResource primarySemiDark}"/>
+                <Setter Property="Background" Value="{StaticResource PrimarySemiDark}"/>
             </Trigger>
         </Style.Triggers>
     </Style>
@@ -22,7 +22,7 @@
         </Setter>
     </Style>
     <Style TargetType="ToolTip">
-        <Setter Property="Background" Value="{StaticResource primary}"/>
+        <Setter Property="Background" Value="{StaticResource Primary}"/>
     </Style>
     <SolidColorBrush x:Key="Button.Static.Background" Color="#FFDDDDDD"/>
     <SolidColorBrush x:Key="Button.Static.Border" Color="#FF707070"/>
@@ -61,7 +61,7 @@
                             <Setter Property="BorderBrush" TargetName="border" Value="{StaticResource Button.Pressed.Border}"/>
                         </Trigger>
                         <Trigger Property="IsEnabled" Value="false">
-                            <Setter Property="Background" TargetName="border" Value="{StaticResource primary}"/>
+                            <Setter Property="Background" TargetName="border" Value="{StaticResource Primary}"/>
                             <Setter Property="TextElement.Foreground" TargetName="contentPresenter" Value="{StaticResource Button.Disabled.Foreground}"/>
                         </Trigger>
                     </ControlTemplate.Triggers>

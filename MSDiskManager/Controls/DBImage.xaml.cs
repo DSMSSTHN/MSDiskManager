@@ -28,6 +28,11 @@ namespace MSDiskManager.Controls
     /// </summary>
     public partial class DBImage : UserControl
     {
+        public static readonly DependencyProperty ImgWidthProperty = DependencyProperty.Register("ImgWidth", typeof(double),
+            typeof(DBImage), new PropertyMetadata(default(double)));
+
+        public double ImgWidth { get => (double)GetValue(ImgWidthProperty); set => SetValue(ImgWidthProperty, value); }
+
         private static ConcurrentDictionary<long, byte[]> images = new ConcurrentDictionary<long, byte[]>();
         private static ConcurrentDictionary<long, ImageSource?> sources = new ConcurrentDictionary<long, ImageSource?>();
         private static ConcurrentBag<long?> loadedDirectories = new ConcurrentBag<long?>();
@@ -42,10 +47,12 @@ namespace MSDiskManager.Controls
 
         private async void UserControl_Loaded(object sender, RoutedEventArgs e)
         {
+            if (ImgWidth > 0) ImgBorder.Width = ImgWidth;
             var dc = DataContext as BaseEntityViewModel;
+            if (dc == null) return;
             byte[] thumb;
             ImageSource source = null;
-            if (dc is FileViewModel && (dc as FileViewModel).FileType == FileType.Image)
+            if (dc.Id != null && dc is FileViewModel && (dc as FileViewModel).FileType == FileType.Image)
             {
                 if (sources.TryGetValue(dc.Id ?? 0, out source))
                 {
@@ -66,20 +73,7 @@ namespace MSDiskManager.Controls
                 return;
             }
 
-            //if (dc is FileEntity && (dc as FileEntity).FileType == FileType.Image && (thumb = await new FileRepository().GetThumbnail((long)dc.Id)) != null)
-            //{
-            //    using (var stream = new MemoryStream(thumb))
-            //    {
-            //        BitmapImage image = new BitmapImage();
-            //        stream.Position = 0;
-            //        image.BeginInit();
-            //        image.CacheOption = BitmapCacheOption.OnLoad;
-            //        image.StreamSource = stream;
-            //        image.EndInit();
-            //        image.Freeze();
-            //        IMG.Source = image;
-            //    }
-            //}
+          
 
             ImageSource image = null;
             if (dc is FileViewModel)

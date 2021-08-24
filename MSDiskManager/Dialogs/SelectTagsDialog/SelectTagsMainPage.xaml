@@ -30,7 +30,7 @@
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="auto"/>
                 </Grid.ColumnDefinitions>
-                <TextBlock Grid.Column="0" Background="{StaticResource primaryDark}" Foreground="{StaticResource textColor}"
+                <TextBlock Grid.Column="0" Background="{StaticResource PrimaryDark}" Foreground="{StaticResource BrightText}"
                        TextAlignment="Center" FontWeight="Bold" Padding="6"
                        FontSize="14"
                        Text="             Filter"/>
@@ -76,7 +76,7 @@
                                 </Grid.RowDefinitions>
                                 <ItemsPresenter />
                                 <Button Visibility="{Binding LoadMoreVisibility.Value}"
-                                        Foreground="{StaticResource textColor}"
+                                        Foreground="{StaticResource BrightText}"
                                         Grid.Row="1" Click="LoadMore">...Load More...</Button>
                             </Grid>
 
@@ -91,7 +91,7 @@
                             Margin="20 2"
                             >
                         <Button 
-                            Foreground="{StaticResource textColor}"
+                            Foreground="{StaticResource BrightText}"
                             MinHeight="40"
                                 Click="TagClicked"
                                 CommandParameter="{Binding }"

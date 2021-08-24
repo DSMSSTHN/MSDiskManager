@@ -4,6 +4,7 @@
       xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
       xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
       xmlns:local="clr-namespace:MSDiskManager.Pages.AddItems"
+      xmlns:controls="clr-namespace:MSDiskManager.Controls"
         Loaded="AddPage_Loaded"
       mc:Ignorable="d" 
       ShowsNavigationUI="False"
@@ -27,8 +28,8 @@
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
     </Page.Resources>
-    <Border Background="{StaticResource primary}" Name="AddBorder">
-        <Grid x:Name="AddBaseGrid" Background="Transparent">
+    <Border Background="{StaticResource Primary}" Name="AddBorder">
+        <Grid x:Name="AddBaseGrid" Background="Transparent" MaxHeight="{Binding RelativeSource={RelativeSource AncestorType=Window},Path=ActualHeight}">
             <Grid.RowDefinitions>
                 <RowDefinition Height="auto"/>
                 <RowDefinition Height="auto"/>
@@ -47,25 +48,185 @@
                         <ColumnDefinition Width="auto"/>
                         <ColumnDefinition Width="*"/>
                     </Grid.ColumnDefinitions>
-                    <Button Background="{StaticResource primary}" Margin="3" Name="BackButton" Click="GoBack">
+                    <Button Background="{StaticResource Primary}" Margin="3" Name="BackButton" Click="GoBack">
                         <Image Source="/images/up.png"/>
                     </Button>
-                    <Label Background="{StaticResource lightBlue900}"
+                    <Label Background="{StaticResource MSBlue}"
                            Grid.Column="1" Name="DirectoriesLabel" Grid.Row="1" 
                            VerticalContentAlignment="Center" HorizontalContentAlignment="Center"  >
-                        <TextBlock FontWeight="ExtraBold" Foreground="{StaticResource darkText}" Text="Directories"/>
+                        <TextBlock FontWeight="ExtraBold" Foreground="{StaticResource DarkText}" Text="Directories"/>
                     </Label>
                 </Grid>
                 <StackPanel Grid.Row="2"    >
-                    <Label Content="Filter:" Background="{StaticResource primaryLight}" Foreground="{StaticResource textColor}" VerticalContentAlignment="Center" HorizontalContentAlignment="Center"/>
-                    <Border   BorderBrush="{StaticResource primaryDark}" BorderThickness="2" Focusable="True">
-                        <TextBox Height="30"
+                    <Label Content="Filter:" Background="{StaticResource PrimaryLight}" Foreground="{StaticResource BrightText}" VerticalContentAlignment="Center" HorizontalContentAlignment="Center"/>
+                    <Border   BorderBrush="{StaticResource PrimaryDark}" BorderThickness="2" Focusable="True">
+                        <TextBox Height="30" FontWeight="Bold" TextAlignment="Center" FontSize="20"
                             Style="{StaticResource SharpTextBox}"
                             x:Name="FilterTBX" Text="{Binding Filter,Mode=TwoWay,UpdateSourceTrigger=PropertyChanged}" Background="White" Foreground="Black"/>
                     </Border>
                 </StackPanel>
             </Grid>
-            <DataGrid  Foreground="{StaticResource textColor}"
+            <ListView Grid.Row="2" Background="Transparent"
+                      PreviewMouseWheel="ItemsListView_PreviewMouseWheel"
+                          Name="ItemsListView" SelectionMode="Multiple"
+                      HorizontalContentAlignment="Stretch" ScrollViewer.ScrollChanged="ItemsListView_ScrollChanged"
+                      ItemsSource="{Binding Items}" d:ItemsSource="{x:Static local:MockData.Items}">
+                <ListView.ContextMenu>
+                    <ContextMenu >
+                        <MenuItem Header="Edit" Click="EditEntity"/>
+                        <MenuItem Header="Delete" Click="DeleteEntityCTX"/>
+                        <MenuItem Header="Copy" Click="CopyEntity"/>
+                        <MenuItem Header="Move" Click="MoveEntity"/>
+                        <MenuItem Header="Paste" Click="PasteEntity"/>
+                        <MenuItem Header="Show In Explrer" Click="ShowInExplorerClicked"/>
+                    </ContextMenu>
+                </ListView.ContextMenu>
+                <ListView.Resources>
+                    <Style TargetType="ListViewItem">
+                        <Setter Property="IsSelected" Value="{Binding IsSelected,Mode=TwoWay}"/>
+                        <Setter Property="BorderThickness" Value="1"/>
+                        <Setter Property="BorderBrush" Value="Black"/>
+                    </Style>
+                </ListView.Resources>
+                <ListView.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <WrapPanel Name="ItemsListViewStackPanel"
+                                   MaxWidth="{Binding RelativeSource={RelativeSource AncestorType=ListView},Path=ActualWidth}"
+                                   
+                                   Orientation="Horizontal"/>
+                    </ItemsPanelTemplate>
+                </ListView.ItemsPanel>
+                <ListView.ItemTemplate>
+                    <DataTemplate>
+                        <Grid 
+                            PreviewMouseLeftButtonDown="EntityClicked"
+                            MouseRightButtonDown="EntityRightClicked"
+                            Width="{Binding RelativeSource={RelativeSource AncestorType=ListView},Path=ActualWidth,
+                            Converter={StaticResource DoubleDividerConverter},ConverterParameter=2.1
+                            }"
+                            Background="#33444444" AllowDrop="True" Drop="DropOnElement" 
+                                   GotFocus="Grid_GotFocus"
+                              DragDrop.PreviewDragEnter="DragEnterElement" DragDrop.PreviewDragLeave="DragLeaveElement">
+                            <Grid.ContextMenu>
+                                <ContextMenu >
+                                    <MenuItem Header="Edit" Click="EditEntity"/>
+                                    <MenuItem Header="Delete" Click="DeleteEntityCTX"/>
+                                    <MenuItem Header="Copy" Click="CopyEntity"/>
+                                    <MenuItem Header="Move" Click="MoveEntity"/>
+                                    <MenuItem Header="Paste" Click="PasteEntity"/>
+                                    <MenuItem Header="Show In Explrer" Click="ShowInExplorerClicked"/>
+                                </ContextMenu>
+                            </Grid.ContextMenu>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="auto"/>
+                                <ColumnDefinition Width="auto"/>
+                            </Grid.ColumnDefinitions>
+                            
+                            <Button MouseDoubleClick="OpenDirectory" 
+                                    
+                                    Grid.Column="0" Background="{Binding Background}" BorderBrush="Transparent" BorderThickness="0"
+                                 CommandParameter="{Binding Path=.}"
+                                >
+                                <Button.Style>
+                                    <Style TargetType="Button">
+                                        <Setter Property="Background" Value="Transparent" />
+                                        <Setter Property="Template">
+                                            <Setter.Value>
+                                                <ControlTemplate TargetType="Button">
+                                                    <Grid Background="{TemplateBinding Background}">
+                                                        <ContentPresenter />
+                                                    </Grid>
+                                                </ControlTemplate>
+                                            </Setter.Value>
+                                        </Setter>
+                                    </Style>
+                                </Button.Style>
+                                <Button.ToolTip>
+                                    <TextBlock Text="{Binding Description}"/>
+                                </Button.ToolTip>
+                                <Grid >
+                                    <StackPanel Background="Transparent" >
+                                        <StackPanel >
+                                            <controls:DBImage ImgWidth="20" Width="20" DataContext="{Binding Path=.}"
+                                                                  MouseEnter="Grid_MouseEnter" MouseLeave="Grid_MouseLeave"
+                                                  PreviewMouseWheel="Grid_PreviewMouseWheel"
+                                                                  />
+                                                <TextBlock  Background="Transparent" PreviewKeyDown="TextBox_PreviewKeyDown"  
+                                                  TextAlignment="Center"
+                                                      Width="auto" FontSize="13"
+                                                 FontWeight="SemiBold" Margin="0 -5 0 0" Padding="0" Foreground="{StaticResource BrightText}"
+                                                     Text="{Binding Name,Mode=TwoWay,UpdateSourceTrigger=PropertyChanged}"/>
+                                            <TextBlock TextAlignment="Center"  FontWeight="Medium" Margin="0" Padding="10 0 0 0 " 
+                                                       Foreground="{StaticResource BrightText2}" FontSize="10" Text="{Binding FullPath}"/>
+                                        </StackPanel>
+                                            
+                                        
+
+                                            <ListView HorizontalAlignment="Center" d:ItemsSource="{x:Static local:MockData.Tags}" Grid.Column="1"
+                                                     Width="{Binding RelativeSource={RelativeSource AncestorType=Grid},Path=ActualWidth,
+                                                Converter={StaticResource DoubleDividerConverter},ConverterParameter=1.1}"
+                                                      HorizontalContentAlignment="Center" 
+                                                      ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                                                      Margin="30 0 0 0" ItemsSource="{Binding Tags}" BorderBrush="Transparent">
+                                                <ListView.ItemsPanel>
+                                                    <ItemsPanelTemplate>
+                                                        <WrapPanel  
+                                                            MaxWidth="{Binding RelativeSource={RelativeSource AncestorType=ListView},Path=ActualWidth}"
+                                                            HorizontalAlignment="Center" Orientation="Horizontal" />
+                                                    </ItemsPanelTemplate>
+                                                </ListView.ItemsPanel>
+                                                <ListView.ItemContainerStyle>
+                                                    <Style TargetType="ListViewItem">
+                                                        <Setter Property="Margin" Value="0"/>
+                                                        <Setter Property="Padding" Value="0"/>
+                                                    </Style>
+                                                </ListView.ItemContainerStyle>
+                                                <ListView.ItemTemplate>
+                                                    <DataTemplate>
+                                                        <Border Padding="4 1" Margin="0" CornerRadius="5" >
+                                                            <Border.Style>
+                                                                <Style TargetType="Border">
+                                                                    <Setter Property="Background">
+                                                                        <Setter.Value>
+                                                                            <SolidColorBrush Color="{Binding Color,Converter={StaticResource IntToColorConverter}}" Opacity="0.3"/>
+                                                                        </Setter.Value>
+                                                                    </Setter>
+                                                                </Style>
+                                                            </Border.Style>
+                                                            <TextBlock  Text="{Binding Name}" 
+                                                                        Padding="5 0"
+                                                                        FontSize="9" Foreground="{StaticResource BrightText}"/>
+                                                        </Border>
+                                                    </DataTemplate>
+                                                </ListView.ItemTemplate>
+                                            </ListView>
+                                            <StackPanel Orientation="Horizontal">
+                                            <TextBlock Padding="10 0 0 0 " Text="{Binding NumberOfItems,StringFormat=' {0} items'}" 
+                                                       Visibility="{Binding Path=.,Converter={StaticResource DirectoryOnlyVisibilityConverter}}" 
+                                                       FontSize="7" Foreground="{StaticResource BrightText2}"/>
+                                            <TextBlock Padding="10 0 0 0 " Text="{Binding OnDeskSize}" FontSize="7" Foreground="{StaticResource BrightText2}"/>
+                                        </StackPanel>
+
+                                    </StackPanel>
+                                </Grid>
+                            </Button>
+                            <Button
+                                Background="{Binding Background}"
+                                Grid.Column="1" Click="EditEntity" CommandParameter="{Binding Path=.}">
+                                <Image Source="/images/edit.png" Width="30"/>
+                            </Button>
+                            <Button
+                                Background="{Binding Background}"
+                                Grid.Column="2" Click="DeleteEntity" CommandParameter="{Binding Path=.}">
+                                <Image Source="/images/delete.png"/>
+                            </Button>
+
+                        </Grid>
+                    </DataTemplate>
+                </ListView.ItemTemplate>
+            </ListView>
+            <!--<DataGrid Visibility="Collapsed"  Foreground="{StaticResource BrightText}"
                 PreviewKeyDown="AddDG_PreviewKeyDown"
                 Style="{DynamicResource AddItemsDG}" x:Name="AddDG" Grid.Row="2" ItemsSource="{Binding Items}" 
                       MaxWidth="{Binding ElementName=AddBaseGrid,Path=ActualWidth}"
@@ -104,7 +265,7 @@
                                         <Image Width="40" Height="40" Source="{Binding Image}"/>
                                     </Button>
                                     <TextBlock Grid.Column="1"
-                                        Foreground="{StaticResource textColor}" FontSize="20"
+                                        Foreground="{StaticResource BrightText}" FontSize="20"
                                         FontFamily="Nirmala UI"
                                         Text="{Binding Name,Mode=TwoWay,UpdateSourceTrigger=PropertyChanged}" 
                                              VerticalAlignment="Center" 
@@ -161,9 +322,9 @@
                                                     <StackPanel Orientation="Horizontal">
                                                         <TextBlock 
                                                             Padding="20 5 5 5"
-                                                            Foreground="{StaticResource textColor}"  Text="{Binding Name}"/>
+                                                            Foreground="{StaticResource BrightText}"  Text="{Binding Name}"/>
                                                         <Button Margin="0 0 5 0"
-                                                            Foreground="{StaticResource warnColor}"
+                                                            Foreground="{StaticResource WarnRed}"
                                                             Click="DeleteTag" CommandParameter="{Binding RelativeSource={RelativeSource AncestorType=DataGridRow},Path=DataContext}">X</Button>
                                                     </StackPanel>
                                                 </Border>
@@ -191,14 +352,14 @@
                     <DataGridTemplateColumn MinWidth="25" MaxWidth="25" Width="25">
                         <DataGridTemplateColumn.CellTemplate>
                             <DataTemplate>
-                                <Button Height="25" VerticalAlignment="Center" Click="DeleteItem" CommandParameter="{Binding Path=.}"  Background="{StaticResource warnColor}" >
+                                <Button Height="25" VerticalAlignment="Center" Click="DeleteItem" CommandParameter="{Binding Path=.}"  Background="{StaticResource WarnRed}" >
                                     <Image Source="/images/clear.png"/>
                                 </Button>
                             </DataTemplate>
                         </DataGridTemplateColumn.CellTemplate>
                     </DataGridTemplateColumn>
                 </DataGrid.Columns>
-            </DataGrid>
+            </DataGrid>-->
             <Grid Grid.Row="6" Height="40" >
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
@@ -206,8 +367,8 @@
                     <ColumnDefinition Width="*"/>
                 </Grid.ColumnDefinitions>
                 <Button Click="CancelClicked" Background="{StaticResource darkRed}" Margin="3">Cancel</Button>
-                <Button Click="MoveClicked" Background="{StaticResource lightBlue900}" Grid.Column="1" Margin="3">Move</Button>
-                <Button Click="CopyClicked" Background="{StaticResource addColor}" Grid.Column="2" Margin="3">Copy</Button>
+                <Button Click="MoveClicked" Background="{StaticResource MSBlue}" Grid.Column="1" Margin="3">Move</Button>
+                <Button Click="CopyClicked" Background="{StaticResource MSGreen}" Grid.Column="2" Margin="3">Copy</Button>
             </Grid>
         </Grid>
     </Border>

@@ -13,7 +13,7 @@
         BorderThickness="0"
         WindowStartupLocation="CenterScreen"
         Title="MainWindow" Height="1200" Width="1200">
-    <Border Loaded="Grid_Loaded" Background="{StaticResource primary}" CornerRadius="5" BorderThickness="3" BorderBrush="{StaticResource primaryLight}">
+    <Border Loaded="Grid_Loaded" Background="{StaticResource Primary}" CornerRadius="5" BorderThickness="3" BorderBrush="{StaticResource PrimaryLight}">
         <Grid >
             <Grid.RowDefinitions>
                 <RowDefinition Height="auto"/>
@@ -25,14 +25,14 @@
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="auto"/>
                 </Grid.ColumnDefinitions>
-                <Menu Foreground="{StaticResource textColor}" Background="{StaticResource primarySemiDark}" Padding="0  10 0 0">
+                <Menu Foreground="{StaticResource BrightText}" Background="{StaticResource PrimarySemiDark}" Padding="0  10 0 0">
                     <MenuItem Header="Settings">
                         <MenuItem Click="NewConnectionClicked" Header="Edit Connection"/>
                     </MenuItem>
                     <MenuItem Header="about"/>
                 </Menu>
                 <Label HorizontalContentAlignment="Center" Grid.Column="1">
-                    <TextBlock FontSize="25" FontWeight="Bold" FontFamily="Orbitron"  TextAlignment="Center" Text="MS Disk Managment"/>
+                    <TextBlock Foreground="{StaticResource BrightText}" FontSize="25" FontWeight="Bold" FontFamily="Orbitron"  TextAlignment="Center" Text="MS Disk Managment"/>
                 </Label>
                 <StackPanel Grid.Column="2">
                     <Button HorizontalContentAlignment="Center" Click="CloseWindow" VerticalContentAlignment="Center" Width="35" Height="35">

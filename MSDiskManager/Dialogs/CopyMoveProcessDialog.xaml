@@ -22,7 +22,7 @@
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
     </Window.Resources>
-    <Border Background="{StaticResource primary}" BorderBrush="{StaticResource primaryLight}" BorderThickness="3">
+    <Border Background="{StaticResource Primary}" BorderBrush="{StaticResource PrimaryLight}" BorderThickness="3">
         <Grid Loaded="Grid_Loaded">
             <Grid.RowDefinitions>
                 <RowDefinition/>
@@ -31,11 +31,11 @@
             </Grid.RowDefinitions>
             <Grid >
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
-                    <TextBlock Foreground="{StaticResource textColor}" Text="{Binding FinishedCount,StringFormat=' Finished {0} and'}" d:Text="Finished 10 out of"/>
-                    <TextBlock Foreground="{StaticResource textColor}" Text="{Binding SkippedCount,StringFormat=' Skipped {0} out of'}" d:Text="Finished 10 out of"/>
-                    <TextBlock Foreground="{StaticResource textColor}" Text="{Binding FullCount,StringFormat=' {0} files'}" d:Text="100 files"/>
+                    <TextBlock Foreground="{StaticResource BrightText}" Text="{Binding FinishedCount,StringFormat=' Finished {0} and'}" d:Text="Finished 10 out of"/>
+                    <TextBlock Foreground="{StaticResource BrightText}" Text="{Binding SkippedCount,StringFormat=' Skipped {0} out of'}" d:Text="Finished 10 out of"/>
+                    <TextBlock Foreground="{StaticResource BrightText}" Text="{Binding FullCount,StringFormat=' {0} files'}" d:Text="100 files"/>
                 </StackPanel>
-                <TextBlock Foreground="{StaticResource textColor}" Text="{Binding PRSC}" d:Text="50%" VerticalAlignment="Bottom" HorizontalAlignment="Center" Margin="0 0 0 5"/>
+                <TextBlock Foreground="{StaticResource BrightText}" Text="{Binding PRSC}" d:Text="50%" VerticalAlignment="Bottom" HorizontalAlignment="Center" Margin="0 0 0 5"/>
             </Grid>
             <ProgressBar Grid.Row="1" Height="20" Minimum="0" Maximum="{Binding FullSize}" Value="{Binding DoneSize}" d:Value="50" />
             
@@ -48,14 +48,14 @@
                 </Grid.ColumnDefinitions>
                 <Button   Margin="0 20 0 0"
                         Style="{StaticResource SharpRedButton}"
-                        Click="CancelClicked" Background="{StaticResource warnColor}">Cancel</Button>
+                        Click="CancelClicked" Background="{StaticResource WarnRed}">Cancel</Button>
                 <Border x:Name="SkipButtonBorder" Padding="10" Grid.Column="1" Width="{Binding RelativeSource={RelativeSource AncestorType={x:Type Grid}},
                 Path=ActualWidth,Converter={StaticResource DoubleDividerConverter},ConverterParameter=3}" Visibility="Collapsed">
-                    <Button Click="SkipClicked" Background="{StaticResource lightBlue900}">Skip</Button>
+                    <Button Click="SkipClicked" Background="{StaticResource MSBlue}">Skip</Button>
                 </Border>
                 <Border x:Name="RetryButtonBorder" Padding="10" Grid.Column="2" Width="{Binding RelativeSource={RelativeSource AncestorType={x:Type Grid}},
                 Path=ActualWidth,Converter={StaticResource DoubleDividerConverter},ConverterParameter=3}" Visibility="Collapsed">
-                    <Button Click="RetryClicked" Background="{StaticResource addColor}">Retry</Button>
+                    <Button Click="RetryClicked" Background="{StaticResource MSGreen}">Retry</Button>
                 </Border>
             </Grid>
         </Grid>

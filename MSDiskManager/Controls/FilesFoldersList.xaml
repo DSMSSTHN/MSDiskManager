@@ -17,7 +17,7 @@
         </ResourceDictionary>
         
     </UserControl.Resources>
-    <Border Background="{StaticResource primaryLight}" CornerRadius="10">
+    <Border Background="{StaticResource PrimaryLight}" CornerRadius="10">
 
         <Grid>
             <Grid Loaded="Grid_Loaded" AllowDrop="True" Drop="DropOnGrid" DragDrop.DragEnter="DragEnterElement" DragDrop.DragLeave="DragLeaveElement">
@@ -35,21 +35,24 @@
                         <Button Width="40" Style="{DynamicResource ButtonStyle1}"  IsEnabled="{Binding CanGoBack}" d:IsEnabled="False" Click="GoBack">
                             <Image  Source="/images/back.png"/>
                         </Button>
-                        <Button  Margin="5 0 0 0" Width="40"  Style="{DynamicResource ButtonStyle1}"  IsEnabled="{Binding CanGoBack}" d:IsEnabled="False" Click="GoHome">
+                        <Button  Margin="5 0 0 0" Width="40"  Style="{DynamicResource ButtonStyle1}"   d:IsEnabled="False" Click="GoHome">
                             <Image  Source="/images/home.png"/>
                         </Button>
                     </StackPanel>
                     <Grid Grid.Column="1" >
-                        <Border VerticalAlignment="Center" HorizontalAlignment="Center" BorderBrush="{StaticResource primarySemiDark}" Background="{StaticResource primary}" BorderThickness="2" Margin="2 2 100 2">
-                            <Label   DataContext="{Binding Parent}" >
+                        <Border VerticalAlignment="Center" HorizontalAlignment="Center" BorderBrush="{StaticResource PrimarySemiDark}" Background="{StaticResource Primary}" BorderThickness="2" Margin="2 2 100 2">
+                            <Label MinWidth="100" DataContext="{Binding Parent}" HorizontalContentAlignment="Center">
                                 <TextBlock Text="{Binding Name}" d:Text="Root dir" FontSize="18" FontWeight="Bold"/>
                             </Label>
                         </Border>
                         <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
-                            <TextBlock VerticalAlignment="Center" Foreground="{StaticResource textColor2}"   Text="{Binding NumberOfItems,StringFormat=' {0} items'}" d:Text="155 items" Margin="0 0 50 0"/>
-                            <TextBlock VerticalAlignment="Center" Foreground="{StaticResource textColor2}"   Text="{Binding OnDeskSize}" d:Text="155 items" Margin="0 0 50 0"/>
+                            <TextBlock VerticalAlignment="Center" Foreground="{StaticResource BrightText2}"   Text="{Binding NumberOfItems,StringFormat=' {0} items'}" d:Text="155 items" Margin="0 0 50 0"/>
+                            <TextBlock VerticalAlignment="Center" Foreground="{StaticResource BrightText2}"   Text="{Binding OnDeskSize}" d:Text="155 items" Margin="0 0 50 0"/>
                         </StackPanel>
-                        <Button HorizontalAlignment="Right" Width="40" Height="40" Background="{StaticResource addColor}" Click="CreateDirectory">
+                        <Button  HorizontalAlignment="Right" Width="40" Height="40"  Click="CreateDirectory">
+                            <Button.Background>
+                                <SolidColorBrush Color="#FF15DF15" Opacity="0.2"/>
+                            </Button.Background>
                             <Image Source="/images/add.png"/>
                         </Button>
                     </Grid>
@@ -59,6 +62,17 @@
                       ScrollViewer.VerticalScrollBarVisibility="{Binding VerticalScrollVisibility}"
                       HorizontalContentAlignment="Stretch"
                       ItemsSource="{Binding Items}" d:ItemsSource="{x:Static local:MockData.Items}">
+                    <ListView.ContextMenu>
+                        <ContextMenu >
+                            <MenuItem Header="Edit" Click="EditEntity"/>
+                            <MenuItem Header="Delete" Click="DeleteEntityCTX"/>
+                            <MenuItem Header="Copy" Click="CopyEntity"/>
+                            <MenuItem Header="Move" Click="MoveEntity"/>
+                            <MenuItem Header="Paste" Click="PasteEntity"/>
+                            <MenuItem Header="AddTagsRecursive" Click="AddTagsRecursiveClicked"/>
+                            <MenuItem Header="Show In Explrer" Click="ShowInExplorerClicked"/>
+                        </ContextMenu>
+                    </ListView.ContextMenu>
                     <ListView.Resources>
                         <Style TargetType="ListViewItem">
                             <Setter Property="IsSelected" Value="{Binding IsSelected}"/>
@@ -81,7 +95,6 @@
                                         <MenuItem Header="Copy" Click="CopyEntity"/>
                                         <MenuItem Header="Move" Click="MoveEntity"/>
                                         <MenuItem Header="Paste" Click="PasteEntity"/>
-                                        <MenuItem Header="AddTagsRecursive" Click="AddTagsRecursiveClicked"/>
                                         <MenuItem Header="Show In Explrer" Click="ShowInExplorerClicked"/>
                                     </ContextMenu>
                                 </Grid.ContextMenu>
@@ -126,7 +139,7 @@
                                                 <TextBlock Background="Transparent" PreviewKeyDown="TextBox_PreviewKeyDown"  
                                                   
                                                       Width="auto"
-                                                 FontWeight="SemiBold" Margin="0 6 0 0" Padding="0" Foreground="{StaticResource textColor}"
+                                                 FontWeight="SemiBold" Margin="0 6 0 0" Padding="0" Foreground="{StaticResource BrightText}"
                                                      Text="{Binding Name,Mode=TwoWay,UpdateSourceTrigger=PropertyChanged}"/>
                                                 <!--GotFocus="TextBox_GotFocus"
                                                 IsReadOnly="{Binding IsSelected, Converter={StaticResource BooleanOpposetConverter}}" 
@@ -138,7 +151,7 @@
                                                     <ColumnDefinition Width="auto"/>
                                                     <ColumnDefinition Width="*"/>
                                                 </Grid.ColumnDefinitions>
-                                                <TextBlock VerticalAlignment="Center"  FontWeight="Medium" Margin="0" Padding="10 0 0 0 " Foreground="{StaticResource textColor2}" FontSize="10" Text="{Binding FullPath}"/>
+                                                <TextBlock VerticalAlignment="Center"  FontWeight="Medium" Margin="0" Padding="10 0 0 0 " Foreground="{StaticResource BrightText2}" FontSize="10" Text="{Binding FullPath}"/>
                                                 <ListView HorizontalAlignment="Left" d:ItemsSource="{x:Static local:MockData.Tags}" Grid.Column="1"
                                                       MaxWidth="300"
                                                       Margin="30 0 0 0" ItemsSource="{Binding Tags}" BorderBrush="Transparent">
@@ -165,7 +178,7 @@
                                                                         </Setter>
                                                                     </Style>
                                                                 </Border.Style>
-                                                                <TextBlock  Text="{Binding Name}" FontSize="6" Foreground="{StaticResource textColor}"/>
+                                                                <TextBlock  Text="{Binding Name}" FontSize="6" Foreground="{StaticResource BrightText}"/>
                                                             </Border>
                                                         </DataTemplate>
                                                     </ListView.ItemTemplate>
@@ -173,8 +186,8 @@
                                             </Grid>
                                             <StackPanel Orientation="Horizontal">
                                                 <TextBlock Padding="10 0 0 0 " Text="{Binding NumberOfItems,StringFormat=' {0} items'}" Visibility="{Binding Path=.,Converter={StaticResource DirectoryOnlyVisibilityConverter}}" 
-                                                       FontSize="7" Foreground="{StaticResource textColor2}"/>
-                                                <TextBlock Padding="10 0 0 0 " Text="{Binding OnDeskSize}" FontSize="7" Foreground="{StaticResource textColor2}"/>
+                                                       FontSize="7" Foreground="{StaticResource BrightText2}"/>
+                                                <TextBlock Padding="10 0 0 0 " Text="{Binding OnDeskSize}" FontSize="7" Foreground="{StaticResource BrightText2}"/>
                                             </StackPanel>
 
                                         </StackPanel>

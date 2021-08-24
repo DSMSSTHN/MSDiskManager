@@ -81,8 +81,8 @@ namespace MSDiskManager.Controls
 
         private void GoHome(object sender, RoutedEventArgs e)
         {
-            Model.GoHome();
-
+            //Model.GoHome();
+            (Window.GetWindow(this) as MainWindow)?.MainWindowFrame.GoBack();
         }
 
         private void Grid_Loaded(object sender, RoutedEventArgs e)
@@ -120,7 +120,7 @@ namespace MSDiskManager.Controls
             if (!(g.DataContext is FileViewModel))
             {
                 e.Handled = true;
-                g.Background = Application.Current.Resources["lightBlue900"] as SolidColorBrush;
+                g.Background = Application.Current.Resources["MSBlue"] as SolidColorBrush;
             }
 
         }
@@ -199,20 +199,23 @@ namespace MSDiskManager.Controls
         private void EditEntity(object sender, RoutedEventArgs e)
         {
             var mi = sender as MenuItem;
-            var entity = mi.DataContext as BaseEntityViewModel;
+            var entity = (mi?.DataContext as BaseEntityViewModel) ?? Model.Parent;
+            if (entity == null) return;
             Model.Edit(entity);
         }
 
         private void DeleteEntityCTX(object sender, RoutedEventArgs e)
         {
             var mi = sender as MenuItem;
-            var entity = mi.DataContext as BaseEntityViewModel;
+            var entity = (mi?.DataContext as BaseEntityViewModel) ?? Model.Parent;
+            if (entity == null) return;
             Model.HandleDelete(entity);
         }
         private void ShowInExplorerClicked(object sender, RoutedEventArgs e)
         {
             var mi = sender as MenuItem;
-            var entity = mi.DataContext as BaseEntityViewModel;
+            var entity = (mi?.DataContext as BaseEntityViewModel) ?? Model.Parent;
+            if (entity == null) return;
             string args = "/select, \"" + @entity.FullPath + "\"";
 
             System.Diagnostics.Process.Start("explorer.exe", args);
@@ -220,21 +223,24 @@ namespace MSDiskManager.Controls
         private void CopyEntity(object sender, RoutedEventArgs e)
         {
             var mi = sender as MenuItem;
-            var entity = mi.DataContext as BaseEntityViewModel;
+            var entity = (mi?.DataContext as BaseEntityViewModel) ?? Model.Parent;
+            if (entity == null) return;
             Model.BeginCopy(entity);
         }
 
         private void MoveEntity(object sender, RoutedEventArgs e)
         {
             var mi = sender as MenuItem;
-            var entity = mi.DataContext as BaseEntityViewModel;
+            var entity = (mi?.DataContext as BaseEntityViewModel) ?? Model.Parent;
+            if (entity == null) return;
             Model.BeginMove(entity);
         }
 
         private void PasteEntity(object sender, RoutedEventArgs e)
         {
             var mi = sender as MenuItem;
-            var entity = mi.DataContext as BaseEntityViewModel;
+            var entity = (mi?.DataContext as BaseEntityViewModel) ?? Model.Parent;
+            if (entity == null) return;
             Model.CommitCopyMove(entity as DirectoryViewModel);
         }
 
@@ -247,7 +253,8 @@ namespace MSDiskManager.Controls
         private void AddTagsRecursiveClicked(object sender, RoutedEventArgs e)
         {
             var mi = sender as MenuItem;
-            var entity = mi.DataContext as BaseEntityViewModel;
+            var entity = (mi?.DataContext as BaseEntityViewModel) ?? Model.Parent;
+            if (entity == null) return;
             var diag = new SelectTagsWindow(entity.Tags.Select(t => t.Id).Cast<long>().ToList(),
                 async(tag) =>
                 {
@@ -308,7 +315,7 @@ namespace MSDiskManager.Controls
                         break;
                 }
             }
-            if (grid.ToolTip as Control != null) (grid.ToolTip as Control).Background = Application.Current.Resources["primary"] as SolidColorBrush;
+            if (grid.ToolTip as Control != null) (grid.ToolTip as Control).Background = Application.Current.Resources["Primary"] as SolidColorBrush;
         }
 
         private void Grid_MouseLeave(object sender, MouseEventArgs e)

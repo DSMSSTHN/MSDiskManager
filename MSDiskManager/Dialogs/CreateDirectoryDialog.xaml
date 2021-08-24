@@ -21,8 +21,8 @@
             <Style TargetType="TextBlock">
                 <Setter Property="VerticalAlignment" Value="Center"/>
                 <Setter Property="HorizontalAlignment" Value="Center"/>
-                <Setter Property="Foreground" Value="{StaticResource textColor}"/>
-                <Setter Property="Background" Value="{StaticResource primary}"/>
+                <Setter Property="Foreground" Value="{StaticResource BrightText}"/>
+                <Setter Property="Background" Value="{StaticResource Primary}"/>
             </Style>
             <ResourceDictionary.MergedDictionaries>
                 <ResourceDictionary Source="../Styles/TextStyles.xaml" />
@@ -31,7 +31,7 @@
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
     </Window.Resources>
-    <Border CornerRadius="5" Background="{StaticResource primary}" BorderBrush="{StaticResource primaryLight}" BorderThickness="3">
+    <Border CornerRadius="5" Background="{StaticResource Primary}" BorderBrush="{StaticResource PrimaryLight}" BorderThickness="3">
         <Grid Loaded="Grid_Loaded">
             <Grid.RowDefinitions>
                 <RowDefinition Height="auto"/>
@@ -60,13 +60,13 @@
                 <ListView Grid.Row="2" Grid.Column="1" ItemsSource="{Binding Tags}"
                           MinHeight="100"
                   d:ItemsSource="{x:Static local2:MockData.Tags}"
-                      Background="{StaticResource primary}"
+                      Background="{StaticResource Primary}"
                       ScrollViewer.HorizontalScrollBarVisibility="Hidden"
                       Name="TagsList">
                     <ListView.Template>
                         <ControlTemplate>
                             <Border>
-                                <ScrollViewer Background="{StaticResource primary}">
+                                <ScrollViewer Background="{StaticResource Primary}">
                                     <!-- this is needed -->
                                     <Grid>
                                         <Grid.RowDefinitions>
@@ -76,7 +76,7 @@
                                         <ItemsPresenter />
                                         <Button Grid.Row="1" Style="{StaticResource SharpButton}"
                                                 
-                                                                 Background="{StaticResource lightBlue900}"
+                                                                 Background="{StaticResource MSBlue}"
                                                                 Click="AddTags" >Add Tag</Button>
                                     </Grid>
                                 </ScrollViewer>
@@ -109,11 +109,11 @@
                                     </Grid.ColumnDefinitions>
                                     <Label Grid.Column="0">
                                         <TextBlock Text="{Binding Name}"
-                                           Foreground="{StaticResource textColor}"
+                                           Foreground="{StaticResource BrightText}"
                                            FontSize="10"
                                            TextWrapping="WrapWithOverflow"/>
                                     </Label>
-                                    <Button Grid.Column="1" Content="X" CommandParameter="{Binding Id}" Background="#00000066" Foreground="{StaticResource warnColor}" Click="DeleteTag"/>
+                                    <Button Grid.Column="1" Content="X" CommandParameter="{Binding Id}" Background="#00000066" Foreground="{StaticResource WarnRed}" Click="DeleteTag"/>
                                 </Grid>
                             </Border>
                         </DataTemplate>

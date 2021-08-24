@@ -80,8 +80,8 @@ namespace MSDiskManagerData.Data
 //            optionsBuilder.UseSqlite(@"Data Source=.\msdmtest.db", x => x.UseNodaTime());
 //#else
             optionsBuilder.UseNpgsql(connectionString, o => o.UseNodaTime());
-//#endif
-
+            //#endif
+            optionsBuilder.UseQueryTrackingBehavior(QueryTrackingBehavior.NoTracking);
             optionsBuilder.UseSnakeCaseNamingConvention();
             base.OnConfiguring(optionsBuilder);
         }
@@ -90,6 +90,7 @@ namespace MSDiskManagerData.Data
         {
 
             base.OnModelCreating(modelBuilder);
+            
             modelBuilder.Entity<MSDrive>(entity =>
             {
                 entity.HasKey(e => e.Id);

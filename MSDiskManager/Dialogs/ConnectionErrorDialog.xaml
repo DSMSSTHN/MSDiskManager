@@ -14,18 +14,18 @@
         BorderThickness="0"
         WindowStartupLocation="CenterScreen"
          Height="100" Width="400">
-    <Border CornerRadius="5" Background="{StaticResource primaryLight}" BorderBrush="{StaticResource primary}" BorderThickness="5">
+    <Border CornerRadius="5" Background="{StaticResource PrimaryLight}" BorderBrush="{StaticResource Primary}" BorderThickness="5">
         <Grid>
             <Grid.RowDefinitions>
                 <RowDefinition Height="*"/>
                 <RowDefinition Height="auto"/>
             </Grid.RowDefinitions>
-            <TextBlock Loaded="TextBlock_Loaded" Foreground="{StaticResource textColor}" TextWrapping="WrapWithOverflow" VerticalAlignment="Center" HorizontalAlignment="Center" Grid.Row="0" 
+            <TextBlock Loaded="TextBlock_Loaded" Foreground="{StaticResource BrightText}" TextWrapping="WrapWithOverflow" VerticalAlignment="Center" HorizontalAlignment="Center" Grid.Row="0" 
                        Text="Error while trying to connect to the database.
                        
                        check the connection then retry"/>
             <StackPanel Grid.Row="1">
-                <Button x:Name="RetryButton" Background="{StaticResource primary}" Click="RetryConnection">
+                <Button x:Name="RetryButton" Background="{StaticResource Primary}" Click="RetryConnection">
                     <Button.Style>
                         <Style TargetType="Button">
                             <Setter Property="Background" Value="Transparent" />
@@ -42,7 +42,7 @@
                     </Button.Style>
                     <StackPanel Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Center">
                         <Image Height="25" Width="25" Source="/images/retry.png"/>
-                        <TextBlock VerticalAlignment="Center" Name="RetryText" Foreground="{StaticResource textColor}" Text="Retry"/>
+                        <TextBlock VerticalAlignment="Center" Name="RetryText" Foreground="{StaticResource BrightText}" Text="Retry"/>
                     </StackPanel>
                 </Button>
             </StackPanel>

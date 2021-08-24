@@ -89,6 +89,26 @@ namespace MSDiskManager.ViewModels
                 return result;
             }
         }
+        public void AddTagRecursive(Tag tag)
+        {
+            if (!this.Tags.Contains(tag)) this.Tags.Add(tag);
+            files.ForEach(f => { if (!f.Tags.Contains(tag))f.Tags.Add(tag); });
+            children.ForEach(d => d.AddTagRecursive(tag));
+        }
+        public void AddTagsRecursive(ICollection<Tag> tags)
+        {
+            foreach (var t in tags) AddTagRecursive(t);
+        }
+        public void RemoveTagRecursive(Tag tag)
+        {
+            Tags.RemoveWhere(t => t.Id == tag.Id);
+            files.ForEach(f => f.Tags.RemoveWhere(t => t.Id == tag.Id));
+            children.ForEach(d => d.RemoveTagRecursive(tag));
+        }
+        public void RemoveTagsRecursive(ICollection<Tag> tags)
+        {
+            foreach (var t in tags) RemoveTagRecursive(t);
+        }
         public int AllItemsCountRecursive
         {
             get
@@ -211,5 +231,12 @@ namespace MSDiskManager.ViewModels
             NumberOfItems = await new DirectoryRepository().GetItemsCount(Id);
             NotifyPropertyChanged("NumberOfItems");
         }
+
+
+
+
+
+
+        
     }
 }

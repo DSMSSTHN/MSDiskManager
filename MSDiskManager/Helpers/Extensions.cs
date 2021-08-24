@@ -8,6 +8,7 @@ using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using System.Windows;
 
 namespace MSDiskManager.Helpers
@@ -17,7 +18,7 @@ namespace MSDiskManager.Helpers
         public static ObservableCollection<T> Clone<T>(this ObservableCollection<T> col) => new ObservableCollection<T>(col.ToList());
         public static ObservableCollection<T> ToObservableCollection<T>(this IEnumerable<T> col) => new ObservableCollection<T>(col);
 
-        public static List<T> RemoveWhere<T>(this ObservableCollection<T> obs, Predicate<T> predicate)
+        public static List<T> RemoveWhere<T>(this ICollection<T> obs, Predicate<T> predicate)
         {
             var lst = new List<T>();
             foreach (var o in obs) if (predicate(o)) lst.Add(o);
@@ -50,7 +51,7 @@ namespace MSDiskManager.Helpers
             foreach (var l in lst) obs.Remove(l);
             return lst;
         }
-        public static void AddMany<T, V>(this ObservableCollection<T> col, ICollection<V> collection, CancellationToken? cancellation = null)
+        public static void AddMany<T, V>(this ObservableCollection<T> col, IEnumerable<V> collection, CancellationToken? cancellation = null)
             where V : T
         {
             foreach (var item in collection)
@@ -132,12 +133,25 @@ namespace MSDiskManager.Helpers
             return lst;
         }
 
-        public static void InsertSorted<T, V, E>(this ObservableCollection<T> col, ICollection<V> items, Func<T, E> conversion)
+        public static void InsertSorted<T, V, E>(this ObservableCollection<T> col, IEnumerable<V> items, Func<T, E> conversion)
             where E : IComparable
             where V : T
         {
             foreach (var item in items) col.InsertSorted(item, conversion);
         }
+        public static async Task InsertSortedWithDelay<T, V, E>(this ObservableCollection<T> col, IEnumerable<V> items, Func<T, E> conversion, int msDelay)
+            where E : IComparable
+            where V : T
+        {
+            foreach (var item in items)
+            {
+                if (msDelay > 0) await Task.Delay(msDelay);
+                col.AppInvoke(() =>
+                {
+                    col.InsertSorted(item, conversion);
+                });
+            }
+        }   
         public static void InsertSorted<T, V, E>(this ObservableCollection<T> col, V item, Func<T, E> conversion)
             where E : IComparable
             where V : T
@@ -198,6 +212,15 @@ namespace MSDiskManager.Helpers
                 Extension = entity.Extension,
             };
         }
-
+        public static void AppInvoke(this object _, Action action) => Application.Current.Dispatcher.Invoke(() => { action?.Invoke(); });
+        public static void AppInvokeLock(this object _, object lockObject, Action action) => Application.Current.AppInvoke(() =>
+        {
+            lock (lockObject) { action?.Invoke(); }
+        });
+        public static void AppInvokeAfter(this object obj, int msDuration, Action action) => obj.AppInvoke(async () =>
+        {
+            await Task.Delay(msDuration);
+            action?.Invoke();
+        });
     }
 }

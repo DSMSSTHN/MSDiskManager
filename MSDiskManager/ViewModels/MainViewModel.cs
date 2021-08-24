@@ -164,7 +164,7 @@ namespace MSDiskManager.ViewModels
         public void KeyDown(Key key, BaseEntityViewModel? entity = null)
         {
             pressedKeys.Add(key);
-            if (key == Key.A && (pressedKeys.Contains(Key.LeftCtrl) || pressedKeys.Contains(Key.RightCtrl))) SelectAll();
+            if (key == Key.A && (Keyboard.IsKeyDown(Key.LeftCtrl) || Keyboard.IsKeyDown(Key.RightCtrl))) SelectAll();
             //if (key == Key.F2 && lastClickedItem != null) BeginRenaming();
             else if (key == Key.Escape) cancelAll();
             else if (key == Key.Delete)
@@ -200,11 +200,11 @@ namespace MSDiskManager.ViewModels
                     }
                 }
             }
-            else if (key == Key.C && (pressedKeys.Contains(Key.LeftCtrl) || pressedKeys.Contains(Key.RightCtrl)))
+            else if (key == Key.C && (Keyboard.IsKeyDown(Key.LeftCtrl) || Keyboard.IsKeyDown(Key.RightCtrl)))
                 BeginCopy(entity ?? lastClickedItem);
-            else if (key == Key.X && (pressedKeys.Contains(Key.LeftCtrl) || pressedKeys.Contains(Key.RightCtrl)))
+            else if (key == Key.X && (Keyboard.IsKeyDown(Key.LeftCtrl) || Keyboard.IsKeyDown(Key.RightCtrl)))
                 BeginMove(entity ?? lastClickedItem);
-            else if (key == Key.V && (pressedKeys.Contains(Key.LeftCtrl) || pressedKeys.Contains(Key.RightCtrl)))
+            else if (key == Key.V && (Keyboard.IsKeyDown(Key.LeftCtrl) || Keyboard.IsKeyDown(Key.RightCtrl)))
                 CommitCopyMove((entity as DirectoryViewModel) ?? parent);
             else if (key == Key.F2)
             {
@@ -221,7 +221,7 @@ namespace MSDiskManager.ViewModels
             isMoving = false;
             itemsToCopyMove.ToList().ForEach(i => i.Background = new SolidColorBrush(Colors.Transparent));
             itemsToCopyMove = selected.ToHashSet();
-            itemsToCopyMove.ToList().ForEach(i => i.Background = (Application.Current.Resources["primary"] as SolidColorBrush)!);
+            itemsToCopyMove.ToList().ForEach(i => i.Background = (Application.Current.Resources["Primary"] as SolidColorBrush)!);
             if (selected.Count > 0) CanPaste = true;
 
         }
@@ -234,7 +234,7 @@ namespace MSDiskManager.ViewModels
             isMoving = true;
             itemsToCopyMove.ToList().ForEach(i => i.Background = new SolidColorBrush(Colors.Transparent));
             itemsToCopyMove = selected.ToHashSet();
-            itemsToCopyMove.ToList().ForEach(i => i.Background = (Application.Current.Resources["primary"] as SolidColorBrush)!);
+            itemsToCopyMove.ToList().ForEach(i => i.Background = (Application.Current.Resources["Primary"] as SolidColorBrush)!);
             if (selected.Count > 0) CanPaste = true;
 
         }
@@ -341,7 +341,7 @@ namespace MSDiskManager.ViewModels
         public void SelectItem(BaseEntityViewModel clickedItem)
         {
             if (Interlocked.Read(ref isWorking) != 0) return;
-            if ((pressedKeys.Contains(Key.LeftShift) || pressedKeys.Contains(Key.RightShift)) && lastClickedItem != null && Items.Contains(lastClickedItem) && Items.Contains(lastClickedItem))
+            if ((Keyboard.IsKeyDown(Key.LeftShift) || Keyboard.IsKeyDown(Key.RightShift)) && lastClickedItem != null && Items.Contains(lastClickedItem) && Items.Contains(lastClickedItem))
             {
                 var index1 = Items.IndexOf(clickedItem);
                 var index2 = Items.IndexOf(lastClickedItem);
@@ -354,7 +354,7 @@ namespace MSDiskManager.ViewModels
                 }
                 return;
             }
-            else if ((pressedKeys.Contains(Key.LeftCtrl) || pressedKeys.Contains(Key.RightCtrl)))
+            else if ((Keyboard.IsKeyDown(Key.LeftCtrl) || Keyboard.IsKeyDown(Key.RightCtrl)))
             {
                 clickedItem.IsSelected = !clickedItem.IsSelected;
                 if (!clickedItem.IsSelected) return;

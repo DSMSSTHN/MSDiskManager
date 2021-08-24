@@ -21,8 +21,8 @@
             <Style TargetType="TextBlock">
                 <Setter Property="VerticalAlignment" Value="Center"/>
                 <Setter Property="HorizontalAlignment" Value="Center"/>
-                <Setter Property="Foreground" Value="{StaticResource textColor}"/>
-                <Setter Property="Background" Value="{StaticResource primary}"/>
+                <Setter Property="Foreground" Value="{StaticResource BrightText}"/>
+                <Setter Property="Background" Value="{StaticResource Primary}"/>
             </Style>
             <ResourceDictionary.MergedDictionaries>
                 <ResourceDictionary Source="../Styles/TextStyles.xaml"/>
@@ -30,7 +30,7 @@
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
     </Window.Resources>
-    <Border CornerRadius="5" Background="{StaticResource primary}" BorderBrush="{StaticResource primaryLight}" BorderThickness="3">
+    <Border CornerRadius="5" Background="{StaticResource Primary}" BorderBrush="{StaticResource PrimaryLight}" BorderThickness="3">
         <Grid Loaded="Grid_Loaded">
             <Grid.RowDefinitions>
                 <RowDefinition Height="auto"/>
@@ -55,19 +55,19 @@
                     Style="{StaticResource SharpTextBox}"
                     Grid.Row="1" Grid.Column="1" Text="{Binding Description, Mode=TwoWay,UpdateSourceTrigger=PropertyChanged}" Height="30"/>
             </StackPanel>
-            <CheckBox Foreground="{StaticResource textColor}" 
+            <CheckBox Foreground="{StaticResource BrightText}" 
                       Content="IsHidden" IsChecked="{Binding IsHidden}" Grid.Row="2" Height="30" HorizontalContentAlignment="Center" HorizontalAlignment="Center" VerticalContentAlignment="Center" Grid.ColumnSpan="2"/>
             <StackPanel Grid.Row="3" Grid.ColumnSpan="2">
                 <TextBlock Text="Tags"/>
                 <ListView ItemsSource="{Binding Tags}" BorderThickness="0"
                   d:ItemsSource="{x:Static local2:MockData.Tags}"
-                      Background="{StaticResource primary}"
+                      Background="{StaticResource Primary}"
                       ScrollViewer.HorizontalScrollBarVisibility="Hidden"
                       Name="TagsList">
                     <ListView.Template>
                         <ControlTemplate>
                             <Border>
-                                <ScrollViewer Background="{StaticResource primary}">
+                                <ScrollViewer Background="{StaticResource Primary}">
                                     <!-- this is needed -->
                                     <Grid>
                                         <Grid.RowDefinitions>
@@ -110,11 +110,11 @@
                                     </Grid.ColumnDefinitions>
                                     <Label Grid.Column="0">
                                         <TextBlock Text="{Binding Name}"
-                                           Foreground="{StaticResource textColor}"
+                                           Foreground="{StaticResource BrightText}"
                                            FontSize="10"
                                            TextWrapping="WrapWithOverflow"/>
                                     </Label>
-                                    <Button Grid.Column="1" Content="X" CommandParameter="{Binding Id}" Background="#00000066" Foreground="{StaticResource warnColor}" Click="Button_Click"/>
+                                    <Button Grid.Column="1" Content="X" CommandParameter="{Binding Id}" Background="#00000066" Foreground="{StaticResource WarnRed}" Click="Button_Click"/>
                                 </Grid>
                             </Border>
                         </DataTemplate>

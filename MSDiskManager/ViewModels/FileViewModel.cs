@@ -296,8 +296,8 @@ namespace MSDiskManager.ViewModels
                     text = text.Substring(0, 1000) + "......";
                 }
                 txt.Text = text;
-                txt.Background = Application.Current.Resources["primary"] as SolidColorBrush;
-                txt.Foreground = Application.Current.Resources["textColor"] as SolidColorBrush;
+                txt.Background = Application.Current.Resources["Primary"] as SolidColorBrush;
+                txt.Foreground = Application.Current.Resources["BrightText"] as SolidColorBrush;
                 txt.MaxWidth = System.Windows.SystemParameters.FullPrimaryScreenWidth / 2;
                 return txt;
             }

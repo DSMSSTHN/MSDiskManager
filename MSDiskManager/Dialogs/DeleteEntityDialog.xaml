@@ -13,25 +13,25 @@
         WindowStartupLocation="CenterScreen"
         BorderThickness="0"
          Height="130" Width="700">
-    <Border CornerRadius="5" Background="{StaticResource primaryLight}" BorderBrush="{StaticResource primary}" BorderThickness="5">
+    <Border CornerRadius="5" Background="{StaticResource PrimaryLight}" BorderBrush="{StaticResource Primary}" BorderThickness="5">
         <Grid Loaded="Grid_Loaded">
             <Grid.RowDefinitions>
                 <RowDefinition Height="*"/>
                 <RowDefinition Height="auto"/>
             </Grid.RowDefinitions>
             <StackPanel Grid.Row="0" >
-                <TextBlock Foreground="{StaticResource textColor}" TextAlignment="Center" FontWeight="Bold" Text="{Binding Name.Value}" d:Text="SomeItem"/>
-                <TextBlock Foreground="{StaticResource textColor}" TextAlignment="Center" FontWeight="Thin" Text="{Binding FullPath.Value}" d:Text="d:\"/>
-                <TextBlock  Foreground="{StaticResource textColor}" TextWrapping="WrapWithOverflow" VerticalAlignment="Center" HorizontalAlignment="Center" 
+                <TextBlock Foreground="{StaticResource BrightText}" TextAlignment="Center" FontWeight="Bold" Text="{Binding Name.Value}" d:Text="SomeItem"/>
+                <TextBlock Foreground="{StaticResource BrightText}" TextAlignment="Center" FontWeight="Thin" Text="{Binding FullPath.Value}" d:Text="d:\"/>
+                <TextBlock  Foreground="{StaticResource BrightText}" TextWrapping="WrapWithOverflow" VerticalAlignment="Center" HorizontalAlignment="Center" 
                        Text="{Binding Message}" d:Text="do you wish to remove this directory with all items within"/>
                 <StackPanel Visibility="{Binding Started.Value}" d:Visibility="Collapsed" Orientation="Horizontal" HorizontalAlignment="Center" Margin="0 20 0 0">
-                    <TextBlock Text="{Binding Progress.Value,StringFormat='deleted {0} items from'}" d:Text="deleted 1 items from" Foreground="{StaticResource textColor2}"/>
-                    <TextBlock Text="{Binding Maximum.Value,StringFormat=' {0} items'}" d:Text=" 20 items" Foreground="{StaticResource textColor2}"/>
+                    <TextBlock Text="{Binding Progress.Value,StringFormat='deleted {0} items from'}" d:Text="deleted 1 items from" Foreground="{StaticResource BrightText2}"/>
+                    <TextBlock Text="{Binding Maximum.Value,StringFormat=' {0} items'}" d:Text=" 20 items" Foreground="{StaticResource BrightText2}"/>
                 </StackPanel>
                 <ProgressBar Visibility="{Binding Started.Value}" d:Visibility="Collapsed" BorderBrush="Transparent"  Margin="5" Minimum="0" Maximum="{Binding Maximum.Value}" Value="{Binding Progress.Value}" Height="15"/>
             </StackPanel>
             <StackPanel Grid.Row="1">
-                <Button x:Name="RetryButton" Background="{StaticResource primary}" >
+                <Button x:Name="RetryButton" Background="{StaticResource Primary}" >
                     <Button.Style>
                         <Style TargetType="Button">
                             <Setter Property="Background" Value="Transparent" />
@@ -53,12 +53,12 @@
                             <ColumnDefinition/>
                         </Grid.ColumnDefinitions>
                         <Border Padding="2" Background="Transparent">
-                            <Button Background="{StaticResource primaryLight}" Click="CancelClicked">
+                            <Button Background="{StaticResource PrimaryLight}" Click="CancelClicked">
                                 Cancel
                             </Button>
                         </Border>
                         <Border Padding="2" Grid.Column="1" Background="Transparent">
-                            <Button Background="{StaticResource warnColor}"  Click="DeleteReferenceClicked">
+                            <Button Background="{StaticResource WarnRed}"  Click="DeleteReferenceClicked">
                                 Delete DB Reference Only
                             </Button>
                         </Border>

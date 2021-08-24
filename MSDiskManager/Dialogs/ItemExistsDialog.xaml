@@ -20,10 +20,10 @@
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
     </Window.Resources>
-    <Border CornerRadius="1" Background="{StaticResource primary}"
-            TextBlock.Foreground="{StaticResource textColor}"
+    <Border CornerRadius="1" Background="{StaticResource Primary}"
+            TextBlock.Foreground="{StaticResource BrightText}"
             
-            BorderBrush="{StaticResource primary}" BorderThickness="1">
+            BorderBrush="{StaticResource PrimaryLight}" BorderThickness="1">
         <Grid Loaded="Grid_Loaded">
             <Grid.RowDefinitions>
                 <RowDefinition/>
@@ -37,7 +37,7 @@
                 <ColumnDefinition/>
             </Grid.ColumnDefinitions>
             <TextBlock x:Name="ContentTxtBx" Grid.ColumnSpan="4" d:Text="File asd sads a Already Exists. what do you want to do?" TextAlignment="Center" Padding="5"/>
-            <CheckBox Margin="0 0 0 20" Foreground="{StaticResource textColor}" Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="2" HorizontalAlignment="Center"  IsChecked="False" Content="Do this for all items" Checked="CheckBox_Checked" />
+            <CheckBox Margin="0 0 0 20" Foreground="{StaticResource BrightText}" Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="2" HorizontalAlignment="Center"  IsChecked="False" Content="Do this for all items" Checked="CheckBox_Checked" />
             
                 <Button Grid.Row="2" Grid.Column="0" Click="CancelClicked" Style="{StaticResource SharpRedButton}" >Cancel</Button>
 
