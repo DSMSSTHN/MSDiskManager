@@ -22,6 +22,7 @@ using System.Threading;
 using MSDiskManager.ViewModels;
 using System.Diagnostics;
 using MSDiskManager.Dialogs;
+using MSDiskManager.Helpers;
 
 namespace MSDiskManager.Controls
 {
@@ -308,6 +309,32 @@ namespace MSDiskManager.Controls
                     case FileType.Video:
                         var video = file.VideoContent;
                         if (grid.ToolTip == null) grid.ToolTip = video;
+                        var cancels = new CancellationTokenSource();
+                        video.Loaded +=async (a, b) =>
+                        {
+                            var player = (MediaElement)a;
+                            try
+                            {
+                                var canSeek = false;
+                                while (!canSeek)
+                                {
+                                    await Task.Delay(100);
+                                    if (cancels.IsCancellationRequested) return;
+                                    this.AppInvoke(() => { canSeek = player.NaturalDuration.HasTimeSpan; });
+                                }
+                                var duration = (int)player.NaturalDuration.TimeSpan.TotalMinutes;
+                                this.AppInvoke(() => { player.Position = new TimeSpan(0, new Random().Next(duration), 0); });
+                            }
+                            catch (Exception)
+                            {
+
+                                player.Position = new TimeSpan(0);
+                            }
+                        };
+                        video.Unloaded += (a,b) =>
+                        {
+                            cancels.Cancel();
+                        };
                         video.Play();
                         break;
                     case FileType.Compressed:

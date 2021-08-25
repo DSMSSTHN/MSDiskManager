@@ -138,6 +138,7 @@ namespace MSDiskManager.Helpers
                 case "amr":
                     return FileType.Music;
                 case "mp4":
+                case "ts":
                 case "3gp":
                 case "wmv":
                     return FileType.Video;

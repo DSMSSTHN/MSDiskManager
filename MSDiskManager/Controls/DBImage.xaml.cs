@@ -20,6 +20,7 @@ using System.Windows.Navigation;
 using System.Windows.Shapes;
 using System.Threading;
 using MSDiskManager.ViewModels;
+using System.Drawing;
 
 namespace MSDiskManager.Controls
 {
@@ -30,8 +31,12 @@ namespace MSDiskManager.Controls
     {
         public static readonly DependencyProperty ImgWidthProperty = DependencyProperty.Register("ImgWidth", typeof(double),
             typeof(DBImage), new PropertyMetadata(default(double)));
+        public static readonly DependencyProperty ImgWidthImgFileProperty = DependencyProperty.Register("ImgWidthImageFile", typeof(double),
+            typeof(DBImage), new PropertyMetadata(default(double)));
+
 
         public double ImgWidth { get => (double)GetValue(ImgWidthProperty); set => SetValue(ImgWidthProperty, value); }
+        public double ImgWidthImgFile { get => (double)GetValue(ImgWidthImgFileProperty); set => SetValue(ImgWidthImgFileProperty, value); }
 
         private static ConcurrentDictionary<long, byte[]> images = new ConcurrentDictionary<long, byte[]>();
         private static ConcurrentDictionary<long, ImageSource?> sources = new ConcurrentDictionary<long, ImageSource?>();
@@ -50,6 +55,10 @@ namespace MSDiskManager.Controls
             if (ImgWidth > 0) ImgBorder.Width = ImgWidth;
             var dc = DataContext as BaseEntityViewModel;
             if (dc == null) return;
+            if (dc is FileViewModel && ImgWidthImgFile > 0 && (dc as FileViewModel).FileType == FileType.Image)
+            {
+                ImgBorder.Width = ImgWidthImgFile;
+            }
             byte[] thumb;
             ImageSource source = null;
             if (dc.Id != null && dc is FileViewModel && (dc as FileViewModel).FileType == FileType.Image)
@@ -72,8 +81,14 @@ namespace MSDiskManager.Controls
                 await tryLoadImage();
                 return;
             }
-
-          
+            else if (dc.Id == null && dc is FileViewModel && (dc as FileViewModel).FileType == FileType.Image)
+            {
+                file = dc as FileViewModel;
+                source = fileToIS(dc.OriginalPath);
+                IMG.Source = source;
+                return;
+            }
+            
 
             ImageSource image = null;
             if (dc is FileViewModel)
@@ -180,6 +195,41 @@ namespace MSDiskManager.Controls
             //ts?.ForEach(async t =>  images.TryAdd(t.FileId, t.Thumbnail));
             //loadedDirectories.Add(id);
         }
+        private ImageSource fileToIS(string url)
+        {
+            using (var bitmap = new Bitmap(url))
+            {
+                var size = 400;
+                var width = bitmap.Width;
+                var height = bitmap.Height;
+                //handle = bitmap.GetHbitmap();
+                if (bitmap.Width > bitmap.Height)
+                {
+                    if (bitmap.Width > size)
+                    {
+                        width = size;
+                        var h = height * (width / (double)bitmap.Width);
+                        height = (int)Math.Round(h);
+                    }
+                }
+                else
+                {
+                    if (bitmap.Height > size)
+                    {
+                        height = size;
+                        var w = width * (height / (double)bitmap.Height);
+                        width = (int)Math.Round(w);
+                    }
+                }
+                using (var thumnailImage = bitmap.GetThumbnailImage(width, height, delegate () { return false; }, IntPtr.Zero))
+                {
+                    thumnailImage.Save("D:\\2.jpg");
+                    ImageConverter imageConverter = new ImageConverter();
+                    byte[] bytes = imageConverter.ConvertTo(thumnailImage, typeof(byte[])) as byte[];
+                    return bytesToIS(bytes);
+                }
+            }
+        }
         private ImageSource bytesToIS(byte[] bts)
         {
             if (bts == null) return null;
@@ -192,17 +242,20 @@ namespace MSDiskManager.Controls
                 image.StreamSource = stream;
                 image.EndInit();
                 image.Freeze();
-                sources.TryAdd((long)file.Id, image);
-                var count = sources.Count;
-                
-                    if(count > 400)
+                if (file != null && file.Id != null)
                 {
-                    foreach(var kv in sources.Take(count - 400))
+                    sources.TryAdd((long)file.Id, image);
+                    var count = sources.Count;
+
+                    if (count > 400)
                     {
-                        sources.GetValueOrDefault(kv.Key);
+                        foreach (var kv in sources.Take(count - 400))
+                        {
+                            sources.GetValueOrDefault(kv.Key);
+                        }
                     }
                 }
-                
+
                 return image;
             }
         }

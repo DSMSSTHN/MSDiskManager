@@ -289,6 +289,7 @@ namespace MSDiskManager.ViewModels
             {
                 if (txt != null) return txt;
                 txt = new TextBlock();
+                
                 txt.TextWrapping = TextWrapping.Wrap;
                 var text = File.ReadAllText(OriginalPath);
                 if (text.Length > 1000)
@@ -298,6 +299,7 @@ namespace MSDiskManager.ViewModels
                 txt.Text = text;
                 txt.Background = Application.Current.Resources["Primary"] as SolidColorBrush;
                 txt.Foreground = Application.Current.Resources["BrightText"] as SolidColorBrush;
+                //txt.Foreground = Brushes.White;
                 txt.MaxWidth = System.Windows.SystemParameters.FullPrimaryScreenWidth / 2;
                 return txt;
             }
@@ -323,14 +325,21 @@ namespace MSDiskManager.ViewModels
                 }
                 media.Source = new Uri(OriginalPath);
 
-                try
+                media.MediaOpened += (a, b) =>
                 {
-                    media.Position = new TimeSpan(0, 0, new Random().Next(100));
-                }
-                catch (Exception)
-                {
-                    media.Position = new TimeSpan(0);
-                }
+                    MediaElement player = (MediaElement)a;
+                    try
+                    {
+
+                        var duration = (int)player.NaturalDuration.TimeSpan.TotalMinutes;
+                        this.AppInvoke(() => { player.Position = new TimeSpan(0, new Random().Next(duration), 0); });
+                    }
+                    catch (Exception)
+                    {
+                        
+                        player.Position = new TimeSpan(0);
+                    }
+                };
 
                 return media;
             }

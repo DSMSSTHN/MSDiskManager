@@ -311,6 +311,7 @@ namespace MSDiskManager.Pages.AddItems
 
         private void HandleDragEnter(object sender, DragEventArgs e)
         {
+            Window.GetWindow(this).Activate();
             if (e.Data.GetDataPresent(DataFormats.FileDrop))
             {
                 if (sender is StackPanel && (sender as StackPanel).DataContext is DirectoryViewModel || sender is Page)

@@ -128,7 +128,7 @@
                                         </Style>
                                     </Button.Style>
                                     <Button.ToolTip>
-                                        <TextBlock Text="{Binding Description}"/>
+                                        <TextBlock Text="{Binding Description}" Foreground="{StaticResource BrightText}"/>
                                     </Button.ToolTip>
                                     <Grid Background="Transparent">
                                         <StackPanel Background="Transparent" >

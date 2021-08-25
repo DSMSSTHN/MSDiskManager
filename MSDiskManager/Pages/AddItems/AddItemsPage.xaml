@@ -69,19 +69,10 @@
                 </StackPanel>
             </Grid>
             <ListView Grid.Row="2" Background="{StaticResource PrimaryLight}"
-                      PreviewMouseWheel="ItemsListView_PreviewMouseWheel"
+                      MouseWheel="ItemsListView_PreviewMouseWheel"
                           Name="ItemsListView" SelectionMode="Multiple"
                       HorizontalContentAlignment="Stretch" ScrollViewer.ScrollChanged="ItemsListView_ScrollChanged"
                       ItemsSource="{Binding Items}" d:ItemsSource="{x:Static local:MockData.Items}">
-                <ListView.ItemContainerStyle>
-                    <Style TargetType="ListViewItem">
-                        <Setter Property="Background">
-                            <Setter.Value>
-                                <SolidColorBrush Color="Black" Opacity="0.2"/>
-                            </Setter.Value>
-                        </Setter>
-                    </Style>
-                </ListView.ItemContainerStyle>
                 <ListView.ContextMenu>
                     <ContextMenu >
                         <MenuItem Header="Edit" Click="EditEntity"/>
@@ -98,6 +89,16 @@
                         <Setter Property="IsSelected" Value="{Binding IsSelected,Mode=TwoWay}"/>
                         <Setter Property="BorderThickness" Value="1"/>
                         <Setter Property="BorderBrush" Value="Black"/>
+                        <Setter Property="Background">
+                            <Setter.Value>
+                                <SolidColorBrush Color="Black" Opacity="0.2"/>
+                            </Setter.Value>
+                        </Setter>
+                        <Style.Triggers>
+                            <Trigger Property="IsSelected" Value="True">
+                                <Setter Property="Background" Value="Black"/>
+                            </Trigger>
+                        </Style.Triggers>
                     </Style>
                 </ListView.Resources>
                 <ListView.ItemsPanel>
@@ -139,7 +140,7 @@
 
                             <Button MouseDoubleClick="OpenDirectory" 
                                     
-                                    Grid.Column="0" Background="{Binding Background}" BorderBrush="Transparent" BorderThickness="0"
+                                    Grid.Column="0"  BorderBrush="Transparent" BorderThickness="0"
                                  CommandParameter="{Binding Path=.}"
                                 >
                                 <Button.Style>
@@ -148,7 +149,7 @@
                                         <Setter Property="Template">
                                             <Setter.Value>
                                                 <ControlTemplate TargetType="Button">
-                                                    <Grid Background="{TemplateBinding Background}">
+                                                    <Grid >
                                                         <ContentPresenter />
                                                     </Grid>
                                                 </ControlTemplate>
@@ -162,7 +163,7 @@
                                 <Grid >
                                     <StackPanel Background="Transparent" >
                                         <StackPanel >
-                                            <controls:DBImage ImgWidth="20" Width="20" DataContext="{Binding Path=.}"
+                                            <controls:DBImage ImgWidth="20" ImgWidthImgFile="200" DataContext="{Binding Path=.}"
                                                                   MouseEnter="Grid_MouseEnter" MouseLeave="Grid_MouseLeave"
                                                   PreviewMouseWheel="Grid_PreviewMouseWheel"
                                                                   />
@@ -226,12 +227,10 @@
                                 </Grid>
                             </Button>
                             <Button
-                                Background="{Binding Background}"
                                 Grid.Column="1" Click="EditEntity" CommandParameter="{Binding Path=.}">
                                 <Image Source="/images/edit.png" Width="30"/>
                             </Button>
                             <Button
-                                Background="{Binding Background}"
                                 Grid.Column="2" Click="DeleteEntity" CommandParameter="{Binding Path=.}">
                                 <Image Source="/images/delete.png"/>
                             </Button>

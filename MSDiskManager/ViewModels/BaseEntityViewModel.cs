@@ -143,7 +143,7 @@ namespace MSDiskManager.ViewModels
             get => isSelected; set
             {
                 isSelected = value; NotifyPropertyChanged("IsSelected");
-                Background = !value ? Brushes.Transparent : Brushes.Black;
+                Background = !value ? Brushes.Transparent : (Application.Current.Resources["Primary"] as SolidColorBrush)!;
             }
         }
         public bool IsRenaming { get => isRenaming; set { isRenaming = value; NotifyPropertyChanged("IsRenaming"); } }

@@ -19,20 +19,30 @@
         <TextBlock TextAlignment="Center" x:Name="ConnectionStatusText" d:Text="You are connected to msdb Database"/>
         <Grid Grid.Row="1">
             <Border CornerRadius="0">
-                <ListView x:Name="DrivesListView" BorderBrush="Transparent" BorderThickness="0">
+                <ListView x:Name="DrivesListView" BorderBrush="Transparent"
+                          HorizontalContentAlignment="Center"
+                          VerticalContentAlignment="Center"
+                          VerticalAlignment="Center"
+                          BorderThickness="0">
                     <ListView.ItemTemplate>
                         <DataTemplate>
                             <Border Background="{StaticResource BrightText}"
-                                    
+                                    Margin="0 30 0 0"
                                     Width="{Binding RelativeSource={RelativeSource AncestorType=ListView},Path=ActualWidth
                                 ,Converter={StaticResource DoubleDividerConverter},ConverterParameter=1.1
-                                }"
-                                    CornerRadius="10" Margin="20">
-                                <Button Click="DriveSelected" CommandParameter="{Binding Path=.}" 
+                                }"  
+                                    CornerRadius="10" >
+                                <Button MouseDoubleClick="DriveSelected" 
+                                        CommandParameter="{Binding Path=.}" 
                                         >
                                     <StackPanel>
-                                        <TextBlock Text="{Binding Name}" Foreground="{StaticResource Primary}"/>
-                                        <TextBlock Text="{Binding Letter}" Foreground="{StaticResource Primary}"/>
+                                        <TextBlock Text="{Binding Letter}" FontWeight="Bold"
+                                                   TextDecorations="Underline"
+                                                   FontSize="30" TextAlignment="Center"
+                                                   Foreground="{StaticResource Primary}"/>
+                                        <TextBlock Text="{Binding Name}"
+                                                   FontSize="40"
+                                                   Foreground="{StaticResource Primary}"/>
                                     </StackPanel>
                                 </Button>
 
