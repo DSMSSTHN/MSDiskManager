@@ -246,7 +246,7 @@ namespace MSDiskManager.Controls
 
         private void CreateDirectory(object sender, RoutedEventArgs e)
         {
-            var diag = new CreateDirectoryDialog((dir) => Model.Parent = dir,Model.Parent) ;
+            var diag = new CreateDirectoryDialog((dir) => Model.Parent = dir, Model.Parent);
             diag.ShowDialog();
 
         }
@@ -256,12 +256,13 @@ namespace MSDiskManager.Controls
             var entity = (mi?.DataContext as BaseEntityViewModel) ?? Model.Parent;
             if (entity == null) return;
             var diag = new SelectTagsWindow(entity.Tags.Select(t => t.Id).Cast<long>().ToList(),
-                async(tag) =>
+                async (tag) =>
                 {
-                    if(entity is FileViewModel)
+                    if (entity is FileViewModel)
                     {
                         if (!entity.Tags.Contains(tag)) { entity.Tags.Add(tag); await new FileRepository().AddTag(entity.Id, tag.Id); }
-                    } else
+                    }
+                    else
                     {
                         if (!entity.Tags.Contains(tag))
                         {
@@ -269,11 +270,11 @@ namespace MSDiskManager.Controls
                         }
                         LoadingTxtblk.Text = "Adding tags";
                         Model.LoadingVisibility = Visibility.Visible;
-                            await new DirectoryRepository().AddTagRecursive(entity.Id, tag.Id);
+                        await new DirectoryRepository().AddTagRecursive(entity.Id, tag.Id);
                         Model.LoadingVisibility = Visibility.Collapsed;
                         LoadingTxtblk.Text = "Loading...";
                     }
-                },true);
+                }, true);
             diag.Show();
         }
         private void Grid_MouseEnter(object sender, MouseEventArgs e)
@@ -284,7 +285,7 @@ namespace MSDiskManager.Controls
             if (entity is DirectoryViewModel)
             {
                 grid.ToolTip = entity.TooltipContent;
-                
+
             }
             else
             {
@@ -370,7 +371,30 @@ namespace MSDiskManager.Controls
             }
         }
 
-        
+        private void InheritTags(object sender, RoutedEventArgs e)
+        {
+            if (Model.Parent == null || Model.Parent.Tags.Count == 0) return;
+            var entity = (sender as MenuItem)?.DataContext as BaseEntityViewModel;
+            var selected = Model.Items.Where(i => i.IsSelected).ToList();
+            if (!selected.Contains(entity)) selected.Add(entity);
+
+            selected.ForEach(e =>
+            {
+                Model.Parent.Tags.ToList().ForEach(async t =>
+               {
+                   var fRep = new FileRepository();
+                   var dRep = new DirectoryRepository();
+                   if (!e.Tags.Any(et => et.Id == t.Id))
+                   {
+                       e.Tags.Add(t);
+                   }
+                   if (e.Id == null) return;
+                   if (e is FileViewModel) await fRep.AddTag(e.Id.Value, t);
+                   else await dRep.AddTagRecursive(e.Id.Value, t.Id.Value);
+
+               });
+            });
+        }
     }
 
 

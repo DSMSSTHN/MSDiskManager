@@ -89,5 +89,6 @@ namespace MSDiskManager.Dialogs.SelectTagsDialog
             NameTBX.Focus();
             NameTBX.SelectAll();
         }
+        
     }
 }

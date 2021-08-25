@@ -65,7 +65,11 @@ namespace MSDiskManager.ViewModels
         public string Name { get => name; set { name = value; if (Globals.IsNullOrEmpty(originalName)) originalName = value; NotifyPropertyChanged("Name"); } }
         public string OnDeskName
         {
-            get => onDeskName; set { onDeskName = value.Replace("\\", "").Replace("/", "").Replace(";", "").Trim(); NotifyPropertyChanged("onDeskName"); }
+            get => onDeskName; set {
+                var v = value.Replace("\\", "").Replace("/", "").Replace(";", "").Trim();
+                this.Path = this.Path.Replace(onDeskName, v);
+                onDeskName = v;
+                NotifyPropertyChanged("onDeskName"); }
         }
         public int NumberOfItems { get => numberOfItemsRec; set { numberOfItemsRec = value; NotifyPropertyChanged("NumberOfItems"); } }
 
@@ -73,14 +77,49 @@ namespace MSDiskManager.ViewModels
         public string Description { get => description; set { description = value; NotifyPropertyChanged("Description"); } }
         public ObservableCollection<Tag> Tags { get => tags; set { tags = value; NotifyPropertyChanged("Tags"); } }
         public string OriginalPath { get => originalPath; set => originalPath = value; }
-        public String Path { get => path; set { path = value.Trim(); NotifyPropertyChanged("Path"); } }
-        public long? ParentId { get => parentId; set { parentId = value; NotifyPropertyChanged("ParentId"); } }
+        public String Path
+        {
+            get => path; set
+            {
+                var v = value.Trim().Replace("/", "\\").Replace(";", "\\");
+                if (this is DirectoryViewModel)
+                {
+                    var d = this as DirectoryViewModel;
+                    d.Children.ForEach(c => c.Path = c.Path.Replace(path,v));
+                    d.Files.ForEach(f => f.Path = f.Path.Replace(path,v));
+                }
+                path = v; NotifyPropertyChanged("Path");
+                
+
+            }
+        }
+        public long? ParentId
+        {
+            get => parentId; set
+            {
+                if (parentId != null && ancestorIds.Contains(parentId.Value)) AncestorIds.Remove(parentId.Value);
+                parentId = value; NotifyPropertyChanged("ParentId");
+                if (value != null && !ancestorIds.Contains(value.Value)) AncestorIds.Add(value.Value);
+            }
+        }
         public DirectoryViewModel? Parent
         {
             get => parent; set { parent = value; NotifyPropertyChanged("Parent"); }
         }
         public Brush Background { get => background; set { background = value; NotifyPropertyChanged("Background"); } }
-        public List<long> AncestorIds { get => ancestorIds; set { ancestorIds = value; NotifyPropertyChanged("AncestorIds"); } }
+        public List<long> AncestorIds
+        {
+            get => ancestorIds; set
+            {
+                ancestorIds = value; NotifyPropertyChanged("AncestorIds");
+                if (this is DirectoryViewModel && Id != null)
+                {
+                    var d = this as DirectoryViewModel;
+                    d.Children.ForEach(c => c.AncestorIds = value.With(this.Id.Value));
+                    d.Files.ForEach(c => c.AncestorIds = value.With(this.Id.Value));
+                }
+            }
+        }
         public Instant AddingDate { get => addingDate; set { addingDate = value; NotifyPropertyChanged("AddingDate"); } }
         public Instant MovingDate { get => movingDate; set { movingDate = value; NotifyPropertyChanged("MovingDate"); } }
         public virtual bool IsHidden
@@ -99,9 +138,14 @@ namespace MSDiskManager.ViewModels
                 NotifyPropertyChanged("IgnoreAdd");
             }
         }
-        public bool IsSelected { get => isSelected; set { isSelected = value; NotifyPropertyChanged("IsSelected");
+        public bool IsSelected
+        {
+            get => isSelected; set
+            {
+                isSelected = value; NotifyPropertyChanged("IsSelected");
                 Background = !value ? Brushes.Transparent : Brushes.Black;
-            } }
+            }
+        }
         public bool IsRenaming { get => isRenaming; set { isRenaming = value; NotifyPropertyChanged("IsRenaming"); } }
         public string FullPath { get => MSDM_DBContext.DriverName[0] + ":\\" + Path; }
 

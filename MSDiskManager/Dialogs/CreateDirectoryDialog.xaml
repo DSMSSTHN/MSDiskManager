@@ -23,6 +23,7 @@
                 <Setter Property="HorizontalAlignment" Value="Center"/>
                 <Setter Property="Foreground" Value="{StaticResource BrightText}"/>
                 <Setter Property="Background" Value="{StaticResource Primary}"/>
+                <Setter Property="FontFamily" Value="Comic Sans MS"/>
             </Style>
             <ResourceDictionary.MergedDictionaries>
                 <ResourceDictionary Source="../Styles/TextStyles.xaml" />

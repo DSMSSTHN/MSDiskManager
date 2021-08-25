@@ -42,7 +42,9 @@
                     <RowDefinition/>
                     <RowDefinition/>
                 </Grid.RowDefinitions>
-                <CheckBox  Height="25" VerticalContentAlignment="Center" HorizontalAlignment="Center" Content="OnlyFiles" IsChecked="{Binding FilesOnly,Mode=TwoWay,UpdateSourceTrigger=PropertyChanged}"/>
+                <CheckBox  Height="25" VerticalContentAlignment="Center" HorizontalAlignment="Center" Content="OnlyFiles"
+                           Foreground="{StaticResource BrightText}"
+                           IsChecked="{Binding FilesOnly,Mode=TwoWay,UpdateSourceTrigger=PropertyChanged}"/>
                 <Grid Grid.Row="1">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="auto"/>
@@ -54,7 +56,7 @@
                     <Label Background="{StaticResource MSBlue}"
                            Grid.Column="1" Name="DirectoriesLabel" Grid.Row="1" 
                            VerticalContentAlignment="Center" HorizontalContentAlignment="Center"  >
-                        <TextBlock FontWeight="ExtraBold" Foreground="{StaticResource DarkText}" Text="Directories"/>
+                        <TextBlock FontWeight="ExtraBold" Foreground="{StaticResource BrightText}" Text="Directories"/>
                     </Label>
                 </Grid>
                 <StackPanel Grid.Row="2"    >
@@ -66,11 +68,20 @@
                     </Border>
                 </StackPanel>
             </Grid>
-            <ListView Grid.Row="2" Background="Transparent"
+            <ListView Grid.Row="2" Background="{StaticResource PrimaryLight}"
                       PreviewMouseWheel="ItemsListView_PreviewMouseWheel"
                           Name="ItemsListView" SelectionMode="Multiple"
                       HorizontalContentAlignment="Stretch" ScrollViewer.ScrollChanged="ItemsListView_ScrollChanged"
                       ItemsSource="{Binding Items}" d:ItemsSource="{x:Static local:MockData.Items}">
+                <ListView.ItemContainerStyle>
+                    <Style TargetType="ListViewItem">
+                        <Setter Property="Background">
+                            <Setter.Value>
+                                <SolidColorBrush Color="Black" Opacity="0.2"/>
+                            </Setter.Value>
+                        </Setter>
+                    </Style>
+                </ListView.ItemContainerStyle>
                 <ListView.ContextMenu>
                     <ContextMenu >
                         <MenuItem Header="Edit" Click="EditEntity"/>
@@ -78,6 +89,7 @@
                         <MenuItem Header="Copy" Click="CopyEntity"/>
                         <MenuItem Header="Move" Click="MoveEntity"/>
                         <MenuItem Header="Paste" Click="PasteEntity"/>
+                        <MenuItem Header="Inherit Tags" Click="InheritTags"/>
                         <MenuItem Header="Show In Explrer" Click="ShowInExplorerClicked"/>
                     </ContextMenu>
                 </ListView.ContextMenu>
@@ -104,7 +116,7 @@
                             Width="{Binding RelativeSource={RelativeSource AncestorType=ListView},Path=ActualWidth,
                             Converter={StaticResource DoubleDividerConverter},ConverterParameter=2.1
                             }"
-                            Background="#33444444" AllowDrop="True" Drop="DropOnElement" 
+                             AllowDrop="True" Drop="DropOnElement" 
                                    GotFocus="Grid_GotFocus"
                               DragDrop.PreviewDragEnter="DragEnterElement" DragDrop.PreviewDragLeave="DragLeaveElement">
                             <Grid.ContextMenu>
@@ -114,15 +126,17 @@
                                     <MenuItem Header="Copy" Click="CopyEntity"/>
                                     <MenuItem Header="Move" Click="MoveEntity"/>
                                     <MenuItem Header="Paste" Click="PasteEntity"/>
+                                    <MenuItem Header="Inherit Tags" Click="InheritTags"/>
                                     <MenuItem Header="Show In Explrer" Click="ShowInExplorerClicked"/>
                                 </ContextMenu>
                             </Grid.ContextMenu>
+                           
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*"/>
                                 <ColumnDefinition Width="auto"/>
                                 <ColumnDefinition Width="auto"/>
                             </Grid.ColumnDefinitions>
-                            
+
                             <Button MouseDoubleClick="OpenDirectory" 
                                     
                                     Grid.Column="0" Background="{Binding Background}" BorderBrush="Transparent" BorderThickness="0"
@@ -152,7 +166,7 @@
                                                                   MouseEnter="Grid_MouseEnter" MouseLeave="Grid_MouseLeave"
                                                   PreviewMouseWheel="Grid_PreviewMouseWheel"
                                                                   />
-                                                <TextBlock  Background="Transparent" PreviewKeyDown="TextBox_PreviewKeyDown"  
+                                            <TextBlock  Background="Transparent" PreviewKeyDown="TextBox_PreviewKeyDown"  
                                                   TextAlignment="Center"
                                                       Width="auto" FontSize="13"
                                                  FontWeight="SemiBold" Margin="0 -5 0 0" Padding="0" Foreground="{StaticResource BrightText}"
@@ -160,48 +174,48 @@
                                             <TextBlock TextAlignment="Center"  FontWeight="Medium" Margin="0" Padding="10 0 0 0 " 
                                                        Foreground="{StaticResource BrightText2}" FontSize="10" Text="{Binding FullPath}"/>
                                         </StackPanel>
-                                            
-                                        
 
-                                            <ListView HorizontalAlignment="Center" d:ItemsSource="{x:Static local:MockData.Tags}" Grid.Column="1"
+
+
+                                        <ListView HorizontalAlignment="Center" d:ItemsSource="{x:Static local:MockData.Tags}" Grid.Column="1"
                                                      Width="{Binding RelativeSource={RelativeSource AncestorType=Grid},Path=ActualWidth,
                                                 Converter={StaticResource DoubleDividerConverter},ConverterParameter=1.1}"
                                                       HorizontalContentAlignment="Center" 
                                                       ScrollViewer.HorizontalScrollBarVisibility="Disabled"
                                                       Margin="30 0 0 0" ItemsSource="{Binding Tags}" BorderBrush="Transparent">
-                                                <ListView.ItemsPanel>
-                                                    <ItemsPanelTemplate>
-                                                        <WrapPanel  
+                                            <ListView.ItemsPanel>
+                                                <ItemsPanelTemplate>
+                                                    <WrapPanel  
                                                             MaxWidth="{Binding RelativeSource={RelativeSource AncestorType=ListView},Path=ActualWidth}"
                                                             HorizontalAlignment="Center" Orientation="Horizontal" />
-                                                    </ItemsPanelTemplate>
-                                                </ListView.ItemsPanel>
-                                                <ListView.ItemContainerStyle>
-                                                    <Style TargetType="ListViewItem">
-                                                        <Setter Property="Margin" Value="0"/>
-                                                        <Setter Property="Padding" Value="0"/>
-                                                    </Style>
-                                                </ListView.ItemContainerStyle>
-                                                <ListView.ItemTemplate>
-                                                    <DataTemplate>
-                                                        <Border Padding="4 1" Margin="0" CornerRadius="5" >
-                                                            <Border.Style>
-                                                                <Style TargetType="Border">
-                                                                    <Setter Property="Background">
-                                                                        <Setter.Value>
-                                                                            <SolidColorBrush Color="{Binding Color,Converter={StaticResource IntToColorConverter}}" Opacity="0.3"/>
-                                                                        </Setter.Value>
-                                                                    </Setter>
-                                                                </Style>
-                                                            </Border.Style>
-                                                            <TextBlock  Text="{Binding Name}" 
+                                                </ItemsPanelTemplate>
+                                            </ListView.ItemsPanel>
+                                            <ListView.ItemContainerStyle>
+                                                <Style TargetType="ListViewItem">
+                                                    <Setter Property="Margin" Value="0"/>
+                                                    <Setter Property="Padding" Value="0"/>
+                                                </Style>
+                                            </ListView.ItemContainerStyle>
+                                            <ListView.ItemTemplate>
+                                                <DataTemplate>
+                                                    <Border Padding="4 1" Margin="0" CornerRadius="5" >
+                                                        <Border.Style>
+                                                            <Style TargetType="Border">
+                                                                <Setter Property="Background">
+                                                                    <Setter.Value>
+                                                                        <SolidColorBrush Color="{Binding Color,Converter={StaticResource IntToColorConverter}}" Opacity="0.3"/>
+                                                                    </Setter.Value>
+                                                                </Setter>
+                                                            </Style>
+                                                        </Border.Style>
+                                                        <TextBlock  Text="{Binding Name}" 
                                                                         Padding="5 0"
                                                                         FontSize="9" Foreground="{StaticResource BrightText}"/>
-                                                        </Border>
-                                                    </DataTemplate>
-                                                </ListView.ItemTemplate>
-                                            </ListView>
-                                            <StackPanel Orientation="Horizontal">
+                                                    </Border>
+                                                </DataTemplate>
+                                            </ListView.ItemTemplate>
+                                        </ListView>
+                                        <StackPanel Orientation="Horizontal">
                                             <TextBlock Padding="10 0 0 0 " Text="{Binding NumberOfItems,StringFormat=' {0} items'}" 
                                                        Visibility="{Binding Path=.,Converter={StaticResource DirectoryOnlyVisibilityConverter}}" 
                                                        FontSize="7" Foreground="{StaticResource BrightText2}"/>
@@ -226,149 +240,15 @@
                     </DataTemplate>
                 </ListView.ItemTemplate>
             </ListView>
-            <!--<DataGrid Visibility="Collapsed"  Foreground="{StaticResource BrightText}"
-                PreviewKeyDown="AddDG_PreviewKeyDown"
-                Style="{DynamicResource AddItemsDG}" x:Name="AddDG" Grid.Row="2" ItemsSource="{Binding Items}" 
-                      MaxWidth="{Binding ElementName=AddBaseGrid,Path=ActualWidth}"
-                      AutoGenerateColumns="False" CanUserAddRows="False" 
-                      d:ItemsSource="{x:Static local:MockData.Items}">
-                <DataGrid.RowStyle>
-                    <Style  TargetType="{x:Type DataGridRow}">
-                        <Setter Property="Background" Value="Transparent"/>
-                        <Setter Property="IsSelected" Value="{Binding IsSelected,Mode=OneWay}"/>
-                        <EventSetter Event="PreviewMouseLeftButtonDown" Handler="DataGridRow_MouseDown"/>
-                        
-                    </Style>
-                </DataGrid.RowStyle>
-                <DataGrid.Columns>
-                    <DataGridTemplateColumn  Header="Name" Width="300">
-                        <DataGridTemplateColumn.CellTemplate>
-                            <DataTemplate>
-                                <Grid 
-                                    Width="{Binding RelativeSource={RelativeSource AncestorType=DataGridRowHeader}}"
-                                    Background="Transparent"
-                                    DragDrop.PreviewDragEnter="HandleDragEnter" 
-                                    DragDrop.PreviewDragLeave="HandleDragLeave" Drop="StackPanel_Drop">
-                                    <Grid.ContextMenu>
-                                        <ContextMenu>
-                                            <MenuItem Header="Edit" Click="EditClickeds"/>
-                                            <MenuItem Header="Delete" Click="DeleteClickeds" />
-                                        </ContextMenu>
-                                    </Grid.ContextMenu>
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="auto"/>
-                                        <ColumnDefinition Width="*"/>
-                                    </Grid.ColumnDefinitions>
-                                    <Button Click="openDirectory" CommandParameter="{Binding Path=.}" 
-                                            PreviewMouseWheel="Button_PreviewMouseWheel"
-                                            MouseEnter="Button_MouseEnter" MouseLeave="Button_MouseLeave">
-                                        <Image Width="40" Height="40" Source="{Binding Image}"/>
-                                    </Button>
-                                    <TextBlock Grid.Column="1"
-                                        Foreground="{StaticResource BrightText}" FontSize="20"
-                                        FontFamily="Nirmala UI"
-                                        Text="{Binding Name,Mode=TwoWay,UpdateSourceTrigger=PropertyChanged}" 
-                                             VerticalAlignment="Center" 
-                                             PreviewKeyDown="NamePKeyDown"
-                                             GotFocus="NameGotFocus" LostFocus="NameLostFocus" FontWeight="SemiBold" TextWrapping="Wrap" TextTrimming="CharacterEllipsis" FontStretch="Normal" TextAlignment="Left" HorizontalAlignment="Center"/>
-                                </Grid>
-                            </DataTemplate>
-                        </DataGridTemplateColumn.CellTemplate>
-                    </DataGridTemplateColumn>
-                    <DataGridTemplateColumn Header="Description" Width="200">
-                        <DataGridTemplateColumn.CellTemplate>
-                            <DataTemplate>
-                                <TextBox HorizontalAlignment="Center"
-                                         TextWrapping="Wrap"
-                                         Text="{Binding Description,Mode=TwoWay,UpdateSourceTrigger=PropertyChanged}"
-                                         VerticalAlignment="Center"/>
-
-                            </DataTemplate>
-                        </DataGridTemplateColumn.CellTemplate>
-                    </DataGridTemplateColumn>
-                    <DataGridTemplateColumn Header="Tags" Width="500"
-                                            >
-                        <DataGridTemplateColumn.CellTemplate>
-                            <DataTemplate>
-                                <Grid Background="Transparent"
-                                      Width="{Binding RelativeSource={RelativeSource AncestorType=DataGridRowHeader},Path=ActualWidth}">
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="auto"/>
-                                        <ColumnDefinition Width="*"/>
-                                    </Grid.ColumnDefinitions>
-                                    <Button  Width="40" 
-                                            HorizontalAlignment="Left"
-                                            Margin="0 0 3 0" Style="{StaticResource SharpGreenButton}"
-                                            Click="AddTags" 
-                                            CommandParameter="{Binding RelativeSource={RelativeSource AncestorType=DataGridRow},Path=DataContext}">
-                                        <TextBlock Text="+" FontSize="30"/>
-                                    </Button>
-                                    <ListView HorizontalAlignment="Left" 
-                                        Grid.Column="1" ItemsSource="{Binding Tags}" ScrollViewer.CanContentScroll="True" ScrollViewer.HorizontalScrollBarVisibility="Visible"
-                                              d:ItemsSource="{x:Static local:MockData.Tags}" 
-                                              Style="{StaticResource HorizontalSmallTransparantLV}"
-                                              BorderBrush="Transparent" BorderThickness="0" ScrollViewer.VerticalScrollBarVisibility="Disabled"
-                                              >
-                                        <ListView.ItemsPanel>
-                                            <ItemsPanelTemplate>
-                                                <WrapPanel Width="{Binding RelativeSource={RelativeSource AncestorType=ListView},Path=ActualWidth}"
-                                                           
-                                                           Orientation="Horizontal"/>
-                                            </ItemsPanelTemplate>
-                                        </ListView.ItemsPanel>
-                                        <ListView.ItemTemplate>
-                                            <DataTemplate>
-                                                <Border Background="{Binding Color,Converter={StaticResource IntToBrushConverter}}">
-                                                    <StackPanel Orientation="Horizontal">
-                                                        <TextBlock 
-                                                            Padding="20 5 5 5"
-                                                            Foreground="{StaticResource BrightText}"  Text="{Binding Name}"/>
-                                                        <Button Margin="0 0 5 0"
-                                                            Foreground="{StaticResource WarnRed}"
-                                                            Click="DeleteTag" CommandParameter="{Binding RelativeSource={RelativeSource AncestorType=DataGridRow},Path=DataContext}">X</Button>
-                                                    </StackPanel>
-                                                </Border>
-                                            </DataTemplate>
-                                        </ListView.ItemTemplate>
-                                    </ListView>
-                                </Grid>
-                            </DataTemplate>
-                        </DataGridTemplateColumn.CellTemplate>
-                    </DataGridTemplateColumn>
-                    <DataGridTemplateColumn Header="Original Path" Width="*">
-                        <DataGridTemplateColumn.CellTemplate>
-                            <DataTemplate>
-                                <Button Content="{Binding OriginalPath}"  MouseDoubleClick="OpenOriginalPath" CommandParameter="{Binding OriginalPath}" Foreground="White"/>
-                            </DataTemplate>
-                        </DataGridTemplateColumn.CellTemplate>
-                    </DataGridTemplateColumn>
-                    <DataGridTemplateColumn Header="don't add to db">
-                        <DataGridTemplateColumn.CellTemplate>
-                            <DataTemplate>
-                                <CheckBox IsChecked="{Binding IgnoreAdd}" Checked="DontAddToDbChecked" Unchecked="DontAddToDbUnchecked" DataContext="{Binding RelativeSource={RelativeSource AncestorType=DataGridRow},Path=DataContext}"/>
-                            </DataTemplate>
-                        </DataGridTemplateColumn.CellTemplate>
-                    </DataGridTemplateColumn>
-                    <DataGridTemplateColumn MinWidth="25" MaxWidth="25" Width="25">
-                        <DataGridTemplateColumn.CellTemplate>
-                            <DataTemplate>
-                                <Button Height="25" VerticalAlignment="Center" Click="DeleteItem" CommandParameter="{Binding Path=.}"  Background="{StaticResource WarnRed}" >
-                                    <Image Source="/images/clear.png"/>
-                                </Button>
-                            </DataTemplate>
-                        </DataGridTemplateColumn.CellTemplate>
-                    </DataGridTemplateColumn>
-                </DataGrid.Columns>
-            </DataGrid>-->
             <Grid Grid.Row="6" Height="40" >
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="*"/>
                 </Grid.ColumnDefinitions>
-                <Button Click="CancelClicked" Background="{StaticResource darkRed}" Margin="3">Cancel</Button>
-                <Button Click="MoveClicked" Background="{StaticResource MSBlue}" Grid.Column="1" Margin="3">Move</Button>
-                <Button Click="CopyClicked" Background="{StaticResource MSGreen}" Grid.Column="2" Margin="3">Copy</Button>
+                <Button Click="CancelClicked" Style="{StaticResource SharpRedButton}" Margin="3">Cancel</Button>
+                <Button Click="MoveClicked" Style="{StaticResource SharpBlueButton}" Grid.Column="1" Margin="3">Move</Button>
+                <Button Click="CopyClicked" Style="{StaticResource SharpGreenButton}" Grid.Column="2" Margin="3">Copy</Button>
             </Grid>
         </Grid>
     </Border>

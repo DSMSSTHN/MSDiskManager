@@ -59,25 +59,25 @@
     </Style>
     <Style x:Key="SharpGreenButton" TargetType="{x:Type Button}" BasedOn="{StaticResource SharpButton}">
         <Setter Property="Background" Value="{StaticResource MSGreen}"/>
-        <Setter Property="Foreground" Value="{StaticResource DarkText}"/>
+        <Setter Property="Foreground" Value="{StaticResource BrightText}"/>
         <Setter Property="FontWeight" Value="SemiBold"/>
         <Setter Property="FontSize" Value="15"/>
     </Style>
     <Style x:Key="SharpRedButton" TargetType="{x:Type Button}" BasedOn="{StaticResource SharpButton}">
         <Setter Property="Background" Value="{StaticResource WarnRed}"/>
-        <Setter Property="Foreground" Value="{StaticResource DarkText}"/>
+        <Setter Property="Foreground" Value="{StaticResource BrightText}"/>
         <Setter Property="FontWeight" Value="SemiBold"/>
         <Setter Property="FontSize" Value="15"/>
     </Style>
     <Style x:Key="SharpBlueButton" TargetType="{x:Type Button}" BasedOn="{StaticResource SharpButton}">
         <Setter Property="Background" Value="{StaticResource MSBlue}"/>
-        <Setter Property="Foreground" Value="{StaticResource DarkText}"/>
+        <Setter Property="Foreground" Value="{StaticResource BrightText}"/>
         <Setter Property="FontWeight" Value="SemiBold"/>
         <Setter Property="FontSize" Value="15"/>
     </Style>
     <Style x:Key="SharpGrayButton" TargetType="{x:Type Button}" BasedOn="{StaticResource SharpButton}">
         <Setter Property="Background" Value="{StaticResource PrimaryLight}"/>
-        <Setter Property="Foreground" Value="{StaticResource DarkText}"/>
+        <Setter Property="Foreground" Value="{StaticResource BrightText}"/>
         <Setter Property="FontWeight" Value="SemiBold"/>
         <Setter Property="FontSize" Value="15"/>
     </Style>

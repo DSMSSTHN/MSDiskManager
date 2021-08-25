@@ -50,7 +50,8 @@
                     Grid.Column="1" Text="{Binding Name, Mode=TwoWay,UpdateSourceTrigger=PropertyChanged}" Name="NameTBX" Height="30"/>
             </StackPanel>
             <StackPanel Grid.Row="1" Grid.ColumnSpan="2">
-                <TextBlock Grid.Row="1" Text="Description" FontSize="16" FontWeight="Bold" Margin="0,5,0,5"/>
+                <TextBlock Grid.Row="1" Text="Description" FontSize="16" FontWeight="Bold"
+                           Margin="0,5,0,5"/>
                 <TextBox
                     Style="{StaticResource SharpTextBox}"
                     Grid.Row="1" Grid.Column="1" Text="{Binding Description, Mode=TwoWay,UpdateSourceTrigger=PropertyChanged}" Height="30"/>

@@ -13,6 +13,7 @@ namespace MSDiskManagerData.Data.Entities
         public long? Id { get; set; }
         public String Name { get; set; }
         public String Path { get; set; }
+        public string? DriveId { get; set; }
         public String OldPath { get; set; }
         public List<long> AncestorIds { get; set; }
         public Instant AddingDate { get; set; }

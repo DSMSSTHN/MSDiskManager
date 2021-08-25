@@ -11,17 +11,22 @@
             <Setter Property="MinWidth" Value="15"/>
             <Setter Property="Background" Value="Black"/>
         </Style>
-        <SolidColorBrush x:Key="Primary" Color="#363A41"/>
+        <SolidColorBrush x:Key="Primary" Color="#EEC21744"/>
+        
         <SolidColorBrush x:Key="PrimarySemiDark" Color="#0B0C0D"/>
-        <SolidColorBrush x:Key="PrimaryLight" Color="#626974"/>
+        <!--<SolidColorBrush x:Key="PrimaryLight" Color="#F54B66"/>-->
+        <LinearGradientBrush StartPoint="0,0" EndPoint="1,1" x:Key="PrimaryLight">
+            <GradientStop Color="#F64463" Offset="0"/>
+            <GradientStop Color="#F66E58" Offset="1"/>
+        </LinearGradientBrush>
         <SolidColorBrush x:Key="PrimaryDark" Color="#000000"/>
         <SolidColorBrush x:Key="BrightText" Color="#ffffff"/>
         <SolidColorBrush x:Key="BrightText2" Color="#999999"/>
         <SolidColorBrush x:Key="DarkText" Color="#0B0C0D"/>
         <SolidColorBrush x:Key="WarnRed" Color="#C53E3E"/>
         <SolidColorBrush x:Key="darkRed" Color="#B71C1C"/>
-        <SolidColorBrush x:Key="MSBlue" Color="#0079BF"/>
-        <SolidColorBrush x:Key="MSGreen" Color="#6DECA9"/>
+        <SolidColorBrush x:Key="MSBlue" Color="#2470AE"/>
+        <SolidColorBrush x:Key="MSGreen" Color="#617F10"/>
         <helpers:BaseEntityNumberOfItemsConverter x:Key="BaseEntityNumberOfItemsConverter"/>
         <helpers:BooleanOpposetConverter x:Key="BooleanOpposetConverter"/>
         <helpers:BooleanOppositConverter x:Key="BooleanOppositConverter"/>
@@ -37,10 +42,10 @@
         <helpers:TypeToIconSourceConverter x:Key="TypeToIconSourceConverter"/>
         
         <Style TargetType="TextBlock">
-            <Setter Property="FontSize" Value="15"/>
-            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="FontFamily" Value="Comic Sans MS"/>
         </Style>
-
+        
         <Style TargetType="Border">
             <Setter Property="CornerRadius" Value="1"/>
             <Style.Resources>

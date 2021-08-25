@@ -37,6 +37,10 @@ namespace MSDiskManager.Pages.AddItems
         private List<BaseEntityViewModel> toRemove = new List<BaseEntityViewModel>();
         private PauseTokenSource pauseLoading = new PauseTokenSource();
         private CancellationTokenSource cancelLoading;
+        public AddItemsPage(string[] pathes, DirectoryViewModel initialDist = null) : this(initialDist)
+        {
+            _ = addFiles(pathes);
+        }
         public AddItemsPage(object sender, DragEventArgs e, DirectoryViewModel initialDist = null) : this(initialDist)
         {
             this.Page_Drop(sender, e);
@@ -296,135 +300,14 @@ namespace MSDiskManager.Pages.AddItems
         }
 
 
-
-
-        //private void Button_MouseEnter(object sender, MouseEventArgs e)
-        //{
-        //    AddDG.VerticalScrollBarVisibility = ScrollBarVisibility.Disabled;
-        //    var button = sender as Button;
-        //    var entity = button.CommandParameter as BaseEntityViewModel;
-        //    if (entity is DirectoryViewModel)
-        //    {
-        //        button.ToolTip = entity.TooltipContent;
-        //    }
-        //    else
-        //    {
-
-        //        var file = entity as FileViewModel;
-        //        switch (file.FileType)
-        //        {
-        //            case FileType.Unknown:
-        //                break;
-        //            case FileType.Text:
-        //                if (button.ToolTip == null) button.ToolTip = file.TextContent;
-        //                break;
-        //            case FileType.Image:
-        //                if (button.ToolTip == null) button.ToolTip = file.ImageContent;
-        //                break;
-        //            case FileType.Music:
-        //                var audio = file.AudioContent;
-        //                audio.Play();
-        //                break;
-        //            case FileType.Video:
-        //                var video = file.VideoContent;
-        //                if (button.ToolTip == null) button.ToolTip = video;
-        //                video.Play();
-        //                break;
-        //            case FileType.Compressed:
-        //                break;
-        //            case FileType.Document:
-        //                break;
-        //        }
-        //    }
-        //}
-
-        //private void Button_MouseLeave(object sender, MouseEventArgs e)
-        //{
-        //    AddDG.VerticalScrollBarVisibility = ScrollBarVisibility.Visible;
-        //    var button = sender as Button;
-        //    var entity = button.CommandParameter as BaseEntityViewModel;
-        //    var content = entity.TooltipContent;
-        //    if (entity is DirectoryViewModel)
-        //    {
-        //        return;
-        //    }
-        //    else
-        //    {
-        //        var file = entity as FileViewModel;
-        //        switch (file.FileType)
-        //        {
-        //            case FileType.Unknown:
-        //                break;
-        //            case FileType.Text:
-        //                break;
-        //            case FileType.Image:
-        //                button.ToolTip = null;
-        //                break;
-        //            case FileType.Music:
-        //                file.StopPlaying();
-        //                break;
-        //            case FileType.Video:
-        //                file.StopPlaying();
-        //                button.ToolTip = null;
-        //                break;
-        //            case FileType.Compressed:
-        //                break;
-        //            case FileType.Document:
-        //                break;
-        //        }
-        //    }
-        //}
-        //private void Button_PreviewMouseWheel(object sender, MouseWheelEventArgs e)
-        //{
-        //    e.Handled = true;
-        //    var button = sender as Button;
-        //    var entity = button.CommandParameter as BaseEntityViewModel;
-        //    if (entity is FileViewModel)
-        //    {
-        //        var file = entity as FileViewModel;
-        //        if (e.Delta < 0) file.MouseWheelDown();
-        //        else if (e.Delta > 0) file.MouseWheelUp();
-        //    }
-
-        //}
-
-        //private void DeleteItem(object sender, RoutedEventArgs e)
-        //{
-        //    var button = sender as Button;
-        //    var entity = button.CommandParameter as BaseEntityViewModel;
-        //    doDelete(entity);
-        //}
         private void doDelete(BaseEntityViewModel entity)
         {
-            //if (entity.Parent == null)
-            //{
-            //    if (entity is FileViewModel) Model.Files.Remove(entity as FileViewModel);
-            //    else Model.Dirs.Remove(entity as DirectoryViewModel);
-
-            //}
-            //else
-            //{
-            //    entity.Parent.RemoveChild(entity);
-            //}
+           
             Model.HandleDelete(entity);
             currentPathes.RemoveAll(p => p.Contains(entity.OriginalPath));
         }
 
-        //private void StackPanel_Drop(object sender, DragEventArgs e)
-        //{
-        //    if (e.Data.GetDataPresent(DataFormats.FileDrop))
-        //    {
-        //        var stack = sender as StackPanel;
-        //        var dir = stack.DataContext as DirectoryViewModel;
-        //        if (dir != null)
-        //        {
-        //            e.Handled = true;
-
-        //            addModel.Files((string[])e.Data.GetData(DataFormats.FileDrop), dir);
-        //            AddBorder.Background = Application.Current.Resources["Primary"] as SolidColorBrush;
-        //        }
-        //    }
-        //}
+      
 
         private void HandleDragEnter(object sender, DragEventArgs e)
         {
@@ -510,59 +393,7 @@ namespace MSDiskManager.Pages.AddItems
             };
         }
 
-        //private void NameGotFocus(object sender, RoutedEventArgs e)
-        //{
-        //    var textBox = sender as TextBox;
-        //    var entity = textBox.DataContext as BaseEntityViewModel;
-        //}
-
-        //private void NameLostFocus(object sender, RoutedEventArgs e)
-        //{
-        //    var textBox = sender as TextBox;
-        //    var entity = textBox.DataContext as BaseEntityViewModel;
-        //    if (entity?.NameChanged ?? false)
-        //    {
-        //        entity?.CommitName();
-        //        //Model.CommitName(entity.Name);
-        //    }
-        //}
-
-        //private void NamePKeyDown(object sender, KeyEventArgs e)
-        //{
-        //    var textBox = sender as TextBox;
-        //    var entity = textBox.DataContext as BaseEntityViewModel;
-        //    if(e.Key == Key.Enter)
-        //    {
-        //        if (entity.NameChanged)
-        //        {
-        //            entity.CommitName();
-        //            //Model.CommitName(entity.Name);
-        //        }
-        //    } else if (e.Key == Key.Escape)
-        //    {
-        //        entity.RestoreName();
-        //    }
-        //}
-
-
-
-        //private void DeleteClickeds(object sender, RoutedEventArgs e)
-        //{
-        //    var mi = sender as MenuItem;
-        //    var entity = mi.DataContext as BaseEntityViewModel;
-        //    if (entity == null) return;
-        //    var rm = Model.HandleDelete(entity);
-        //    Model.Files = Model.Files.Where(f => !rm.Contains(f)).ToList();
-        //    Model.Dirs = Model.Dirs.Where(d => !rm.Contains(d)).ToList();
-        //}
-
-        //private void EditClickeds(object sender, RoutedEventArgs e)
-        //{
-        //    var mi = sender as MenuItem;
-        //    var entity = mi.DataContext as BaseEntityViewModel;
-        //    if (entity == null) return;
-        //    Model.Edit(entity);
-        //}
+        
 
         private void DontAddToDbChecked(object sender, RoutedEventArgs e)
         {
@@ -828,6 +659,24 @@ namespace MSDiskManager.Pages.AddItems
                 scrollViewer.ScrollToVerticalOffset(scrollViewer.VerticalOffset - (Math.Sign(e.Delta) * 100));
             }
             e.Handled = true;
+        }
+        private void InheritTags(object sender, RoutedEventArgs e)
+        {
+            if (Model.FilesOnly ||  Model.CurrentDirectory == null || Model.CurrentDirectory.Tags.Count == 0) return;
+            var entity = (sender as MenuItem)?.DataContext as BaseEntityViewModel;
+            var selected = Model.SelectedItems.ToList();
+            if (!selected.Contains(entity)) selected.Add(entity);
+            selected.ForEach(e =>
+            {
+                Model.CurrentDirectory.Tags.ToList().ForEach(t =>
+                {
+                    if (!e.Tags.Any(et => et.Id == t.Id))
+                    {
+                        if (e is FileViewModel) e.Tags.Add(t);
+                        else (e as DirectoryViewModel).AddTagRecursive(t);
+                    }
+                });
+            });
         }
     }
 }

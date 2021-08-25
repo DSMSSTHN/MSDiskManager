@@ -52,6 +52,7 @@ namespace MSDiskManagerData.Data.Repositories
             {
                 try
                 {
+
                     var ctx = await context();
                     await directory.LoadParentWithAncestorIds(ctx);
                     repotFinished();
@@ -372,6 +373,7 @@ namespace MSDiskManagerData.Data.Repositories
                     var t = await new TagRepository(IsTest).AddTag(tag);
                     if (t == null) return false;
                     tag.Id = t.Id;
+                    return true;
                 }
                 catch (Exception)
                 {

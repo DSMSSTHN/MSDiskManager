@@ -114,6 +114,7 @@ namespace MSDiskManagerData.Data.Repositories
         }
         public async Task<byte[]> GetThumbnail(long id)
         {
+            
             try
             {
                 var ctx = await context();
@@ -122,6 +123,7 @@ namespace MSDiskManagerData.Data.Repositories
                 if (thumb == null)
                 {
                     var file = await GetFile(id);
+                    if (file == null) return null;
                     var t = await saveThumbnail((long)file.Id, file.FullPath);
                     thumb = t.Thumbnail;
                 }

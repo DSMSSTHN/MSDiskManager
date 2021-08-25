@@ -2,6 +2,7 @@
 using MSDiskManager.Dialogs;
 using MSDiskManager.Pages.AddItems;
 using MSDiskManager.ViewModels;
+using MSDiskManagerData.Data;
 using MSDiskManagerData.Data.Entities;
 using System;
 using System.Collections.Generic;
@@ -37,7 +38,23 @@ namespace MSDiskManager.Pages.Main
 
         private void Page_Loaded(object sender, RoutedEventArgs e)
         {
-            var bottom = new FilesFoldersList(Model, (a, b, c) => this.NavigationService.Navigate(new AddItemsPage(a, b, c)));
+            var bottom = new FilesFoldersList(Model, (a, b, c) => {
+                if(!b.Data.GetDataPresent(DataFormats.FileDrop))return;
+                Window.GetWindow(this).Activate();
+                var pathes = (string[])b.Data.GetData(DataFormats.FileDrop);
+                var letter = MSDM_DBContext.DriverName.ToLower().First();
+                var onPath = pathes.Any(p => p.ToLower().First() == letter);
+                if (onPath)
+                {
+                    var diag = new YesNoCancelDialog(Model.Parent, pathes);
+                    diag.ShowDialog();
+                    if (diag.DialogResult ?? false)
+                    {
+                        object content = (BottomControl).Content;
+                        if (content is FilesFoldersList) Model.Parent = Model.Parent;
+                    }
+                }else this.NavigationService.Navigate(new AddItemsPage(a, b, c));
+            });
             BottomControl.Content = bottom;
             this.NavigationService.Navigated += (a,e)=>{
                 object content = ((ContentControl)e.Navigator).Content;

@@ -69,7 +69,7 @@
                             <MenuItem Header="Copy" Click="CopyEntity"/>
                             <MenuItem Header="Move" Click="MoveEntity"/>
                             <MenuItem Header="Paste" Click="PasteEntity"/>
-                            <MenuItem Header="AddTagsRecursive" Click="AddTagsRecursiveClicked"/>
+                            <MenuItem Header="Inherit Tags" Click="InheritTags"/>
                             <MenuItem Header="Show In Explrer" Click="ShowInExplorerClicked"/>
                         </ContextMenu>
                     </ListView.ContextMenu>
@@ -95,6 +95,7 @@
                                         <MenuItem Header="Copy" Click="CopyEntity"/>
                                         <MenuItem Header="Move" Click="MoveEntity"/>
                                         <MenuItem Header="Paste" Click="PasteEntity"/>
+                                        <MenuItem Header="Inherit Tags" Click="InheritTags"/>
                                         <MenuItem Header="Show In Explrer" Click="ShowInExplorerClicked"/>
                                     </ContextMenu>
                                 </Grid.ContextMenu>

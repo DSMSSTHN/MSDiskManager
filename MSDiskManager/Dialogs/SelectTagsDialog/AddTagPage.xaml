@@ -73,7 +73,7 @@
                 <Button Content="Cancel" Click="CancelClicked" FontWeight="SemiBold" FontSize="20"/>
             </Border>
             <Border CornerRadius="1" Margin="1 1 1 0" Background="{StaticResource MSGreen}" Grid.Column="1">
-                <Button Content="Add" Click="AddClicked" Foreground="{StaticResource DarkText}" FontWeight="SemiBold" FontSize="20"/>
+                <Button Content="Add" Click="AddClicked" Foreground="{StaticResource BrightText}" FontWeight="SemiBold" FontSize="20"/>
             </Border>
         </Grid>
     </Grid>

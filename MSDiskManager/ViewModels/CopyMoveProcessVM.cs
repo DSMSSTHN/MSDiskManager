@@ -238,6 +238,8 @@ namespace MSDiskManager.ViewModels
                         {
                             d.OnDeskName += result.additional;
                             d.Path += result.additional;
+                            de.OnDeskName += result.additional;
+                            de.Path += result.additional;
                         }
                         if (d.IgnoreAdd) ignoreAdd.Add(d);
                         else ds.Add(de);

@@ -1,0 +1,46 @@
+﻿<Window x:Class="MSDiskManager.Dialogs.YesNoCancelDialog"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:MSDiskManager.Dialogs"
+        mc:Ignorable="d"
+        Title="YesNoCancelDialog" Background="Transparent"
+        WindowStyle="None"
+        BorderBrush="Transparent"
+        WindowStartupLocation="CenterScreen"
+        BorderThickness="0"
+         Height="170" Width="500">
+    <Window.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="../Styles/ButtonStyles.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </Window.Resources>
+    <Border CornerRadius="1" Background="{StaticResource Primary}"
+            TextBlock.Foreground="{StaticResource BrightText}"
+            x:Name="YesNoCancelBorder"
+            BorderBrush="{StaticResource PrimaryLight}" BorderThickness="1">
+        <Grid >
+            <Grid.RowDefinitions>
+                <RowDefinition/>
+                <RowDefinition/>
+                <RowDefinition/>
+            </Grid.RowDefinitions>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition/>
+                <ColumnDefinition/>
+            </Grid.ColumnDefinitions>
+            <TextBlock x:Name="ContentTxtBx" Grid.ColumnSpan="2"
+                       TextWrapping="Wrap" Grid.Row="0"
+                       Text="Some Items already exist in path do you wish to only add them to the database?"
+                       TextAlignment="Center"
+                       HorizontalAlignment="Center" Padding="5"/>
+
+            <Button Grid.Row="1" Grid.Column="0" Click="NoClicked" Style="{StaticResource SharpRedButton}" >No</Button>
+            <Button Grid.Row="1" Grid.Column="2" x:Name="ReplaceButton" Click="YesClicked" Style="{StaticResource SharpGreenButton}">Yes</Button>
+            <Button Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2" Click="CancelClicked" Style="{StaticResource SharpBlueButton}">Cancel</Button>
+        </Grid>
+    </Border>
+</Window>

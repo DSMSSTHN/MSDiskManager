@@ -39,7 +39,7 @@
             <TextBlock x:Name="NameTextBlock" Text="Name" Grid.Row="1"  TextAlignment="Center" VerticalAlignment="Center"/>
             <TextBox Style="{StaticResource SharpTextBox}" x:Name="NameTextBox" Grid.Row="1" Grid.Column="1" />
             <ComboBox Name="DriverComboBox" BorderThickness="0" 
-                      Foreground="{StaticResource DarkText}"
+                      Foreground="{StaticResource BrightText}"
                       SelectionChanged="DriverComboBox_Selected" Grid.Row="0" Grid.Column="1" >
                 <ComboBox.Resources>
                     <Style TargetType="Border">
