@@ -400,7 +400,19 @@ namespace MSDiskManagerData.Data.Repositories
                     return false;
                 }
             }
-            return await AddTag(id, tag);
+            try
+            {
+                var ctx = await context();
+                await ctx.FileTags.AddAsync(new FileTag { FileId = id.Value, TagId = tag.Id.Value });
+                await ctx.SaveChangesAsync();
+                repotFinished();
+                return true;
+            }
+            catch (Exception)
+            {
+                repotFinished();
+                return false;
+            }
         }
         public async Task<bool> AddTags(long? id, ICollection<long> tagIds)
         {

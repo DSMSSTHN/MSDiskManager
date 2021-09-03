@@ -234,7 +234,7 @@ namespace MSDiskManager.ViewModels
             isMoving = true;
             itemsToCopyMove.ToList().ForEach(i => i.Background = new SolidColorBrush(Colors.Transparent));
             itemsToCopyMove = selected.ToHashSet();
-            itemsToCopyMove.ToList().ForEach(i => i.Background = (Application.Current.Resources["Primary"] as SolidColorBrush)!);
+            itemsToCopyMove.ToList().ForEach(i => i.Background = (Application.Current.Resources["PrimaryDark"] as SolidColorBrush)!);
             if (selected.Count > 0) CanPaste = true;
 
         }
@@ -260,40 +260,42 @@ namespace MSDiskManager.ViewModels
             var ds = new List<DirectoryViewModel>();
             foreach (var d in dirs)
             {
-                //ds.Add(new DirectoryViewModel
-                //{
-                //    Name = d.Name,
-                //    Description = d.Description,
-                //    Tags = d.Tags,
-                //    Children = d.Children,
-                //    Files = d.Files,
-                //    OriginalPath = d.FullPath,
-                //    Parent = entity,
-                //    ParentId = parent?.Id,
-                //    IsHidden = d.IsHidden,
-                //    OnDeskName = d.OnDeskName
-                //});
                 var newd = d.FullPath.GetFullDirectory(Parent).directory;
                 newd.Tags = d.Tags;
+                newd.Name = d.Name;
+                newd.Description = d.Description;
+                var newFlatFiles = newd.FilesRecursive;
+                var oldFlatFiles = d.FilesRecursive;
+                var newFlatChildren = newd.ChildrenRecursive;
+                var oldFlatChildren = d.ChildrenRecursive;
+                newFlatFiles.ForEach(f =>
+                {
+                    var o = oldFlatFiles.FirstOrDefault(of => of.FullPath == f.FullPath);
+                    if (o != null)
+                    {
+                        f.Name = o.Name;
+                        f.Tags = o.Tags;
+                        f.Description = o.Description;
+                    }
+                });
+                newFlatChildren.ForEach(f =>
+                {
+                    var o = oldFlatChildren.FirstOrDefault(of => of.FullPath == f.FullPath);
+                    if (o != null)
+                    {
+                        f.Name = o.Name;
+                        f.Tags = o.Tags;
+                        f.Description = o.Description;
+                    }
+                });
                 ds.Add(newd);
             }
             foreach (var f in files)
             {
-                //fs.Add(new FileViewModel
-                //{
-                //    Name = f.Name,
-                //    Description = f.Description,
-                //    Tags = f.Tags,
-                //    OriginalPath = f.FullPath,
-                //    Parent = entity,
-                //    ParentId = parent?.Id,
-                //    IsHidden = f.IsHidden,
-                //    OnDeskName = f.OnDeskName,
-                //    Extension = f.Extension,
-                //    FileType = f.FileType,
-                //});
                 var newf = f.FullPath.GetFile(Parent).file;
                 newf.Tags = f.Tags;
+                newf.Name = f.Name;
+                newf.Description = f.Description;
                 fs.Add(newf);
             }
             var diag = new CopyMoveProcessDialog(ds, fs, isMoving);

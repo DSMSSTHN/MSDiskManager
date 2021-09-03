@@ -194,7 +194,7 @@ namespace MSDiskManager.ViewModels
                 {
                     if (!d.IgnoreAdd)
                     {
-                    ds.Add(de);
+                        ds.Add(de);
 
                     }
 
@@ -326,7 +326,7 @@ namespace MSDiskManager.ViewModels
                 {
                     if (!f.IgnoreAdd)
                     {
-                    fs.Add(fe);
+                        fs.Add(fe);
                     }
                     var s = Interlocked.Read(ref finishedSize);
                     Interlocked.Exchange(ref finishedSize, s + f.Size);
@@ -395,9 +395,9 @@ namespace MSDiskManager.ViewModels
                                 Interlocked.Exchange(ref finishedSize, s + res);
                                 FinishedSize = finishedSize;
                                 PRSC = fullSize > 0 ? ((finishedSize + skippedSize) / fullSize).ToString() : "0";
-                            }, fileStrategy, cancels.Token);
+                            }, fileStrategy, cancels.Token, move);
                         valid = iores.success;
-                        if(valid && iores.additional != null && iores.additional.Length > 0)
+                        if (valid && iores.additional != null && iores.additional.Length > 0)
                         {
                             f.OnDeskName += iores.additional;
                             fe = f.FileEntity;
@@ -453,13 +453,13 @@ namespace MSDiskManager.ViewModels
                             {
                                 try
                                 {
-                                    File.Delete(f.OldPath);
+                                    if (File.Exists(f.OldPath)) File.Delete(f.OldPath);
                                     deleted = true;
                                 }
                                 catch (Exception e)
                                 {
 
-                                    var mbr = MessageBox.Show($"Couldn't delete file:[{f.OldPath}].",$"Error:[{e.Message}].\nDo you want to retry?",MessageBoxButton.YesNo);
+                                    var mbr = MessageBox.Show($"Couldn't delete file:[{f.OldPath}].", $"Error:[{e.Message}].\nDo you want to retry?", MessageBoxButton.YesNo);
                                     if (mbr == MessageBoxResult.No) break;
                                 }
                             }

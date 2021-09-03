@@ -20,7 +20,8 @@ namespace MSDM_IO
     {
         private static string letters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
         private static char randomLetter => letters[new Random().Next(letters.Length)];
-        public static async Task<(bool success, string additional)> AddFile(string oldPath,string newPath, Action<long> progress = null, ExistsStrategy addFileStrategy = ExistsStrategy.None, CancellationToken? cancels = null)
+        public static async Task<(bool success, string additional)> AddFile(string oldPath,string newPath, Action<long> progress = null,
+            ExistsStrategy addFileStrategy = ExistsStrategy.None, CancellationToken? cancels = null, bool move = false)
         {
             if (oldPath == null || !File.Exists(oldPath) || newPath == null || newPath.Length == 0) throw new ArgumentException("Given pathes are not valid");
             var op = oldPath.Trim().ToLower().Replace("\\\\", "\\").Replace("/", "\\").Replace(";", "\\");
@@ -48,6 +49,18 @@ namespace MSDM_IO
             }
             try
             {
+                if(move && oldPath.Trim().ToLower().First() == newPath.Trim().ToLower().First())
+                {
+                    await Task.Run(async () => {
+                        File.Move(oldPath, newPath);
+                        if (progress != null)
+                        {
+                            progress(new FileInfo(newPath).Length);
+                        }
+                    });
+                    
+                    return (true, addedLetters);
+                }
                 await CopyToAsync(@oldPath, @np, progress: progress, cancels: cancels);
                 return (true,addedLetters);
             }
