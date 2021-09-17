@@ -1,0 +1,32 @@
+﻿<Window x:Class="MSDiskManager.Dialogs.MSMessageBox"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:MSDiskManager.Dialogs"
+        mc:Ignorable="d"
+        WindowStyle="None"
+        AllowsTransparency="True"
+        BorderBrush="Transparent"
+        BorderThickness="0"
+        WindowStartupLocation="CenterScreen"
+        Title="MSMessageBox" Height="200" Width="600">
+    <Window.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="../Styles/ButtonStyles.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </Window.Resources>
+    <Border CornerRadius="3">
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition/>
+                <RowDefinition Height="auto"/>
+            </Grid.RowDefinitions>
+            <TextBlock VerticalAlignment="Center" TextAlignment="Center" TextWrapping="Wrap" Foreground="{StaticResource BrightText}" Text="{Binding Message}" d:Text="SAD SAD AS SA FASF SAF SAF SAF AS FSA FAS FSA SA FAS FSA FSA FSA FSA FSA FAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+                   />
+            <Button Grid.Row="1" Style="{StaticResource SharpBlueButton}" Content="OK"/>
+        </Grid>
+    </Border>
+</Window>

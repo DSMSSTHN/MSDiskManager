@@ -77,7 +77,7 @@ namespace MSDiskManager.Dialogs
         {
             if (Model.Parent == null)
             {
-                MessageBox.Show("you're at the root directory. you can't go back anymore");
+                MSMessageBox.Show("you're at the root directory. you can't go back anymore");
                 return;
             }
             if (Model.Parent.ParentId == null)

@@ -117,7 +117,7 @@ namespace MSDiskManager.ViewModels
 
 
         public ObservableCollection<BaseEntityViewModel> Items { get; set; } = new ObservableCollection<BaseEntityViewModel>();
-        private ConcurrentStack<CancellationTokenSource> _cancellationTokens = new ConcurrentStack<CancellationTokenSource>();
+        private CancellationTokenSource? cancels;
         private bool canGoBack = false;
         private int numberOfItems = 0;
 
@@ -191,7 +191,7 @@ namespace MSDiskManager.ViewModels
                         }
                         catch (Exception e)
                         {
-                            MessageBox.Show($"Error while tying to open file [{entity.FullPath}].\n{e.Message}");
+                            MSMessageBox.Show($"Error while tying to open file [{entity.FullPath}].\n{e.Message}");
                         }
                     }
                     else if (entity is DirectoryViewModel)
@@ -342,7 +342,7 @@ namespace MSDiskManager.ViewModels
 
         public void SelectItem(BaseEntityViewModel clickedItem)
         {
-            if (Interlocked.Read(ref isWorking) != 0) return;
+            //if (Interlocked.Read(ref isWorking) != 0) return;
             if ((Keyboard.IsKeyDown(Key.LeftShift) || Keyboard.IsKeyDown(Key.RightShift)) && lastClickedItem != null && Items.Contains(lastClickedItem) && Items.Contains(lastClickedItem))
             {
                 var index1 = Items.IndexOf(clickedItem);
@@ -356,7 +356,7 @@ namespace MSDiskManager.ViewModels
                 }
                 return;
             }
-            else if ((Keyboard.IsKeyDown(Key.LeftCtrl) || Keyboard.IsKeyDown(Key.RightCtrl)))
+            else if (Keyboard.IsKeyDown(Key.LeftCtrl) || Keyboard.IsKeyDown(Key.RightCtrl))
             {
                 clickedItem.IsSelected = !clickedItem.IsSelected;
                 if (!clickedItem.IsSelected) return;
@@ -475,18 +475,11 @@ namespace MSDiskManager.ViewModels
 
         private async Task filterData()
         {
-            Interlocked.Increment(ref isWorking);
-            CancellationTokenSource? old;
-            var last = _cancellationTokens.TryPop(out old);
-            if (last && old != null)
-            {
-                old.Cancel();
-            }
+            cancels?.Cancel();
+            cancels = new CancellationTokenSource();
+            var token = cancels.Token;
             LoadingVisibility = Visibility.Visible;
-            var source = new CancellationTokenSource();
-            var token = source.Token;
 
-            _cancellationTokens.Push(source);
             if (token.IsCancellationRequested) return;
             var numOfItems = 0;
             Items.Clear();
@@ -509,12 +502,11 @@ namespace MSDiskManager.ViewModels
                     numOfItems += directories.Count;
                     numberOfItems = numOfItems;
                     NotifyPropertyChanged("NumberOfItems");
-                    foreach (var dir in directories)
+                    foreach (var dir in directories.Select(d => d.ToDirectoryViewModel()))
                     {
                         if (token.IsCancellationRequested) return;
-                        var d = dir.ToDirectoryViewModel();
-                        Items.Add(d);
-                        _ = Task.Run(async () => { await getItemsCount(d, token); d.LoadOnDeskSize(); });
+                        Items.Add(dir);
+                        _ = Task.Run(async () => { await getItemsCount(dir, token); dir.LoadOnDeskSize(); });
                     }
                 } while (directories != null && directories.Count > 0);
 
@@ -539,10 +531,10 @@ namespace MSDiskManager.ViewModels
                 page++;
                 if (limit < 100) limit += 50;
                 files = await new FileRepository().FilterFiles(ff);
-                foreach (var file in files)
+                foreach (var file in files.Select(f => f.ToFileViewModel()))
                 {
                     if (token.IsCancellationRequested) return;
-                    Items.Add(file.ToFileViewModel());
+                    Items.Add(file);
                 }
                 numOfItems += files.Count;
                 NumberOfItems = numOfItems;
@@ -553,9 +545,6 @@ namespace MSDiskManager.ViewModels
 
             numberOfItems = numOfItems;
             NotifyPropertyChanged("NumberOfItems");
-            old?.Dispose();
-            _cancellationTokens.TryPop(out old);
-            old?.Dispose();
             LoadingVisibility = Visibility.Collapsed;
             Interlocked.Exchange(ref isWorking, 0);
         }
@@ -567,14 +556,7 @@ namespace MSDiskManager.ViewModels
         }
         public void Clear()
         {
-            CancellationTokenSource? source;
-
-            while (_cancellationTokens.TryPop(out source))
-            {
-                source.Cancel();
-                source.Dispose();
-                source = null;
-            }
+            
         }
         public MainViewModel()
         {

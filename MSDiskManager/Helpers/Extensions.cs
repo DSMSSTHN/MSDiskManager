@@ -60,6 +60,10 @@ namespace MSDiskManager.Helpers
                 col.Add(item);
             }
         }
+        public static void GetTempDirectory(this object _)
+        {
+            return Path.GetTempPath();
+        }
         public static long GetDirSize(this DirectoryInfo d, Action<long> reportSize = null)
         {
             long size = 0;

@@ -129,7 +129,11 @@ namespace MSDiskManager.Pages
         private void selectDrive(MSDrive drive)
         {
             MSDM_DBContext.SetDrive(drive);
-            this.NavigationService.Navigate(new MainPage());
+            while (NavigationService.CanGoBack|| NavigationService.CanGoForward)
+            {
+                NavigationService.RemoveBackEntry();
+            }
+            NavigationService.Navigate(new MainPage());
 
         }
 

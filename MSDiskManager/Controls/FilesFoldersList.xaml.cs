@@ -65,7 +65,7 @@ namespace MSDiskManager.Controls
             }
             catch (Exception e)
             {
-                MessageBox.Show($"Error while tying to open file [{file.FullPath}].\n{e.Message}");
+                MSMessageBox.Show($"Error while tying to open file [{file.FullPath}].\n{e.Message}");
             }
         }
         private void handleDirectoryClicked(DirectoryViewModel directory)

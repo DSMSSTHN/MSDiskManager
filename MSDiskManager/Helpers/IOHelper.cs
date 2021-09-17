@@ -1,4 +1,5 @@
-﻿using MSDiskManager.ViewModels;
+﻿using MSDiskManager.Dialogs;
+using MSDiskManager.ViewModels;
 using MSDiskManagerData.Data.Entities;
 using System;
 using System.Collections.Generic;
@@ -6,6 +7,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows;
 
 namespace MSDiskManager.Helpers
 {
@@ -13,13 +15,15 @@ namespace MSDiskManager.Helpers
     {
         public static (List<DirectoryViewModel> dirs, List<string> pathes) GetDirectories(this string path, DirectoryViewModel parent = null)
         {
-            if (path.IsFile()) throw new IOException("Get Items was called on a file instaed of  a folder for path :[" + path + "]");
-            var directories = Directory.GetDirectories(path);
+           
+            if (@path.IsFile()) throw new IOException("Get Items was called on a file instaed of  a folder for path :[" + path + "]");
+            var directories = Directory.GetDirectories(@path);
             var dirs = new List<DirectoryViewModel>();
             var pathes = new List<string>();
             foreach (var d in directories)
             {
-                var diresult = d.GetFullDirectory(parent);
+                var diresult = @d.GetFullDirectory(parent);
+                if (diresult.directory == null) continue;
                 dirs.Add(diresult.directory);
                 pathes.AddRange(diresult.pathes);
             }
@@ -58,13 +62,26 @@ namespace MSDiskManager.Helpers
         }
         public static (DirectoryViewModel directory, List<string> pathes) GetFullDirectory(this string path, DirectoryViewModel parent = null)
         {
-            var p = path.FixSeperator();
+            try
+            {
+                if (!Directory.Exists(@path))
+                {
+                    MSMessageBox.Show($"Couldn't find Directory[{path}]. Ignoring directory");
+                    return (null, null);
+                }
+            }
+            catch (Exception ex)
+            {
+                MSMessageBox.Show($"Couldn't add Directory[{path}]\nException:[{ex.Message + (ex.InnerException == null ? "" : "\n" + ex.InnerException)}]");
+                return (null, null);
+            }
+            var p = @path.FixSeperator();
             var sep = '\\';
             var dir = new DirectoryViewModel
             {
                 Name = p.GetDirectoryName(),
                 OnDeskName = p.GetDirectoryName(),
-                OriginalPath = p,
+                OriginalPath = @p,
                 Path = (parent?.Path ?? "") + sep + p.GetDirectoryName(),
                 Parent = parent,
 
@@ -80,18 +97,19 @@ namespace MSDiskManager.Helpers
             }
             var pathes = diresult.pathes.ToList();
             pathes.AddRange(filesult.pathes);
-            pathes.Add(path);
+            pathes.Add(@path);
             return (dir, pathes);
         }
         public static bool IsFile(this string path)
         {
-            FileAttributes attr = File.GetAttributes(path);
+            if (Directory.Exists(@path)) return false;
+            FileAttributes attr = File.GetAttributes(@path);
             if ((attr & FileAttributes.Directory) == FileAttributes.Directory) return false;
             return true;
         }
         public static bool IsDirectory(this string path)
         {
-            FileAttributes attr = File.GetAttributes(path);
+            FileAttributes attr = File.GetAttributes(@path);
             if ((attr & FileAttributes.Directory) == FileAttributes.Directory) return true;
             return false;
         }
@@ -99,12 +117,12 @@ namespace MSDiskManager.Helpers
         public static string GetDirectoryName(this string path)
         {
 
-            var p = path.Trim();
+            var p = @path.Trim();
             if (p.Length == 0) return path;
             p = path.FixSeperator();
             var sep = '\\';
             if (p[p.Length - 1] == sep) p = p.Remove(p.Length - 1);
-            if (!p.Contains(sep)) return p;
+            if (!p.Contains(sep)) return @p;
             return p.Substring(p.LastIndexOf(sep) + 1);
         }
         public static (string name, string extension) GetFileNameAndExtension(this string path)
@@ -117,7 +135,7 @@ namespace MSDiskManager.Helpers
             if (p.Contains(sep)) p = p.Substring(p.LastIndexOf(sep) + 1);
             var index = p.LastIndexOf('.');
             if (index > 0 && index < p.Length - 1) return (p.Substring(0, index), p.Substring(index + 1));
-            return (p, "");
+            return (@p, "");
         }
         public static FileType GetFileType(string extension)
         {

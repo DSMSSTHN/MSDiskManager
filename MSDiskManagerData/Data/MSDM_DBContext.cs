@@ -4,6 +4,7 @@ using MSDiskManagerData.Data.Entities.Relations;
 using MSDiskManagerData.Helpers;
 using Newtonsoft.Json;
 using Nito.AsyncEx;
+using NodaTime;
 using Npgsql;
 using System;
 using System.Collections.Generic;
@@ -141,6 +142,9 @@ namespace MSDiskManagerData.Data
                 entity.HasMany(e => e.DirectoryTags).WithOne(e => e.Tag).OnDelete(DeleteBehavior.Cascade).IsRequired(true);
                 entity.HasMany(e => e.FileTags).WithOne(e => e.Tag).OnDelete(DeleteBehavior.Cascade).IsRequired(true);
                 entity.HasIndex(e => e.Name).IsUnique(true);
+                entity.Property(e => e.CreationDate).HasConversion(v => v.ToUnixTimeMilliseconds(), v => Instant.FromUnixTimeMilliseconds(v));
+                entity.Property(e => e.ModificationDate).HasConversion(v => v.ToUnixTimeMilliseconds(), v => Instant.FromUnixTimeMilliseconds(v));
+                entity.Property(e => e.LastAccessDate).HasConversion(v => v.ToUnixTimeMilliseconds(), v => Instant.FromUnixTimeMilliseconds(v));
             });
             modelBuilder.Entity<FileTag>(entity =>
             {

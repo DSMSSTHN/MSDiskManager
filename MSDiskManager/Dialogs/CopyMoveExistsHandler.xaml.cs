@@ -85,7 +85,7 @@ namespace MSDiskManager.Dialogs
                     }
                     catch (Exception ex)
                     {
-                        MessageBox.Show($"Item:[{i.FullPath}] cannot be remove.\nError:[{ex.Message}]");
+                        MSMessageBox.Show($"Item:[{i.FullPath}] cannot be remove.\nError:[{ex.Message}]");
                     }
                 }
             }

@@ -39,12 +39,12 @@ namespace MSDiskManager.Dialogs.SelectTagsDialog
             
             if (Globals.IsNullOrEmpty(name))
             {
-                MessageBox.Show("tag name shouldn't be empty");
+                MSMessageBox.Show("tag name shouldn't be empty");
                 return;
             }
             if(await new TagRepository().TagExists(name))
             {
-                MessageBox.Show("tag name already exits");
+                MSMessageBox.Show("tag name already exits");
                 return;
             }
 
@@ -73,7 +73,7 @@ namespace MSDiskManager.Dialogs.SelectTagsDialog
             }
             catch (Exception ex)
             {
-                MessageBox.Show(ex.Message);
+                MSMessageBox.Show(ex.Message);
             }
         }
 
@@ -88,6 +88,29 @@ namespace MSDiskManager.Dialogs.SelectTagsDialog
         {
             NameTBX.Focus();
             NameTBX.SelectAll();
+            this.PreviewKeyDown += async (a, b) =>
+            {
+                switch (b.Key)
+                {
+                    case Key.Tab:
+                        e.Handled = true;
+                        if (Keyboard.IsKeyDown(Key.LeftShift) || Keyboard.IsKeyDown(Key.RightShift))
+                        {
+                            if (Model.Color == 0) Model.Color = 19;
+                            else Model.Color = Model.Color - 1;
+                        }
+                        else
+                        {
+                            if (Model.Color == 19) Model.Color = 0;
+                            else Model.Color = Model.Color + 1;
+                        }
+                        break;
+                    case Key.Enter:
+                        e.Handled = true;
+                        await addTag();
+                        break;
+                }
+            };
         }
         
     }

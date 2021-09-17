@@ -36,6 +36,7 @@ namespace MSDiskManagerData.Data.Repositories
             return _context;
         }
         protected bool IsTest { get; set; }
+
         public BaseRepository(bool isTest = false)
         {
             token = MSDM_DBContext.PauseSource.Token;
@@ -94,6 +95,7 @@ namespace MSDiskManagerData.Data.Repositories
                     Path = currentPathNoDrive
                 });
                 await (await context()).SaveChangesAsync();
+                repotFinished();
                 if (result != null && result.DirectoryTags.Count > 0)
                 {
                     await (await context()).DirectoryTags.AddRangeAsync(result.DirectoryTags.Select(dt => new Entities.Relations.DirectoryTag
@@ -102,12 +104,81 @@ namespace MSDiskManagerData.Data.Repositories
                         TagId = dt.TagId
                     }));
                     await (await context()).SaveChangesAsync();
+                    repotFinished();
+                    repotFinished();
                 }
                 result = id.Entity;
                 parentId = result.Id;
                 currentPathNoDrive += "\\";
             }
             return result;
+        }
+        public async Task<List<TEntity>> FilterByName<TEntity>(string name, List<long> except, int page, int limit,
+       bool orderLastAccessDate = false) where TEntity : class, new()
+        {
+            var tableName = this switch
+            {
+                TagRepository => "tags",
+                DirectoryRepository => "directories",
+                FileRepository => "files",
+                _ => throw new Exception("Current Repsoitory doesn't implement this method")
+            };
+            try
+            {
+                var ctx = await context();
+                var queryString = $"SELECT * FROM {tableName} ";
+                List<String> split = null;
+                if (name != null && name.Trim().Length > 0)
+                {
+                    var tl = name.Trim().ToLower();
+                    split = tl.Split(" ")?.Where(s => s.Length > 0).ToList();
+                    if (split.Count > 1)
+                    {
+                        //queryString += " WHERE (LOWER(name) LIKE '%" + string.Join("%' OR LOWER(name) LIKE '%", split) + "%' )";
+                        queryString += " WHERE (LOWER(name) ~ '(" + string.Join("|", split) + ")' )";
+
+                    }
+                    else
+                    {
+                        split = new List<string>();
+                        split.Add(tl);
+                        queryString += $" WHERE LOWER(name) LIKE '%{tl}%' ";
+                    }
+
+                }
+                if (except != null && except.Count > 0)
+                {
+                    if (!queryString.Contains("WHERE")) queryString += " WHERE ";
+                    else queryString += " AND ";
+                    queryString += $" NOT id IN ({string.Join(',', except)}) ";
+                }
+                queryString += " ORDER BY ";
+                if (split != null && split.Count > 0)
+                {
+                    foreach (var s in split)
+                        queryString += @$" CASE WHEN name = '{s}' THEN -1 ELSE 0 END, CASE WHEN LOWER(name) = '{s}' THEN -1 ELSE 0 END, 
+ CASE WHEN LOWER(name) LIKE '{s}%' THEN -1 ELSE 0 END, CASE WHEN LOWER(name) LIKE '% {s}%' THEN -1 ELSE 0 END,";
+                }
+                var date = this is TagRepository && orderLastAccessDate ? "last_access_date" : "modification_date";
+                queryString += $" {date} DESC ";
+                if (limit > 0)
+                {
+                    var p = page >= 0 ? page : 0;
+                    queryString += $" OFFSET {page * limit} LIMIT {limit}";
+                }
+                //queryString += ";";
+                var result =  ctx.Set<TEntity>().FromSqlRaw(queryString).AsQueryable();
+#if DEBUG
+                //var str = result.ToQueryString();
+#endif
+                repotFinished();
+                return await result.ToListAsync();
+            }
+            catch (Exception)
+            {
+                repotFinished();
+                return new List<TEntity>();
+            }
         }
         public async Task<ICollection<BaseEntity>> AddToDBAsIs(ICollection<BaseEntity> items)
         {
@@ -125,18 +196,18 @@ namespace MSDiskManagerData.Data.Repositories
             {
                 item.DriveId = MSDM_DBContext.currentDriveId;
             }
-                var ctx = await context();
+            var ctx = await context();
             try
             {
-                
+
                 if (files.Count > 0) await ctx.Files.AddRangeAsync(files);
                 if (dirs.Count > 0) await ctx.Directories.AddRangeAsync(dirs);
                 await ctx.SaveChangesAsync();
-
+                repotFinished();
             }
             catch (Exception)
             {
-
+                repotFinished();
                 throw;
             }
             if (fixHirarcies)
@@ -167,7 +238,7 @@ namespace MSDiskManagerData.Data.Repositories
                         for (int i = 0; i < split.Length; i++)
                         {
                             if (split[i].Length == 0) continue;
-                            path += (i == 0 ? "" : "\\") +  split[i];
+                            path += (i == 0 ? "" : "\\") + split[i];
                             if (!pathId.ContainsKey(path))
                             {
                                 var id = await ctx.Directories.Where(d => d.Path == path).Select(d => d.Id.Value).FirstAsync();
@@ -182,10 +253,11 @@ namespace MSDiskManagerData.Data.Repositories
                     if (files.Count > 0) ctx.Files.UpdateRange(files);
                     if (dirs.Count > 0) ctx.Directories.UpdateRange(dirs);
                     await ctx.SaveChangesAsync();
+                    repotFinished();
                 }
                 catch (Exception)
                 {
-
+                    repotFinished();
                     throw;
                 }
             }

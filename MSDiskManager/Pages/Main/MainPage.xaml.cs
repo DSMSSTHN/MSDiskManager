@@ -60,6 +60,25 @@ namespace MSDiskManager.Pages.Main
                 object content = ((ContentControl)e.Navigator).Content;
                 if(content is MainPage)Model.Parent = Model.Parent;
             };
+            (Application.Current.MainWindow as MainWindow).MainWindowFrame.NavigationService.Navigating += (a, b) =>
+            {
+                if (b.NavigationMode == NavigationMode.Back)
+                {
+                    if (Model.Parent == null)
+                    {
+                        var entry = NavigationService.RemoveBackEntry();
+                        while(entry != null)
+                        {
+                            entry = NavigationService.RemoveBackEntry();
+                        }
+                        NavigationService.Navigate(new SelectDrivePage());
+                        b.Cancel = true;
+                        return;
+                    }
+                    b.Cancel = true;
+                    Model.GoBack();
+                }
+            };
         }
 
         private void Button_Click(object sender, RoutedEventArgs e)

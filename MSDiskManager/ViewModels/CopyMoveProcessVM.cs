@@ -171,7 +171,7 @@ namespace MSDiskManager.ViewModels
                         }
                         catch (Exception e)
                         {
-                            MessageBox.Show($"Couldn't remove directory:[{dir.OriginalPath}].\nError:[{e.Message}]");
+                            MSMessageBox.Show($"Couldn't remove directory:[{dir.OriginalPath}].\nError:[{e.Message}]");
                         }
                     }
                 }
@@ -300,7 +300,7 @@ namespace MSDiskManager.ViewModels
             }
             catch (Exception e)
             {
-                MessageBox.Show(e?.InnerException?.Message ?? e.Message);
+                MSMessageBox.Show(e?.InnerException?.Message ?? e.Message);
 
                 return new List<DirectoryViewModel>();
             }

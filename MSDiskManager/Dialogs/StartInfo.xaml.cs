@@ -87,7 +87,7 @@ namespace MSDiskManager.Dialogs
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Fatal while saving app settings.\nError:[{ex.Message}]");
+                MSMessageBox.Show($"Fatal while saving app settings.\nError:[{ex.Message}]");
                 this.Close();
             }
         }

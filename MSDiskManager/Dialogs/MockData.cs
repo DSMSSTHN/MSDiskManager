@@ -37,7 +37,7 @@ namespace MSDiskManager.Dialogs
             get
             {
                 var result = new List<int>();
-                for (int i = 0; i < 11; i++) result.Add(i);
+                for (int i = 0; i < 20; i++) result.Add(i);
                 return result;
             }
         }

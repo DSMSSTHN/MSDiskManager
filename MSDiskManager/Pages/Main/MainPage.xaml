@@ -4,7 +4,7 @@
       xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
       xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
       mc:Ignorable="d" 
-      KeepAlive="True"
+      KeepAlive="False"
       PreviewKeyDown="Page_PreviewKeyDown"
       KeyUp="Page_KeyUp"
       xmlns:local="clr-namespace:MSDiskManager.Pages.Main"

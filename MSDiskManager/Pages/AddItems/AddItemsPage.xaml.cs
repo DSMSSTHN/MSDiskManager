@@ -119,7 +119,7 @@ namespace MSDiskManager.Pages.AddItems
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Error while tying to open file [{path}].\n{ex.Message}");
+                MSMessageBox.Show($"Error while tying to open file [{path}].\n{ex.Message}");
             }
         }
         private void openExplorerDirectory(string path)
@@ -131,7 +131,7 @@ namespace MSDiskManager.Pages.AddItems
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Error while tying to open file [{path}].\n{ex.Message}");
+                MSMessageBox.Show($"Error while tying to open file [{path}].\n{ex.Message}");
             }
         }
 

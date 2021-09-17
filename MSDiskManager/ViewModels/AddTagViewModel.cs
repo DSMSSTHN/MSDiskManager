@@ -19,7 +19,7 @@ namespace MSDiskManager.ViewModels
         {
             get
             {
-                var lst = new List<int>(); for (int i = 0; i < 11; i++)
+                var lst = new List<int>(); for (int i = 0; i < 19; i++)
                 {
                     lst.Add(i);
                 }

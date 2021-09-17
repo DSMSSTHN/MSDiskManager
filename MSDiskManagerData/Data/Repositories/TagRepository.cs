@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using MSDiskManagerData.Data.Entities;
 using MSDiskManagerData.Helpers;
+using NodaTime;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -46,7 +47,25 @@ namespace MSDiskManagerData.Data.Repositories
                 throw;
             }
         }
+        public async Task<bool> setLastAccessDate(long? id)
+        {
+            if (id == null || id < 0) return false;
+            try
+            {
+                var command = "UPDATE tags SET last_access_date = " + Instant.FromDateTimeUtc(DateTime.Now.ToUniversalTime()).ToUnixTimeMilliseconds().ToString()
+                    + " WHERE id = " + id.ToString() + ";";
+                var ctx = await context();
+                await ctx.Database.ExecuteSqlRawAsync(command);
+                repotFinished();
+                return true;
+            }
+            catch (Exception)
+            {
+                repotFinished();
+                return false;
 
+            }
+        }
         public async Task<List<Tag>> GetTags(string name = null, List<long> excludeIds = null, int page = 0, int limit = 0)
         {
             try
@@ -84,7 +103,8 @@ namespace MSDiskManagerData.Data.Repositories
         
         public async Task<Tag> AddTag(string name, int color)
         {
-            return await AddTag(new Tag { Name = name, Color = color });
+            var now = Instant.FromDateTimeUtc(DateTime.Now.ToUniversalTime());
+            return await AddTag(new Tag { Name = name, Color = color ,LastAccessDate = now,CreationDate = now,ModificationDate = now});
         }
         public async Task<Tag> AddTag(Tag tag)
         {
@@ -92,6 +112,7 @@ namespace MSDiskManagerData.Data.Repositories
             if (Globals.IsNullOrEmpty(tag.Name)) throw new Exception($"Tag has no name");
             try
             {
+            var now = Instant.FromDateTimeUtc(DateTime.Now.ToUniversalTime());
                 var ctx = await context();
                 var exitst = await ctx.Tags.AnyAsync(t => t.Name == tag.Name);
                 if (exitst)
@@ -102,6 +123,9 @@ namespace MSDiskManagerData.Data.Repositories
                 {
                     tag.Id = null;
                 }
+                tag.CreationDate = now;
+                tag.ModificationDate = now;
+                tag.LastAccessDate = now;
                 await ctx.Tags.AddAsync(tag);
                 await ctx.SaveChangesAsync();
                 repotFinished();
@@ -121,12 +145,14 @@ namespace MSDiskManagerData.Data.Repositories
             if (Globals.IsNullOrEmpty(tag.Name)) throw new Exception($"Tag has no name");
             try
             {
+                var now = Instant.FromDateTimeUtc(DateTime.Now.ToUniversalTime());
                 var ctx = await context();
                 var exitst = await ctx.Tags.AnyAsync(t => t.Name == tag.Name);
                 if (exitst)
                 {
                     throw new TagAlreadyExists(tag.Name);
                 }
+                tag.ModificationDate = now;
                 ctx.Tags.Update(tag);
                 await ctx.SaveChangesAsync();
                 repotFinished();

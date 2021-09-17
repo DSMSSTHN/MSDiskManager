@@ -79,7 +79,7 @@ namespace MSDiskManager.Dialogs
                         }
                         catch (Exception ex)
                         {
-                            MessageBox.Show(ex.Message);
+                            MSMessageBox.Show(ex.Message);
                             diag = new ItemExistsDialog(path, false);
                             diag.ShowDialog();
                             strategy = diag.ExistsStrategy;
@@ -98,7 +98,7 @@ namespace MSDiskManager.Dialogs
             }
             else
             {
-                MessageBox.Show("Cannot create a Directory with an empty name");
+                MSMessageBox.Show("Cannot create a Directory with an empty name");
 
             }
         }
