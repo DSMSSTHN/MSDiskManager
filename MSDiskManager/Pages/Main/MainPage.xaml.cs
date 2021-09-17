@@ -26,7 +26,7 @@ namespace MSDiskManager.Pages.Main
     /// </summary>
     public partial class MainPage : Page
     {
-        public MainViewModel Model { get; set; } = new MainViewModel();
+        public static MainViewModel Model { get; set; } = new MainViewModel();
         //public FilterTopViewModel TopFilterModel = new FilterTopViewModel();
         public MainPage()
         {
@@ -38,8 +38,9 @@ namespace MSDiskManager.Pages.Main
 
         private void Page_Loaded(object sender, RoutedEventArgs e)
         {
-            var bottom = new FilesFoldersList(Model, (a, b, c) => {
-                if(!b.Data.GetDataPresent(DataFormats.FileDrop))return;
+            var bottom = new FilesFoldersList(Model, (a, b, c) =>
+            {
+                if (!b.Data.GetDataPresent(DataFormats.FileDrop)) return;
                 Window.GetWindow(this).Activate();
                 var pathes = (string[])b.Data.GetData(DataFormats.FileDrop);
                 var letter = MSDM_DBContext.DriverName.ToLower().First();
@@ -53,7 +54,11 @@ namespace MSDiskManager.Pages.Main
                         object content = (BottomControl).Content;
                         if (content is FilesFoldersList) Model.Parent = Model.Parent;
                     }
-                }else this.NavigationService.Navigate(new AddItemsPage(a, b, c));
+                }
+                else
+                {
+                    this.NavigationService.Navigate(new AddItemsPage(a, b, c));
+                }
             });
             BottomControl.Content = bottom;
             this.NavigationService.Navigated += (a,e)=>{
@@ -62,16 +67,15 @@ namespace MSDiskManager.Pages.Main
             };
             (Application.Current.MainWindow as MainWindow).MainWindowFrame.NavigationService.Navigating += (a, b) =>
             {
+                if ((a as Frame).Content is AddItemsPage) return;
                 if (b.NavigationMode == NavigationMode.Back)
                 {
+                    var fr = a as Frame;
                     if (Model.Parent == null)
                     {
-                        var entry = NavigationService.RemoveBackEntry();
-                        while(entry != null)
-                        {
-                            entry = NavigationService.RemoveBackEntry();
-                        }
-                        NavigationService.Navigate(new SelectDrivePage());
+                        while (fr.CanGoBack) fr.RemoveBackEntry();
+                        this.KeepAlive = false;
+                        fr.Content = new SelectDrivePage();
                         b.Cancel = true;
                         return;
                     }

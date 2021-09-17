@@ -58,10 +58,11 @@
                     </Grid>
                 </Grid>
                 <ListView Grid.Row="1" Background="Transparent"
-                          Name="ItemsListView"
+                          Name="ItemsListView" MaxWidth="{Binding RelativeSource={RelativeSource AncestorType=Grid},Path=ActualWidth}"
+                          ScrollViewer.HorizontalScrollBarVisibility="Disabled"
                       ScrollViewer.VerticalScrollBarVisibility="{Binding VerticalScrollVisibility}"
                       HorizontalContentAlignment="Stretch"
-                      ItemsSource="{Binding Items}" d:ItemsSource="{x:Static local:MockData.Items}">
+                      ItemsSource="{Binding Items}" >
                     <ListView.ContextMenu>
                         <ContextMenu >
                             <MenuItem Header="Edit" Click="EditEntity"/>
@@ -105,7 +106,8 @@
                                     <ColumnDefinition Width="auto"/>
                                 </Grid.ColumnDefinitions>
                                 <Grid Background="Transparent"  MouseEnter="Grid_MouseEnter" MouseLeave="Grid_MouseLeave" PreviewMouseWheel="Grid_PreviewMouseWheel" >
-                                    <local:DBImage DataContext="{Binding Path=.}"/>
+                                    <!--<local:DBImage DataContext="{Binding Path=.}"/>-->
+                                    <Image  Source="{Binding IconPath}" MaxHeight="{Binding IconHeight}" Stretch="Uniform" Margin="0 0 20 0"/>
                                     <Image  Visibility="{Binding FullPath,Converter={StaticResource PathExistsVisibility_CollapseConverter}}" Source="/images/error.png" Width="25" />
                                 </Grid>
                                 <Button PreviewMouseDoubleClick="EntityClicked" 
@@ -154,7 +156,7 @@
                                                 </Grid.ColumnDefinitions>
                                                 <TextBlock VerticalAlignment="Center"  FontWeight="Medium" Margin="0" Padding="10 0 0 0 " Foreground="{StaticResource BrightText2}" FontSize="10" Text="{Binding FullPath}"/>
                                                 <ListView HorizontalAlignment="Left" d:ItemsSource="{x:Static local:MockData.Tags}" Grid.Column="1"
-                                                      MaxWidth="300"
+                                                      MaxWidth="300" ScrollViewer.HorizontalScrollBarVisibility="Disabled"
                                                       Margin="30 0 0 0" ItemsSource="{Binding Tags}" BorderBrush="Transparent">
                                                     <ListView.ItemsPanel>
                                                         <ItemsPanelTemplate>

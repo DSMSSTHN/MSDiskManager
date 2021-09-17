@@ -5,6 +5,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -60,9 +61,33 @@ namespace MSDiskManager.Helpers
                 col.Add(item);
             }
         }
-        public static void GetTempDirectory(this object _)
+        public static string GetTempDirectory(this object _)
         {
-            return Path.GetTempPath();
+            var p =  Path.Combine(Path.GetTempPath(),"MSDM");
+            if(!Directory.Exists(p))Directory.CreateDirectory(p);
+            return p;
+        }
+        public static string GetThumbnailTempDirectory(this object obj)
+        {
+            var p =  Path.Combine(obj.GetTempDirectory(), "icons");
+            if (!Directory.Exists(p)) Directory.CreateDirectory(p);
+            return p;
+        }
+        public static string ToTitleCase(this string str)
+        {
+            if (str == null || str.Length == 0) return "";
+            var s = str.Trim();
+            if (s.Length == 0) return s;
+            try
+            {
+                TextInfo textInfo = new CultureInfo("en-US", false).TextInfo;
+                var res = textInfo.ToTitleCase(s.ToLower());
+                return res;
+            }
+            catch (Exception)
+            {
+                return str;
+            }
         }
         public static long GetDirSize(this DirectoryInfo d, Action<long> reportSize = null)
         {
@@ -84,7 +109,7 @@ namespace MSDiskManager.Helpers
                     size += di.GetDirSize(reportSize);
                 }
             }
-            catch (UnauthorizedAccessException) { }
+            catch (Exception) { }
             return size;
 
         }

@@ -97,10 +97,53 @@ namespace MSDiskManager.ViewModels
             }
         }
 
-        public FileType FileType { get => fileType; set { fileType = value; NotifyPropertyChanged("FileType"); } }
-        public String Extension { get => extension; set { extension = value; NotifyPropertyChanged("Extension"); } }
-
-
+        public FileType FileType { get => fileType; set { fileType = value; Changed("FileType"); setIcon(); } }
+        public String Extension { get => extension; set { extension = value; Changed("Extension"); } }
+        
+        private void setIcon()
+        {
+            switch (fileType)
+            {
+                case FileType.Unknown:
+                    IconPath = "/images/unknownFile.png";
+                    break;
+                case FileType.Text:
+                    IconPath = "/images/textFile.png";
+                    break;
+                case FileType.Image:
+                    if (Id == null)
+                    {
+                        IconPath = FullPath;return;
+                    }
+                    IconHeight = 200;
+                    _ = Task.Run(async () =>
+                    {
+                        var p = System.IO.Path.Combine(this.GetThumbnailTempDirectory(), $"image{Id}.png");
+                        if (File.Exists(p))
+                        {
+                            this.IconPath = p;
+                        }else
+                        {
+                            var thumb = await new FileRepository().GetThumbnail(Id.Value);
+                            await File.WriteAllBytesAsync(p, thumb);
+                            this.AppInvoke(()=>IconPath = p);
+                        }
+                    });
+                    break;
+                case FileType.Music:
+                    IconPath = "/images/musicFile.png";
+                    break;
+                case FileType.Video:
+                    IconPath = "/images/videoFile.png";
+                    break;
+                case FileType.Compressed:
+                    IconPath = "/images/compressedFile.png";
+                    break;
+                case FileType.Document:
+                    IconPath = "/images/documentsFile.png";
+                    break;
+            }
+        }
         public FileViewModel()
         {
             if (imgCancel == null) imgCancel = new CancellationTokenSource();
@@ -279,7 +322,7 @@ namespace MSDiskManager.ViewModels
                 }
 
                 img.Source = Globals.IsNotNullNorEmpty(OriginalPath) ? OriginalPath.AsUri(true) : FullPath.AsUri(true);
-                NotifyPropertyChanged("ImageContent");
+                Changed("ImageContent");
                 return img;
             }
         }
@@ -289,7 +332,7 @@ namespace MSDiskManager.ViewModels
             {
                 if (txt != null) return txt;
                 txt = new TextBlock();
-                
+
                 txt.TextWrapping = TextWrapping.Wrap;
                 var text = File.ReadAllText(OriginalPath);
                 if (text.Length > 1000)
@@ -336,7 +379,7 @@ namespace MSDiskManager.ViewModels
                     }
                     catch (Exception)
                     {
-                        
+
                         player.Position = new TimeSpan(0);
                     }
                 };

@@ -6,12 +6,12 @@
         xmlns:local="clr-namespace:MSDiskManager.Dialogs"
         mc:Ignorable="d"
         Title="SelectTagsDialog" 
-        WindowStartupLocation="CenterScreen"
+         WindowStartupLocation="CenterScreen"
         AllowsTransparency="True"
         Background="Transparent"
+        Activated="Window_Activated"
+        DataContext="{Binding RelativeSource={RelativeSource Self}}"
         WindowStyle="None"
-        BorderBrush="Transparent"
-        BorderThickness="0"
         ShowInTaskbar="False"
         Height="600" Width="800" Loaded="WindowLoaded">
     <Border CornerRadius="5"  BorderBrush="{StaticResource PrimaryLight}" BorderThickness="3">

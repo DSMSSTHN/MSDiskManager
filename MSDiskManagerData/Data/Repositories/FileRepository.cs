@@ -147,11 +147,11 @@ namespace MSDiskManagerData.Data.Repositories
                     var img = Image.FromFile(f.FullPath);
                     var width = img.Width;
                     var height = img.Height;
-                    var ration = width > height ? (60 / width) : (60 / height);
-                    width = width * ration;
-                    height = height * ration;
+                    double ration = width > height ? (200 / (double)width) : (200 / (double)height);
+                    width = (int)Math.Round((double)width * ration);
+                    height = (int)Math.Round((double)height * ration);
                     var t = img.GetThumbnailImage(width, height, () => false, IntPtr.Zero);
-                    t.Save(stream, ImageFormat.Jpeg);
+                    t.Save(stream, ImageFormat.Png);
                     thumb.Thumbnail = stream.ToArray();
                     thumbs.Add(thumb);
                     stream.Position = 0;
@@ -178,14 +178,14 @@ namespace MSDiskManagerData.Data.Repositories
             var img = Image.FromFile(fullpath);
             var width = img.Width;
             var height = img.Height;
-            var ration = width > height ? (60 / width) : (60 / height);
-            width = width * ration;
-            height = height * ration;
+            double ration = width > height ? (200 / (double)width) : (200 / (double)height);
+            width = (int)Math.Round((double)width * ration);
+            height = (int)Math.Round((double)height * ration);
             var t = img.GetThumbnailImage(width, height, () => false, IntPtr.Zero);
             using (var stream = new MemoryStream())
             {
 
-                t.Save(stream, ImageFormat.Jpeg);
+                t.Save(stream, ImageFormat.Png);
                 thumb.Thumbnail = stream.ToArray();
                 stream.Close();
             }

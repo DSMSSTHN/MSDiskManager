@@ -31,7 +31,6 @@ namespace MSDiskManager.Dialogs.SelectTagsDialog
         private Action<Tag> selectTagFunction { get; set; }
         private int page = 0;
         private const int limit = 100;
-        private long operationId = 0;
         public Visibility AddButtonVisibility { get; set; } = Visibility.Collapsed;
         public Prop<string> Filter { get; set; } = new Prop<string>("");
         public Prop<Visibility> LoadMoreVisibility { get; set; } = new Prop<Visibility>(Visibility.Visible);
@@ -127,6 +126,7 @@ namespace MSDiskManager.Dialogs.SelectTagsDialog
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
             _ = filterTags();
+            this.KeyDown += (a, r) => { if (r.Key == Key.Escape) Window.GetWindow(this).Close(); };
         }
 
         private void LoadMore(object sender, RoutedEventArgs e)

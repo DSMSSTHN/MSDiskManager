@@ -7,7 +7,9 @@
       xmlns:mock="clr-namespace:MSDiskManager.Dialogs"
       xmlns:helpers="clr-namespace:MSDiskManager.Helpers"
       mc:Ignorable="d" 
+      Loaded="Page_Loaded"
       ShowsNavigationUI="False"
+      Margin="-31"
       d:DesignHeight="600" d:DesignWidth="800"
       Title="AddTagPage">
     <Page.Resources>
@@ -18,63 +20,102 @@
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
     </Page.Resources>
-    <Grid Loaded="Grid_Loaded" >
-        <Grid.RowDefinitions>
-            <RowDefinition Height="auto"/>
-            <RowDefinition Height="30"/>
-            <RowDefinition Height="auto"/>
-            <RowDefinition/>
-            <RowDefinition Height="40"/>
-        </Grid.RowDefinitions>
+    <Border CornerRadius="3">
+        <Border.Background>
+            <LinearGradientBrush StartPoint="0.5,0" EndPoint="0.5,1">
+                <GradientStop Color="#33ffffff" Offset="-0.5"/>
+                <GradientStop Offset="0.5" 
+                    d:Color="#6a1b9a"
+                    Color="{Binding Color,RelativeSource={RelativeSource AncestorType=Page},Converter={StaticResource IntToColorConverter}}"/>
+                <GradientStop Color="#33ffffff" Offset="1.5"/>
+            </LinearGradientBrush>
+        </Border.Background>
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="auto"/>
+                <RowDefinition Height="auto"/>
+                <RowDefinition/>
+                <RowDefinition Height="auto"/>
+            </Grid.RowDefinitions>
+            <StackPanel>
+                <TextBlock Text="Name" TextAlignment="Center" Foreground="White"/>
+                <TextBox x:Name="NameTextBox" Text="{Binding ItemName,UpdateSourceTrigger=PropertyChanged}" d:Text="Some Name" Padding="5" Foreground="White" TextAlignment="Center" TextDecorations="Underline">
+                    <TextBox.Background>
+                        <SolidColorBrush 
+                            d:Color="#6a1b9a"
+                            Color="{Binding Color,Converter={StaticResource IntToColorConverter}}" Opacity="0.5"/>
+                    </TextBox.Background>
+                </TextBox>
+            </StackPanel>
+            <StackPanel Grid.Row="1" VerticalAlignment="Center" HorizontalAlignment="Center" Orientation="Horizontal">
+                <TextBlock Foreground="White" Text="Is Favourite" Margin="0 0 5 0"/>
+                <CheckBox  IsChecked="{Binding isFavourite}" Margin="0 0 20 0"/>
+                <TextBlock Foreground="White" Text="Rating" Margin="0 0 5 0"/>
+                <Slider Value="{Binding Rating}" Minimum="0" Maximum="10" TickFrequency="1" Orientation="Horizontal"
+                        Width="200"/>
+                <TextBlock Text="{Binding Rating,StringFormat=' {0} / 10'}" Foreground="White"/>
+            </StackPanel>
+            <Grid Grid.Row="2" >
+                <ListView ItemsSource="{Binding Colors,RelativeSource={RelativeSource AncestorType=Page}}" SelectionMode="Single"
+                          SelectedIndex="{Binding Color,RelativeSource={RelativeSource AncestorType=Page}}" BorderThickness="0"
+                          d:ItemsSource="{Binding Colors}">
+                    <ListView.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <WrapPanel HorizontalAlignment="Center" Margin="0 35 0 0" MaxWidth="{Binding RelativeSource={RelativeSource AncestorType=ListView},Path=ActualWidth}"
+                                       Orientation="Horizontal"/>
+                        </ItemsPanelTemplate>
+                    </ListView.ItemsPanel>
+                    <ListView.ItemTemplate>
+                        <DataTemplate>
+                            <Border Width="130" Height="80" CornerRadius="3" 
+                                    Background="{Binding Path=DataContext,
+                                RelativeSource={RelativeSource AncestorType=ListViewItem},
+                                Converter={StaticResource IntToBrushConverter}}">
+                                <Button Background="Transparent"  Click="ColorClicked"/>
+                            </Border>
+                        </DataTemplate>
+                    </ListView.ItemTemplate>
+                </ListView>
+            </Grid>
 
-        <TextBlock VerticalAlignment="Center" FontWeight="SemiBold" FontSize="20" HorizontalAlignment="Center" Grid.Row="0" 
-                   Text="Name:" Foreground="{StaticResource BrightText}"/>
-        <TextBox x:Name="NameTBX" Style="{StaticResource SharpTextBox}" Grid.Row="1" Text="{Binding Name, Mode=TwoWay}"/>
-        <TextBlock VerticalAlignment="Center" FontWeight="SemiBold" FontSize="20" HorizontalAlignment="Center" 
-                   Grid.Row="2" Text="Color:" Foreground="{StaticResource BrightText}"/>
-        <ListView x:Name="ColorsListView" Grid.Row="3" ItemsSource="{Binding AllColors}" BorderThickness="0"
-                  Background="{Binding Color,Converter={StaticResource IntToBrushConverter}}"
-                  d:ItemsSource="{x:Static mock:MockData.AllColors}"
-                  d:Background="#c62828"
-                  VerticalContentAlignment="Center" HorizontalContentAlignment="Center"
-                  
-                  >
-            <ListView.Style>
-                <Style TargetType="ListView">
-                    <Style.Resources>
-                        <Style TargetType="Border">
-                            <Setter Property="CornerRadius" Value="0"/>
-                        </Style>
-                    </Style.Resources>
-                </Style>
-            </ListView.Style>
-            <ListView.ItemsPanel>
-                <ItemsPanelTemplate>
-                    <WrapPanel Orientation="Horizontal" 
-                               VerticalAlignment="Center" HorizontalAlignment="Center"
-                               MaxWidth="{Binding ElementName=ColorsListView,Path=ActualWidth}" 
-                               MaxHeight="{Binding ElementName=ColorsListView,Path=ActualHeight}" 
-                               Margin="0"/>
-                </ItemsPanelTemplate>
-            </ListView.ItemsPanel>
-            <ListView.ItemTemplate>
-                <DataTemplate>
-                    <Border Background="{Binding Path=.,Converter={StaticResource IntToBrushConverter}}" Margin="5">
-                        <Button MinWidth="100" MinHeight="100" Click="Button_Click" CommandParameter="{Binding Path=.}">
-
-                        </Button>
-                    </Border>
-                </DataTemplate>
-            </ListView.ItemTemplate>
-        </ListView>
-
-        <Grid Grid.Row="4"  Background="{StaticResource Primary}">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition/>
-                <ColumnDefinition/>
-            </Grid.ColumnDefinitions>
-            <Button Content="Cancel" Click="CancelClicked" Style="{StaticResource SharpRedButton}" Grid.Column="0"/>
-            <Button Content="Add" Click="AddClicked" Style="{StaticResource SharpGreenButton}" Grid.Column="1"/>
+            <Grid Grid.Row="3">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition/>
+                    <ColumnDefinition/>
+                </Grid.ColumnDefinitions>
+                <Border MinHeight="20" Padding="5">
+                    <Border.Background>
+                        <LinearGradientBrush  StartPoint="0.5,0" EndPoint="0.5,1">
+                            <GradientStop d:Color="#6a1b9a"
+                                          Color="{Binding Color,Converter={StaticResource IntToColorConverter},
+                                ConverterParameter=0.2}" Offset="-0.5"/>
+                            <GradientStop Color="#66000077" Offset="0.5"/>
+                            <GradientStop d:Color="#6a1b9a"
+                                          Color="{Binding Color,Converter={StaticResource IntToColorConverter},
+                                ConverterParameter=0.2}" Offset="1.5"/>
+                        </LinearGradientBrush>
+                    </Border.Background>
+                    <Button Padding="15" Click="CancelClicked" Background="Transparent" BorderThickness="0">
+                        <TextBlock Text="Cancel" Foreground="White"/>
+                    </Button>
+                </Border>
+                <Border Grid.Column="1" MinHeight="20" Padding="5" >
+                    <Border.Background>
+                        <LinearGradientBrush  StartPoint="0.5,0" EndPoint="0.5,1">
+                            <GradientStop d:Color="#6a1b9a"
+                                          Color="{Binding Color,Converter={StaticResource IntToColorConverter},
+                                ConverterParameter=0.2}" Offset="-0.5"/>
+                            <GradientStop Color="#66007700" Offset="0.5"/>
+                            <GradientStop d:Color="#6a1b9a"
+                                          Color="{Binding Color,Converter={StaticResource IntToColorConverter},
+                                ConverterParameter=0.2}" Offset="1.5"/>
+                        </LinearGradientBrush>
+                    </Border.Background>
+                    <Button Padding="15" Click="AddClicked" Background="Transparent" BorderThickness="0">
+                        <TextBlock Text="Add" Foreground="White"/>
+                    </Button>
+                </Border>
+            </Grid>
         </Grid>
-    </Grid>
+    </Border>
 </Page>

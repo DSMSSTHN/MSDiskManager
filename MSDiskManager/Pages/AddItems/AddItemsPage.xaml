@@ -72,7 +72,7 @@
                       MouseWheel="ItemsListView_PreviewMouseWheel"
                           Name="ItemsListView" SelectionMode="Multiple"
                       HorizontalContentAlignment="Stretch" ScrollViewer.ScrollChanged="ItemsListView_ScrollChanged"
-                      ItemsSource="{Binding Items}" d:ItemsSource="{x:Static local:MockData.Items}">
+                      ItemsSource="{Binding Items}" >
                 <ListView.ContextMenu>
                     <ContextMenu >
                         <MenuItem Header="Edit" Click="EditEntity"/>
@@ -163,7 +163,7 @@
                                 <Grid >
                                     <StackPanel Background="Transparent" >
                                         <StackPanel >
-                                            <controls:DBImage ImgWidth="20" ImgWidthImgFile="200" DataContext="{Binding Path=.}"
+                                            <Image Width="200" Source="{Binding IconsPath}"
                                                                   MouseEnter="Grid_MouseEnter" MouseLeave="Grid_MouseLeave"
                                                   PreviewMouseWheel="Grid_PreviewMouseWheel"
                                                                   />

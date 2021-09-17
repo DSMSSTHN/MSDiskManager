@@ -53,7 +53,12 @@ namespace MSDiskManager.Dialogs
         private void Grid_Loaded(object sender, RoutedEventArgs e)
         {
             this.MouseLeftButtonDown += delegate { DragMove(); };
-            this.KeyDown += (a, r) => { if (r.Key == Key.Escape) this.Close(); };
+            
+        }
+
+        private void Window_Activated(object sender, EventArgs e)
+        {
+            
         }
     }
 }

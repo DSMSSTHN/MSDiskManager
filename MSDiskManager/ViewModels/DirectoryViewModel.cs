@@ -30,12 +30,15 @@ namespace MSDiskManager.ViewModels
         private bool hasRemovedItem = false;
 
 
-        public virtual List<FileViewModel> Files { get => files; set { files = value; NotifyPropertyChanged("Files"); } }
-        public virtual List<DirectoryViewModel> Children { get => children; set { children = value; NotifyPropertyChanged("Children"); } }
+        public virtual List<FileViewModel> Files { get => files; set { files = value; Changed("Files"); } }
+        public virtual List<DirectoryViewModel> Children { get => children; set { children = value; Changed("Children"); } }
         public override IconType IconType => IconType.Directory;
-        public int ItemsCount { get => itemsCount; set { itemsCount = value; NotifyPropertyChanged("ItemsCount"); } }
+        public int ItemsCount { get => itemsCount; set { itemsCount = value; Changed("ItemsCount"); } }
 
-
+           public DirectoryViewModel()
+        {
+            IconPath = "/images/directory.png";
+        }
         public void RemoveChild(BaseEntityViewModel entity)
         {
 
@@ -229,7 +232,7 @@ namespace MSDiskManager.ViewModels
         internal async Task LoadNumberOfItems()
         {
             NumberOfItems = await new DirectoryRepository().GetItemsCount(Id);
-            NotifyPropertyChanged("NumberOfItems");
+            Changed("NumberOfItems");
         }
 
 
