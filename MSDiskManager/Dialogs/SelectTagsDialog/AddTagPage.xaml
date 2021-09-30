@@ -10,6 +10,7 @@
       Loaded="Page_Loaded"
       ShowsNavigationUI="False"
       Margin="-31"
+      DataContext="{Binding RelativeSource={RelativeSource Self}}"
       d:DesignHeight="600" d:DesignWidth="800"
       Title="AddTagPage">
     <Page.Resources>
@@ -20,7 +21,7 @@
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
     </Page.Resources>
-    <Border CornerRadius="3">
+    <Border CornerRadius="3"  DataContext="{Binding RelativeSource={RelativeSource AncestorType=Page},Path=DataContext}">
         <Border.Background>
             <LinearGradientBrush StartPoint="0.5,0" EndPoint="0.5,1">
                 <GradientStop Color="#33ffffff" Offset="-0.5"/>

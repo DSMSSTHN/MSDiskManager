@@ -73,22 +73,7 @@ namespace MSDiskManager.Helpers
             if (!Directory.Exists(p)) Directory.CreateDirectory(p);
             return p;
         }
-        public static string ToTitleCase(this string str)
-        {
-            if (str == null || str.Length == 0) return "";
-            var s = str.Trim();
-            if (s.Length == 0) return s;
-            try
-            {
-                TextInfo textInfo = new CultureInfo("en-US", false).TextInfo;
-                var res = textInfo.ToTitleCase(s.ToLower());
-                return res;
-            }
-            catch (Exception)
-            {
-                return str;
-            }
-        }
+       
         public static long GetDirSize(this DirectoryInfo d, Action<long> reportSize = null)
         {
             long size = 0;

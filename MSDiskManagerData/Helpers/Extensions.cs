@@ -6,6 +6,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading;
+using System.Globalization;
 using System.Threading.Tasks;
 
 namespace MSDiskManagerData.Helpers
@@ -31,7 +32,22 @@ namespace MSDiskManagerData.Helpers
         {
             return new ConcurrentBag<T>(list);
         }
-        
+        public static string ToTitleCase(this string str)
+        {
+            if (str == null || str.Length == 0) return "";
+            var s = str.Trim();
+            if (s.Length == 0) return s;
+            try
+            {
+                TextInfo textInfo = new CultureInfo("en-US", false).TextInfo;
+                var res = textInfo.ToTitleCase(s.ToLower());
+                return res;
+            }
+            catch (Exception)
+            {
+                return str;
+            }
+        }
         public async static Task<(List<T> success, List<T> failure)> ForEachLimitedAsync<T>(this List<T> ts, Func<T, Task> action, int limit)
         {
             long count = ts.Count;

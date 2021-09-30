@@ -8,6 +8,7 @@
         WindowStyle="None"
         AllowsTransparency="True"
         BorderBrush="Transparent"
+        DataContext="{Binding RelativeSource={RelativeSource Self}}"
         BorderThickness="0"
         WindowStartupLocation="CenterScreen"
         Title="MSMessageBox" Height="200" Width="600">
@@ -19,14 +20,14 @@
         </ResourceDictionary>
     </Window.Resources>
     <Border CornerRadius="3">
-        <Grid>
+        <Grid Background="{StaticResource Primary}">
             <Grid.RowDefinitions>
                 <RowDefinition/>
                 <RowDefinition Height="auto"/>
             </Grid.RowDefinitions>
             <TextBlock VerticalAlignment="Center" TextAlignment="Center" TextWrapping="Wrap" Foreground="{StaticResource BrightText}" Text="{Binding Message}" d:Text="SAD SAD AS SA FASF SAF SAF SAF AS FSA FAS FSA SA FAS FSA FSA FSA FSA FSA FAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
                    />
-            <Button Grid.Row="1" Style="{StaticResource SharpBlueButton}" Content="OK"/>
+            <Button Grid.Row="1" Style="{StaticResource SharpBlueButton}" Content="OK" Click="Button_Click"/>
         </Grid>
     </Border>
 </Window>

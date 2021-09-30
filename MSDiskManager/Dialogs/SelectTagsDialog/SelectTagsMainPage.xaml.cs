@@ -126,7 +126,6 @@ namespace MSDiskManager.Dialogs.SelectTagsDialog
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
             _ = filterTags();
-            this.KeyDown += (a, r) => { if (r.Key == Key.Escape) Window.GetWindow(this).Close(); };
         }
 
         private void LoadMore(object sender, RoutedEventArgs e)
@@ -140,6 +139,7 @@ namespace MSDiskManager.Dialogs.SelectTagsDialog
         }
         private void createTag()
         {
+            FilterTextBox.SelectAll();
             var page = new AddTagPage(Filter.Value, async (tag) =>
             {
                 selectTagFunction(tag);
@@ -153,8 +153,12 @@ namespace MSDiskManager.Dialogs.SelectTagsDialog
         {
             _ = filterTags();
             FilterTextBox.Focus();
+            Window.GetWindow(this).KeyDown += listenToKeys;
         }
-
+        private void listenToKeys(object sender, KeyEventArgs e)
+        {
+            if (e.Key == Key.Escape) Window.GetWindow(this).Close();
+        }
         private async void FilterTextKeyDown(object sender, KeyEventArgs e)
         {
             switch (e.Key)

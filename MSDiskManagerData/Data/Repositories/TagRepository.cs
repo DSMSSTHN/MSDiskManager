@@ -4,6 +4,7 @@ using MSDiskManagerData.Helpers;
 using NodaTime;
 using System;
 using System.Collections.Generic;
+
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -104,8 +105,9 @@ namespace MSDiskManagerData.Data.Repositories
         public async Task<Tag> AddTag(string name, int color)
         {
             var now = Instant.FromDateTimeUtc(DateTime.Now.ToUniversalTime());
-            return await AddTag(new Tag { Name = name, Color = color ,LastAccessDate = now,CreationDate = now,ModificationDate = now});
+            return await AddTag(new Tag { Name = name.Trim().ToTitleCase(), Color = color ,LastAccessDate = now,CreationDate = now,ModificationDate = now});
         }
+       
         public async Task<Tag> AddTag(Tag tag)
         {
             if (tag == null) throw new ArgumentException("Null was given instead of a tag");

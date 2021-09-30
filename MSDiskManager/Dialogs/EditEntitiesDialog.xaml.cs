@@ -193,9 +193,26 @@ namespace MSDiskManager.Dialogs
         private void Grid_Loaded(object sender, RoutedEventArgs e)
         {
             this.MouseLeftButtonDown += delegate { DragMove(); };
-            this.KeyDown += (a, r) => { if (r.Key == Key.Escape) if (this.DialogResult == null) { this.DialogResult = false; this.Close(); } };
+            this.PreviewKeyDown += (a, r) =>
+            {
+                if (r.Key == Key.Escape)
+                {
+                    if (this.DialogResult == null) { this.DialogResult = false; this.Close(); e.Handled = true; }
+                }
+                else if (r.Key == Key.Enter ||
+                (r.Key == Key.S && (Keyboard.IsKeyDown(Key.LeftCtrl) || Keyboard.IsKeyDown(Key.RightCtrl))
+
+                )) { this.SaveClicked(null, null); e.Handled = true; }
+                else if (r.Key == Key.T && (Keyboard.IsKeyDown(Key.LeftCtrl) || Keyboard.IsKeyDown(Key.RightCtrl)))
+                {
+                    AddTags(null, null);
+                    e.Handled = true;
+                }
+
+            };
             NameTBX.Focus();
             NameTBX.SelectAll();
+            //AddTags(null, null);
         }
 
         private void Button_Click(object sender, RoutedEventArgs e)
@@ -206,7 +223,6 @@ namespace MSDiskManager.Dialogs
         }
         private void AddTags(object sender, RoutedEventArgs e)
         {
-            var button = sender as Button;
             var diag = new SelectTagsWindow(Entity.Tags.Select(t => (long)t.Id).ToList(), (tag) => Entity.Tags.Add(tag), true);
             diag.ShowDialog();
         }

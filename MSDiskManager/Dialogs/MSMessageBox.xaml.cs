@@ -23,7 +23,6 @@ namespace MSDiskManager.Dialogs
         public MSMessageBox(string message)
         {
             this.Message = message;
-            this.DataContext = this;
             InitializeComponent();
         }
 
@@ -32,6 +31,11 @@ namespace MSDiskManager.Dialogs
         {
             var diag = new MSMessageBox(message);
             diag.ShowDialog();
+        }
+
+        private void Button_Click(object sender, RoutedEventArgs e)
+        {
+            Close();
         }
     }
 }

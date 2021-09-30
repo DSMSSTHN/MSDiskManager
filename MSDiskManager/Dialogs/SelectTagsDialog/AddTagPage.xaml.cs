@@ -66,6 +66,7 @@ namespace MSDiskManager.Dialogs.SelectTagsDialog
         private Action<Tag> tagAddedFunc;
         public AddTagPage(string name, Action<Tag> tagAddedFunc)
         {
+            this.ItemName = name;
           this.tagAddedFunc = tagAddedFunc;
             InitializeComponent();
         }
@@ -104,6 +105,7 @@ namespace MSDiskManager.Dialogs.SelectTagsDialog
 
         private void CancelClicked(object sender, RoutedEventArgs e)
         {
+            Window.GetWindow(this).PreviewKeyDown -= listenToKeys;
             this.NavigationService.GoBack();
 
         }
@@ -114,6 +116,8 @@ namespace MSDiskManager.Dialogs.SelectTagsDialog
             {
                 var tag = await new TagRepository().AddTag(name, Color);
                 tagAddedFunc?.Invoke(tag);
+                Window.GetWindow(this).PreviewKeyDown -= listenToKeys;
+                NavigationService.GoBack();
             }
             catch (Exception ex)
             {
@@ -135,7 +139,14 @@ namespace MSDiskManager.Dialogs.SelectTagsDialog
 
         private void Page_Loaded(object sender, RoutedEventArgs e)
         {
-            this.KeyDown += (a, r) => { if (r.Key == Key.Escape) NavigationService.GoBack(); };
+            Window.GetWindow(this).PreviewKeyDown += listenToKeys;
+            
+        }
+        private void listenToKeys(object sender, KeyEventArgs e)
+        {
+            if (e.Key == Key.Escape) { NavigationService.GoBack(); Window.GetWindow(this).PreviewKeyDown -= listenToKeys; e.Handled = true; }
+            if (e.Key == Key.Enter) { AddClicked(null, null); e.Handled = true; }
+        
             
         }
     }

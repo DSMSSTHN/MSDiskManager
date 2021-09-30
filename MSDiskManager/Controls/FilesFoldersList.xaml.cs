@@ -88,7 +88,19 @@ namespace MSDiskManager.Controls
 
         private void Grid_Loaded(object sender, RoutedEventArgs e)
         {
-            this.PreviewKeyDown += (a, r) => Model.KeyDown(r.Key);
+            this.PreviewKeyDown += (a, r) =>
+            {
+                Model.KeyDown(r.Key);
+                if (r.Key == Key.Enter)
+                {
+                    var selected = ItemsListView.SelectedItem as BaseEntityViewModel;
+                    if (selected != null)
+                    {
+                        if (selected is FileViewModel) handelFileClicked(selected as FileViewModel);
+                        else Model.Parent = selected as DirectoryViewModel;
+                    }
+                }
+            };
             this.PreviewKeyUp += (a, r) => Model.KeyUp(r.Key);
 
             //filterTopViewModel.FilterModel.Name = "";
