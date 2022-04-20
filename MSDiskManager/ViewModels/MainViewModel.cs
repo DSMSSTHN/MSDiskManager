@@ -106,7 +106,7 @@ namespace MSDiskManager.ViewModels
                 }
                 CanGoBack = value != null && CurrentFolderOnly;
                 NotifyPropertyChanged("Parent");
-                _ = Task.Run(() => new DirectoryInfo((value == null ? (MSDM_DBContext.DriverName[0] + ":\\") : value.FullPath)).GetDirSize((s) => onDeskSize = s.ByteSizeToSizeString()));
+                _ = Task.Run(() => new DirectoryInfo(value == null ? (MSDM_DBContext.DriverName[0] + ":\\") : value.FullPath).GetDirSize((s) => onDeskSize = s.ByteSizeToSizeString()));
                 _ = filterData();
             }
         }
@@ -489,7 +489,7 @@ namespace MSDiskManager.ViewModels
                 var df = DirectoryFilter;
                 List<MSDirecotry> directories;
                 int p = 0;
-                int l = 30;
+                int l = 0;
                 do
                 {
                     if (token.IsCancellationRequested) return;
@@ -538,7 +538,7 @@ namespace MSDiskManager.ViewModels
                 }
                 numOfItems += files.Count;
                 NumberOfItems = numOfItems;
-            } while (files != null && files.Count > 0);
+            } while (files != null && files.Count >= limit);
 
 
             lastClickedItem = null;

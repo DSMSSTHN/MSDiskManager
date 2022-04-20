@@ -186,6 +186,10 @@ namespace MSDiskManager.ViewModels
             var ignoreAdd = new List<DirectoryViewModel>();
             foreach (var d in dirs)
             {
+                if(d.Parent != null && d.Parent.Tags != null && d.Parent.Tags.Count > 0)
+                {
+                    d.AddTagsRecursive(d.Parent.Tags.ToList());
+                }
                 var de = d.DirectoryEntity;
                 var valid = false;
                 var canReplace = true;
@@ -318,6 +322,11 @@ namespace MSDiskManager.ViewModels
             if (cancels?.IsCancellationRequested ?? true) return false;
             foreach (var f in files)
             {
+                if (f.Parent != null && f.Parent.Tags != null && f.Parent.Tags.Count > 0)
+                {
+                    var toAdd = f.Parent.Tags.Where(pt => !f.Tags.Any(t => t.Id == pt.Id)).ToList();
+                    if(toAdd.Count > 0) f.Tags.AddMany(toAdd);
+                }
                 var fe = f.FileEntity;
                 var valid = false;
                 var canReplace = true;
